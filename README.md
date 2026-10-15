@@ -60,7 +60,7 @@ L'app è divisa in moduli: ogni parte sta in un file separato, così una modific
 
 1. Apri la tua app «Pubblica».
 2. Crea un repository nuovo, per esempio **`atlante-lago-piccolo`**.
-3. Carica il file ZIP `atlante-lago-piccolo.zip`. I file sono già alla radice: `index.html` deve finire nella radice del repository, non in una sottocartella.
+3. Carica il file ZIP `atlante-lago-piccolo-v<versione>.zip` (per esempio `atlante-lago-piccolo-v1.7.zip`). I file sono già alla radice: `index.html` deve finire nella radice del repository, non in una sottocartella.
 4. Su GitHub apri il repository, poi **Settings → Pages**.
 5. In **Source** scegli **Deploy from a branch**. Come branch scegli **main** e come cartella **/ (root)**, poi premi **Save**.
 6. Aspetta 1–2 minuti. L'indirizzo sarà:
@@ -85,7 +85,7 @@ Da quel momento l'app si apre anche senza rete.
    ```
    python tools/build.py --zip
    ```
-   Questo comando cambia il codice build e crea `../atlante-lago-piccolo.zip`. Per cambiare anche il numero di versione scrivi per esempio `python tools/build.py 1.4 --zip`.
+   Questo comando cambia il codice build e crea `../atlante-lago-piccolo-v<versione>.zip`. Per cambiare anche il numero di versione scrivi per esempio `python tools/build.py 1.4 --zip`.
 3. Pubblica lo ZIP con «Pubblica» nello stesso repository.
 4. Sul telefono vai su **Altro → 🔄 Aggiorna**. L'app trova la nuova build, scarica i file nuovi e si riavvia.
 

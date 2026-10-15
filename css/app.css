@@ -108,6 +108,14 @@ h3:first-child{margin-top:4px}
 #viewer{position:fixed;inset:0;z-index:3000;background:#000;display:none;align-items:center;justify-content:center}
 #viewer img{max-width:100%;max-height:100%}
 #viewer.on{display:flex}
+#viewer img{touch-action:pan-y;user-select:none;-webkit-user-select:none;transition:opacity .15s}
+#vTop{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:10px;padding:calc(env(safe-area-inset-top) + 8px) 10px 8px 14px;background:linear-gradient(#000c,#0000);color:#fff}
+#vN{font-size:14px;font-weight:600;white-space:nowrap}
+#vCap{flex:1;min-width:0;font-size:13px;color:#ddd;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#vX{width:48px;height:48px;border-radius:50%;border:1px solid #fff6;background:#000a;color:#fff;font-size:24px;cursor:pointer;flex:none}
+.vNav{position:absolute;top:50%;transform:translateY(-50%);width:52px;height:72px;border:1px solid #fff4;background:#0008;color:#fff;font-size:40px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
+#vPrev{left:6px;border-radius:0 14px 14px 0}#vNext{right:6px;border-radius:14px 0 0 14px}
+.vNav:disabled{opacity:.2}
 #toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--navh) + env(safe-area-inset-bottom) + 90px);z-index:4000;background:#263238;border:1px solid var(--line);padding:9px 14px;border-radius:12px;font-size:14px;display:none;max-width:90vw;text-align:center}
 .sug{border:1px solid var(--line);border-radius:10px;margin-top:4px;max-height:260px;overflow:auto;background:#12161b}
 .sug div{padding:7px 10px;border-bottom:1px solid #222a32;cursor:pointer;display:flex;gap:8px;align-items:center}
