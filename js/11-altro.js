@@ -1,0 +1,54 @@
+/* Atlante Lago Piccolo - Scheda Altro e menu dei livelli.
+   by Lollo ®2026 · i moduli si caricano nell'ordine dei numeri (vedi index.html) */
+'use strict';
+/* =================== PAGINA ALTRO =================== */
+function renderAlt(){
+  var h='';
+  var late=SET.changes>0;
+  h+='<h3>Backup ed esportazione</h3><div class="card"><b>Backup completo (ZIP)</b><div class="mut">Contiene tutti i dati, le foto e gli audio, più le schede stampabili e i file GPX, KML, GeoJSON e CSV. Usalo anche per passare i dati ad altri telefoni o al PC.</div><div class="mut" style="margin-top:4px">Ultimo backup: '+(SET.lastBackup?fmtDate(new Date(SET.lastBackup).toISOString()):'mai')+(late?' · <b style="color:var(--warn)">'+SET.changes+' modifiche non salvate nel backup</b>':'')+'</div><div class="row" style="margin-top:8px"><button class="btn f" id="bZip">📦 Crea backup e condividi</button></div></div>';
+  h+='<div class="card"><b>Singoli formati</b><div class="mut">Solo dati e coordinate, senza foto.</div><div class="row" style="margin-top:8px"><button class="btn s" data-ex="gpx">GPX (OsmAnd, Garmin)</button><button class="btn s" data-ex="kml">KML (Google Earth)</button><button class="btn s" data-ex="geojson">GeoJSON (QGIS)</button><button class="btn s" data-ex="csv">CSV (Excel)</button></div></div>';
+  h+='<div class="card"><b>Schede stampabili / PDF</b><div class="mut">Apre le schede di tutti i punti (oppure di quelli filtrati nel Catalogo) con le foto, nel formato della «Scheda sito» del corso. Dal menu del browser scegli Stampa → Salva come PDF.</div><div class="row" style="margin-top:8px"><button class="btn s" id="bRepAll">Tutti i punti</button><button class="btn s" id="bRepF">Solo i filtrati</button></div></div>';
+  h+='<div class="card"><b>Importa</b><div class="mut">Backup ZIP di questa app (anche di un compagno di corso: i punti si uniscono senza doppioni) oppure punti da file GPX, KML o GeoJSON.</div><div class="row" style="margin-top:8px"><button class="btn s" id="bImp">📥 Scegli file</button></div></div>';
+  h+='<h3>Tracce registrate ('+TRACKS.length+')</h3>';
+  h+=TRACKS.length?TRACKS.map(function(t){var s=trkStats(t);return '<div class="card"><div class="row"><b style="flex:1">'+esc(t.name)+'</b></div><div class="mut">'+fmtDist(s.d)+' · '+fmtDur(s.t)+' · +'+s.up+' / −'+s.dn+' m · '+t.pts.length+' punti</div><div class="row" style="margin-top:6px"><button class="btn s" data-tv="'+t.id+'">Mostra</button><button class="btn s" data-tg="'+t.id+'">GPX</button><button class="btn s" data-tr="'+t.id+'">Rinomina</button><button class="btn s r" data-td="'+t.id+'">Elimina</button></div></div>'}).join(''):'<p class="mut">Nessuna traccia. Avviala dal pulsante ⏺ sulla mappa.</p>';
+  h+='<h3>Mappa</h3><div class="card"><div class="row"><label><input type="checkbox" id="shP" '+(showPoints?'checked':'')+'> i miei punti</label><label><input type="checkbox" id="shT" '+(showTracks?'checked':'')+'> le mie tracce</label></div></div>';
+  h+='<h3>Impostazioni</h3><div class="card">';
+  h+='<label class="l">Compilatore (nome sulle schede)</label><input type="text" id="sComp" value="'+esc(SET.compilatore)+'">';
+  h+='<label class="l">Secondi di lettura GPS per ogni punto (più lungo = più preciso)</label><select id="sGps">'+[3,5,10,20,30].map(function(n){return '<option'+(n===SET.gpsAvg?' selected':'')+'>'+n+'</option>'}).join('')+'</select>';
+  h+='<label class="l">Dimensione massima delle foto (lato lungo, pixel)</label><select id="sPh">'+[1280,1600,1920,2560,3200].map(function(n){return '<option'+(n===SET.photoMax?' selected':'')+'>'+n+'</option>'}).join('')+'</select>';
+  h+='<label class="l">Lingua di Wikipedia</label><select id="sWl"><option value="it"'+(SET.wikiLang==='it'?' selected':'')+'>italiano</option><option value="en"'+(SET.wikiLang==='en'?' selected':'')+'>inglese</option><option value="fr"'+(SET.wikiLang==='fr'?' selected':'')+'>francese</option><option value="pms"'+(SET.wikiLang==='pms'?' selected':'')+'>piemontese</option></select>';
+  h+='<label class="l">Chiave Pl@ntNet (gratuita, da my.plantnet.org)</label><input type="password" id="sPn" value="'+esc(SET.plantnet)+'" autocomplete="off">';
+  h+='<div class="row" style="margin-top:10px"><button class="btn f" id="bSet">Salva impostazioni</button><button class="btn s" id="bNearSet">🔔 Avvisi «Vicino a te»</button></div></div>';
+  h+='<h3>App: aggiornamento e installazione</h3><div class="card"><div id="appSt" class="mut">…</div><div class="row" style="margin-top:10px"><button class="btn f" id="bUpd">🔄 Aggiorna</button><button class="btn f" id="bInst">⬇️ Installa tutto</button></div><div class="bar" id="instBar" style="display:none"><i></i></div><div class="log" id="instLog"></div><div class="mut" style="margin-top:8px"><b>Aggiorna</b>: cerca online una versione più recente di questa pagina e la carica. Punti, foto e audio restano dove sono.<br><b>Installa tutto</b>: aggiunge l\'icona alla schermata Home, salva la pagina nel telefono e scarica le mappe dell\'area del lago per vederle anche senza rete. Serve la pagina pubblicata su un indirizzo https:// con accanto il file <b>sw.js</b>.</div><div class="row" style="margin-top:8px"><button class="btn s r" id="bClrT">Svuota mappe salvate</button></div></div>';
+  h+='<h3>Memoria</h3><div class="card" id="memBox"><span class="mut">calcolo…</span></div>';
+  h+='<p class="mut">Atlante Lago Piccolo v'+VERSION+' · '+BRAND+'</p>';
+  $('#altBody').innerHTML=h;
+  $('#bZip').onclick=exportZip;$$('[data-ex]').forEach(function(b){b.onclick=function(){exportText(b.getAttribute('data-ex'))}});
+  $('#bRepAll').onclick=function(){if(!POINTS.length)return toast('Nessun punto');printReport(POINTS.slice().sort(function(a,b){return (a.when||'').localeCompare(b.when||'')}))};
+  $('#bRepF').onclick=function(){var a=POINTS.filter(passFilter);if(!a.length)return toast('Nessun punto filtrato');printReport(a)};
+  $('#bImp').onclick=function(){$('#fImp').value='';$('#fImp').click()};
+  $$('[data-tv]').forEach(function(b){b.onclick=function(){var t=TRACKS.filter(function(x){return x.id===b.getAttribute('data-tv')})[0];if(!t)return;go('map');map.fitBounds(L.latLngBounds(t.pts.map(function(p){return [p[0],p[1]]})),{padding:[30,30]})}});
+  $$('[data-tg]').forEach(function(b){b.onclick=function(){var t=TRACKS.filter(function(x){return x.id===b.getAttribute('data-tg')})[0];if(t)shareOrDownload(new Blob([toGPX([],[t])],{type:'application/gpx+xml'}),slug(t.name)+'.gpx')}});
+  $$('[data-tr]').forEach(function(b){b.onclick=function(){var t=TRACKS.filter(function(x){return x.id===b.getAttribute('data-tr')})[0];var n=t&&prompt('Nome della traccia',t.name);if(n){t.name=n;DB.put('tracks',t).then(loadTracks)}}});
+  $$('[data-td]').forEach(function(b){b.onclick=function(){if(confirm('Eliminare la traccia?'))DB.del('tracks',b.getAttribute('data-td')).then(function(){markChange();loadTracks()})}});
+  $('#shP').onchange=function(){showPoints=this.checked;drawPoints()};$('#shT').onchange=function(){showTracks=this.checked;drawTracks()};
+  $('#bNearSet').onclick=openNear;$('#bUpd').onclick=doUpdate;$('#bInst').onclick=installAll;$('#bClrT').onclick=clearTiles;if(inst.busy)$('#bInst').textContent='⏹ Annulla';renderAppSt();
+  $('#bSet').onclick=function(){SET.compilatore=$('#sComp').value.trim();SET.gpsAvg=+$('#sGps').value;SET.photoMax=+$('#sPh').value;SET.wikiLang=$('#sWl').value;SET.plantnet=$('#sPn').value.trim();saveSet().then(function(){toast('Impostazioni salvate')})};
+  var mb=$('#memBox');var txt=DB.ok?'':'<b style="color:var(--bad)">Attenzione: il browser non permette di salvare dati da questa pagina.</b> Succede se apri il file da un\'app di gestione file. Pubblica la pagina (per esempio su GitHub Pages con la tua «Pubblica») e aprila dall\'indirizzo web. Fino ad allora i dati restano solo finché la pagina è aperta: esporta il backup prima di chiudere.<br>';
+  if(navigator.storage&&navigator.storage.estimate){navigator.storage.estimate().then(function(e){navigator.storage.persisted?navigator.storage.persisted().then(function(p){mb.innerHTML=txt+'Spazio usato: <b>'+fmtSize(e.usage||0)+'</b> su circa '+fmtSize(e.quota||0)+' disponibili.<br>'+(p?'<span class="ok">Archivio protetto: il browser non lo cancellerà da solo.</span>':'<span class="mut">Archivio non ancora protetto: il browser potrebbe cancellarlo se manca spazio. Fai backup regolari.</span>')}):mb.innerHTML=txt+'Spazio usato: '+fmtSize(e.usage||0)})}else mb.innerHTML=txt||'<span class="mut">Informazioni sulla memoria non disponibili.</span>';
+}
+
+/* =================== LIVELLI MAPPA =================== */
+function openLayers(){
+  var h='<h3>Mappa di base</h3>'+BASES.map(function(b){return '<label class="item" style="cursor:pointer"><input type="radio" name="base" value="'+b.id+'" '+(b.id===baseId?'checked':'')+'><span class="tx"><b>'+esc(b.n)+'</b><small>'+esc(b.d)+'</small></span></label>'}).join('');
+  var lg='';OVERS.forEach(function(o){if(o.g!==lg){h+='<h3>'+esc(o.g)+'</h3>';lg=o.g}h+='<div class="item"><input type="checkbox" data-ov="'+o.id+'" '+(overOn[o.id]?'checked':'')+'><span class="tx"><b>'+esc(o.n)+'</b></span><input type="range" min="10" max="100" value="'+Math.round(o.op*100)+'" data-op="'+o.id+'" style="width:90px"></div>'});
+  h+='<h3>I miei dati</h3><div class="item"><input type="checkbox" id="lyP" '+(showPoints?'checked':'')+'><span class="tx"><b>Punti del catalogo</b><small>il filtro del Catalogo vale anche qui</small></span></div><div class="item"><input type="checkbox" id="lyT" '+(showTracks?'checked':'')+'><span class="tx"><b>Tracce</b></span></div>';
+  h+='<p class="mut">Per animali, piante, Wikipedia e OpenStreetMap usa la scheda <b>Esplora</b>.</p>';
+  h+='<div class="row"><button class="btn s" id="lyLeg">ⓘ Legenda delle mappe</button></div>';
+  openModal('Livelli della mappa',h,[]);
+  $$('input[name=base]').forEach(function(r){r.onchange=function(){setBase(r.value)}});
+  $$('[data-ov]').forEach(function(c){c.onchange=function(){setOver(OVERS.filter(function(o){return o.id===c.getAttribute('data-ov')})[0],c.checked)}});
+  $$('[data-op]').forEach(function(r){r.oninput=function(){var o=OVERS.filter(function(x){return x.id===r.getAttribute('data-op')})[0];o.op=r.value/100;if(overLayers[o.id])overLayers[o.id].setOpacity(o.op)}});
+  $('#lyLeg').onclick=openLegend;
+  $('#lyP').onchange=function(){showPoints=this.checked;drawPoints()};$('#lyT').onchange=function(){showTracks=this.checked;drawTracks()};
+}

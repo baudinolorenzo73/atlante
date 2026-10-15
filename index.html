@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#161a1f">
+<meta name="description" content="Atlante di campo del Lago Piccolo di Avigliana - by Lollo ®2026">
+<title>Atlante Lago Piccolo</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="lib/leaflet/leaflet.css">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div id="map"></div>
+<div id="top">
+  <div class="t"><b>Lago Piccolo di Avigliana</b><small>Atlante di campo · by Lollo ®2026</small></div>
+  <span class="chip" id="chipGps" style="display:none"></span>
+  <span class="chip rec" id="chipRec" style="display:none"></span>
+</div>
+<div id="mapbtns">
+  <div class="mb" id="bLayers" title="Livelli">☰</div>
+  <div class="mb" id="bLeg" title="Legenda delle mappe">ⓘ</div>
+  <div class="mb" id="bNear" title="Vicino a te: avvisi">🔔</div>
+  <div class="mb" id="bGps" title="La mia posizione">⌖</div>
+  <div class="mb" id="bRec" title="Registra traccia">⏺</div>
+  <div class="mb" id="bHome" title="Centra sul lago">◎</div>
+</div>
+<button id="fabAdd" title="Nuovo punto">+</button>
+<div id="coord" class="chip">tieni premuto sulla mappa per un nuovo punto</div>
+<div id="cross"></div>
+<div id="nearBar"></div>
+<div id="pickbar"><span>Sposta la mappa: il punto è al centro del mirino</span><button class="btn" id="pickNo">Annulla</button><button class="btn f" id="pickOk">Conferma</button></div>
+
+<section class="page" id="pg-cat">
+  <div class="ph"><h2>Catalogo</h2><small id="catCount"></small>
+    <div class="row" style="margin-top:8px"><input type="search" id="q" placeholder="Cerca titolo, specie, note, tag…" style="flex:1"><select id="sort" style="width:auto"><option value="new">recenti</option><option value="old">meno recenti</option><option value="near">più vicini</option><option value="az">A-Z</option><option value="cat">categoria</option></select></div>
+    <div class="cats" id="catFilter" style="margin-top:8px"></div>
+  </div>
+  <div class="pb" id="catList"></div>
+</section>
+
+<section class="page" id="pg-exp">
+  <div class="ph"><h2>Esplora</h2><small>Dati liberi online sull'area inquadrata nella mappa</small></div>
+  <div class="pb" id="expBody"></div>
+</section>
+
+<section class="page" id="pg-dos">
+  <div class="ph"><h2>Dossier del lago</h2><small>Ricerca con fonti · checklist · calendario</small></div>
+  <div class="pb" id="dosBody"></div>
+</section>
+
+<section class="page" id="pg-alt">
+  <div class="ph"><h2>Esporta, tracce, impostazioni</h2></div>
+  <div class="pb" id="altBody"></div>
+</section>
+
+<nav id="nav">
+  <button data-p="map" class="on"><i>🗺️</i>Mappa</button>
+  <button data-p="cat"><i>📒</i>Catalogo</button>
+  <button data-p="exp"><i>🔭</i>Esplora</button>
+  <button data-p="dos"><i>📚</i>Dossier</button>
+  <button data-p="alt" id="navAlt"><i>⚙️</i>Altro</button>
+</nav>
+
+<div id="modal"><div id="mbox"><div id="mhead"><b id="mtitle"></b><button class="x" id="mclose">✕</button></div><div id="mbody"></div><div id="mfoot"></div></div></div>
+<div id="viewer"><img alt=""></div>
+<div id="toast"></div>
+<input type="file" id="fCam" accept="image/*" capture="environment" hidden>
+<input type="file" id="fGal" accept="image/*" multiple hidden>
+<input type="file" id="fAud" accept="audio/*" hidden>
+<input type="file" id="fImp" accept=".zip,.gpx,.kml,.geojson,.json,application/zip,application/json,application/gpx+xml" hidden>
+
+<!-- moduli dell'app: l'ordine conta -->
+<script src="lib/leaflet/leaflet.js"></script>
+<script src="data/alberi.js"></script>
+<script src="js/version.js"></script>
+<script src="js/01-base.js"></script>
+<script src="js/02-mappa.js"></script>
+<script src="js/03-gps-tracce.js"></script>
+<script src="js/04-punti.js"></script>
+<script src="js/05-scheda.js"></script>
+<script src="js/06-esporta.js"></script>
+<script src="js/07-esplora.js"></script>
+<script src="js/08-dossier.js"></script>
+<script src="js/09-vicino.js"></script>
+<script src="js/10-pwa.js"></script>
+<script src="js/11-altro.js"></script>
+<script src="js/12-avvio.js"></script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+{
+ "name": "Atlante Lago Piccolo",
+ "short_name": "Lago Piccolo",
+ "description": "Atlante di campo del Lago Piccolo di Avigliana: catalogo di punti con foto, audio e GPS, mappe, dossier di ricerca. by Lollo ®2026",
+ "id": "./",
+ "start_url": "./",
+ "scope": "./",
+ "display": "standalone",
+ "orientation": "any",
+ "background_color": "#161a1f",
+ "theme_color": "#161a1f",
+ "lang": "it",
+ "categories": [
+  "education",
+  "navigation",
+  "utilities"
+ ],
+ "icons": [
+  {
+   "src": "icons/icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "icons/icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "icons/icon-maskable-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  }
+ ]
+}
