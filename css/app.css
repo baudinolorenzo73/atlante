@@ -56,6 +56,30 @@ h3:first-child{margin-top:4px}
 .item .tx b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .item .tx small{color:var(--mut);font-size:12px}
 .pin{width:30px;height:30px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 2px 5px #000a;display:flex;align-items:center;justify-content:center}
+.pin.ind{opacity:.62;border-style:dashed}
+#compass{position:fixed;left:10px;top:calc(env(safe-area-inset-top) + 52px);z-index:900;width:48px;height:58px;border-radius:14px;border:1px solid var(--line);background:#1f252cf0;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 6px #0006}
+#compass.on{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc)}
+#compN{transition:transform .25s linear}
+#compL{font-size:10px;color:var(--mut);margin-top:-3px;white-space:nowrap}
+#compass.on #compL{color:var(--acc)}
+#spArrow{position:fixed;z-index:880;display:none;pointer-events:none;filter:drop-shadow(0 1px 2px #000a);margin-top:0}
+#map ~ #spArrow{position:fixed}
+#spChip{position:fixed;left:10px;right:86px;bottom:calc(var(--navh) + env(safe-area-inset-bottom) + 64px);z-index:900;display:none;align-items:center;gap:8px;border-color:#ff1744;padding:6px 10px;cursor:pointer;font-size:13px}
+#spChip .tx{flex:1;min-width:0}#spChip b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#spChip small{color:var(--mut)}
+#pocket{position:fixed;inset:0;z-index:3000;background:#000;display:none;align-items:center;justify-content:center;touch-action:none;user-select:none;-webkit-user-select:none}
+#pocket .pk{text-align:center;color:#555;padding:20px}
+#pocket .pkr{color:#7a1f1f;font-weight:700;letter-spacing:2px}
+#pkS{font-size:34px;color:#666;margin:10px 0 18px}
+#pocket .pkh{font-size:13px;line-height:1.5}
+#pocket .pkbar{height:4px;background:#111;border-radius:2px;margin:18px auto 0;width:180px;overflow:hidden}#pkBar{display:block;height:100%;width:0;background:#444}
+#chipRec{cursor:pointer}
+#recAsk{position:fixed;inset:0;z-index:3200;background:#000c;display:none;align-items:center;justify-content:center;padding:16px}
+#recAsk .ra{background:var(--panel);border:1px solid var(--warn);border-radius:18px;padding:18px;max-width:440px;width:100%;box-shadow:0 8px 30px #000}
+#recAsk b{font-size:17px;display:block;margin-bottom:4px}
+#raB{display:flex;flex-direction:column;gap:8px;margin-top:12px}#raB .btn{width:100%;text-align:left;padding:12px 14px}
+#raB .btn small{display:block;color:inherit;opacity:.8;font-size:12px;margin-top:2px}
+.pin.ind{opacity:.62;border-style:dashed}
+.ric{font-size:14px;line-height:1.5}
 .pin span{transform:rotate(45deg);font-size:15px;line-height:1}
 .xdot{width:22px;height:22px;border-radius:50%;border:2px solid #0b0f13;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#0b0f13;box-shadow:0 1px 3px #000a}
 #modal{position:fixed;inset:0;z-index:2000;background:#000a;display:none;align-items:flex-end;justify-content:center}

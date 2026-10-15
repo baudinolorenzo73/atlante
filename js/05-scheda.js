@@ -4,7 +4,7 @@
 /* =================== FORM NUOVO / MODIFICA =================== */
 var draft=null,draftURLs=[];
 function freeDraft(){draftURLs.forEach(function(u){URL.revokeObjectURL(u)});draftURLs=[]}
-function newDraft(lat,lon,extra){var d={id:uid(),isNew:true,cat:'fauna',title:'',sp:null,x:{},s:{},note:'',tags:[],when:new Date().toISOString(),lat:lat,lon:lon,acc:null,alt:null,altSrc:'',gpsN:0,meteo:'',comp:SET.compilatore,media:[],removed:[]};return Object.assign(d,extra||{})}
+function newDraft(lat,lon,extra){var d={id:uid(),isNew:true,cat:'fauna',title:'',sp:null,x:{},s:{},note:'',ric:'',tags:[],when:new Date().toISOString(),lat:lat,lon:lon,acc:null,alt:null,altSrc:'',gpsN:0,meteo:'',comp:SET.compilatore,media:[],removed:[]};return Object.assign(d,extra||{})}
 function openForm(p,opts){
   opts=opts||{};
   if(p){draft=JSON.parse(JSON.stringify(p));draft.isNew=false;draft.removed=[];draft.x=draft.x||{};draft.s=draft.s||{};draft.media=(draft.media||[]).map(function(m){return Object.assign({},m)})}
@@ -14,6 +14,8 @@ function openForm(p,opts){
 function catSel(){return CATS.map(function(c){return '<span class="cat'+(draft.cat===c.id?' on':'')+'" data-c="'+c.id+'">'+c.e+' '+esc(c.n)+'</span>'}).join('')}
 function renderForm(){
   var c=CAT(draft.cat),h='';
+  if(draft.qc){var ph=draft.media.filter(function(m){return m.type==='photo'&&m.blob})[0],u='';if(ph){u=URL.createObjectURL(ph.blob);draftURLs.push(u)}
+    h+='<div class="card row" style="align-items:center">'+(u?'<img src="'+u+'" alt="" style="width:64px;height:64px;object-fit:cover;border-radius:10px">':'')+'<div style="flex:1"><b>✓ Foto e posizione salvate nella bozza</b><div class="mut">'+(draft.acc?'📍 GPS ±'+draft.acc+' m':'📍 '+esc(draft.posSrc||''))+' · ora scegli la categoria e completa</div></div></div>'}
   h+='<label class="l">Categoria</label><div class="cats" id="fCats">'+catSel()+'</div>';
   if(c.sp){h+='<label class="l">Specie (nome italiano o scientifico)</label><input type="text" id="fSp" autocomplete="off" value="'+esc(draft.sp?((draft.sp.com||'')+(draft.sp.sci&&draft.sp.com?' – ':'')+(draft.sp.sci||'')):'')+'" placeholder="es. svasso maggiore, Alnus glutinosa…"><div id="fSpSug"></div>';
     h+='<div id="fSpInfo" class="mut">'+(draft.sp&&draft.sp.tratti?esc(draft.sp.tratti):'')+'</div>';
@@ -23,6 +25,7 @@ function renderForm(){
     h+='<label class="l">'+esc(f.l)+'</label>';
     if(f.t==='select')h+='<select data-x="'+f.k+'"><option value=""></option>'+f.o.map(function(o){return '<option'+(o===v?' selected':'')+'>'+esc(o)+'</option>'}).join('')+'</select>';
     else h+='<input type="'+(f.t==='number'?'number':'text')+'" inputmode="'+(f.t==='number'?'decimal':'text')+'" data-x="'+f.k+'" value="'+esc(v)+'">';});
+  h+='<label class="l">Dalla ricerca (testi da libri, siti, dispense, con le fonti) – modificabile</label><textarea id="fRic" style="min-height:'+(draft.ric?'160':'60')+'px" placeholder="Informazioni raccolte da fonti esterne, con la fonte">'+esc(draft.ric||'')+'</textarea>';
   h+='<label class="l">Descrizione e note (solo testo tuo)</label><textarea id="fNote" placeholder="Cosa vedi, cosa senti, dettagli, comportamento, ipotesi…">'+esc(draft.note)+'</textarea>';
   if(c.sch){h+='<h3>Scheda sito (modello del corso)</h3>';SCHEDA.forEach(function(s){var v=draft.s[s.k]||'';h+='<label class="l">'+esc(s.l)+'</label>'+(s.ta?'<textarea data-s="'+s.k+'" style="min-height:60px">'+esc(v)+'</textarea>':'<input type="text" data-s="'+s.k+'" value="'+esc(v)+'">')})}
   h+='<h3>Foto</h3><div class="row"><button class="btn" id="fCamB">📷 Scatta</button><button class="btn" id="fGalB">🖼️ Dalla galleria</button></div><div class="media" id="fPhotos"></div>';
@@ -39,7 +42,7 @@ function renderForm(){
 }
 function readForm(){
   var g=function(id){var e=$('#'+id);return e?e.value:''};
-  draft.title=g('fTitle').trim();draft.note=g('fNote');
+  draft.title=g('fTitle').trim();draft.note=g('fNote');if($('#fRic'))draft.ric=g('fRic');
   draft.tags=g('fTags').split(',').map(function(t){return t.trim()}).filter(Boolean);
   var w=g('fWhen');if(w)draft.when=new Date(w).toISOString();
   draft.meteo=g('fMeteo');draft.comp=g('fComp');
@@ -65,7 +68,7 @@ function bindForm(){
 }
 function debounce(f,ms){var t;return function(){var a=arguments,s=this;clearTimeout(t);t=setTimeout(function(){f.apply(s,a)},ms)}}
 function renderPos(){var e=$('#fPos');if(!e)return;
-  e.innerHTML='<b>'+draft.lat.toFixed(6)+', '+draft.lon.toFixed(6)+'</b><br><small class="mut">'+(draft.acc?'precisione ±'+draft.acc+' m'+(draft.gpsN?' · media di '+draft.gpsN+' letture':''):(draft.posSrc||'posizione scelta a mano'))+(draft.alt!=null?' · quota '+draft.alt+' m ('+esc(draft.altSrc||'GPS')+')':'')+'</small>'}
+  e.innerHTML='<b>'+draft.lat.toFixed(6)+', '+draft.lon.toFixed(6)+'</b><br><small class="mut">'+(draft.acc?'precisione ±'+draft.acc+' m'+(draft.gpsN?' · media di '+draft.gpsN+' letture':''):(isInd(draft)?'<b style="color:var(--warn)">📍 '+esc(draft.posSrc)+'</b>':esc(draft.posSrc||'posizione scelta a mano')))+(draft.alt!=null?' · quota '+draft.alt+' m ('+esc(draft.altSrc||'GPS')+')':'')+'</small>'}
 function gpsForDraft(){
   var pb=$('#fGpsP'),bar=$('i',pb);pb.style.display='';bar.style.width='0';
   getFix(SET.gpsAvg,function(n,acc,t){bar.style.width=Math.min(100,t/SET.gpsAvg*100)+'%';$('#fGpsB').textContent='📡 '+n+' letture · ±'+Math.round(acc)+' m'}).then(function(f){
@@ -142,7 +145,41 @@ function addPhotos(files){
   files=Array.prototype.slice.call(files||[]);if(!files.length||!draft)return;readForm();toast('Elaboro '+files.length+' foto…');
   Promise.all(files.map(function(f){return f.slice(0,262144).arrayBuffer().then(function(ab){var g=exifGPS(ab);if(g&&!draft._exif){draft._exif=g}return compress(f,SET.photoMax)}).then(function(b){draft.media.push({id:uid(),type:'photo',mime:'image/jpeg',cap:'',blob:b,size:b.size})})})).then(function(){renderMediaEdit();if(draft._exif){var b=$('#fExifB');if(b)b.style.display='';toast('La foto contiene la posizione GPS: puoi usarla con «Usa posizione della foto»',4500)}});
 }
-$('#fCam').onchange=function(){addPhotos(this.files)};
+$('#fCam').onchange=function(){if(QC.on)return quickPhotos(this.files);addPhotos(this.files)};
+/* ---- scatto rapido: prima foto e posizione, poi il resto ---- */
+var QC={on:false,wid:null,reads:[]};
+function qcStop(){if(QC.wid!=null)navigator.geolocation.clearWatch(QC.wid);QC.wid=null}
+function quickCapture(){
+  var c=map.getCenter();draft=newDraft(c.lat,c.lng,{posSrc:'in attesa del GPS'});QC.on=true;
+  // il GPS resta in ascolto mentre scatti: dopo la foto si usano le letture più recenti
+  QC.reads=[];if(QC.wid!=null)navigator.geolocation.clearWatch(QC.wid);QC.wid=null;
+  if(navigator.geolocation)QC.wid=navigator.geolocation.watchPosition(function(p){QC.reads.push({t:Date.now(),lat:p.coords.latitude,lon:p.coords.longitude,acc:p.coords.accuracy,alt:p.coords.altitude})},function(){},{enableHighAccuracy:true,maximumAge:0});
+  var inp=$('#fCam');inp.value='';
+  inp.oncancel=function(){if(!QC.on)return;QC.on=false;qcStop();toast('Foto annullata. Tieni premuto + per gli altri modi di creare un punto',4000)};
+  inp.click();
+}
+function quickPhotos(files){
+  QC.on=false;files=Array.prototype.slice.call(files||[]);if(!files.length)return;
+  var d=draft,sec=SET.gpsAvg;toast('📍 Foto presa. Leggo la posizione GPS ('+sec+' s)…',sec*1000+3000);
+  var pPh=Promise.all(files.map(function(f){return f.slice(0,262144).arrayBuffer().then(function(ab){var g=exifGPS(ab);if(g&&!d._exif)d._exif=g;return compress(f,SET.photoMax)}).then(function(b){d.media.push({id:uid(),type:'photo',mime:'image/jpeg',cap:'',blob:b,size:b.size})})}));
+  var tPh=Date.now();
+  var pFx=new Promise(function(res){
+    if(QC.wid==null)return res(null);
+    var iv=setInterval(function(){var el=(Date.now()-tPh)/1000,fresh=QC.reads.filter(function(r){return r.t>=tPh-2000});
+      if((fresh.length&&el>=sec)||(fresh.length&&fresh[fresh.length-1].acc<=3)||el>=sec+8){clearInterval(iv);
+        var use=fresh.length?fresh:QC.reads.filter(function(r){return Date.now()-r.t<180000}).slice(-3);qcStop();
+        if(!use.length)return res(null);
+        var best=Math.min.apply(null,use.map(function(r){return r.acc}));use=use.filter(function(r){return r.acc<=best*2.5});
+        var sw=0,la=0,lo=0,al=0,aw=0;use.forEach(function(r){var w=1/(r.acc*r.acc);sw+=w;la+=r.lat*w;lo+=r.lon*w;if(r.alt!=null){al+=r.alt*w;aw+=w}});
+        res({lat:la/sw,lon:lo/sw,acc:Math.max(1,Math.round(best*10)/10),alt:aw?Math.round(al/aw):null,n:use.length})}},400)});
+  Promise.all([pPh,pFx]).then(function(r){var f=r[1];
+    if(f){d.lat=f.lat;d.lon=f.lon;d.acc=f.acc;d.gpsN=f.n;d.posSrc='GPS';if(f.alt!=null){d.alt=f.alt;d.altSrc='GPS'}here={lat:f.lat,lon:f.lon,acc:f.acc,alt:f.alt}}
+    else if(d._exif){d.lat=d._exif.lat;d.lon=d._exif.lon;d.posSrc='dai dati GPS della foto';if(d._exif.alt!=null){d.alt=d._exif.alt;d.altSrc='EXIF foto'}}
+    else d.posSrc='posizione da completare (GPS non disponibile): usa «Scegli sulla mappa»';
+    d.qc=true;openForm(null,{draft:d});if(!f&&!d._exif)toast('GPS non disponibile: scegli il punto sulla mappa',4500);else toast('✓ Foto e posizione pronte: scegli la categoria e completa la scheda',4000);
+    if(d.alt==null&&f)demForDraft();
+  }).catch(function(e){toast('Errore: '+e.message,5000);openForm(null,{draft:d})});
+}
 $('#fGal').onchange=function(){addPhotos(this.files)};
 $('#fAud').onchange=function(){var f=this.files[0];if(!f||!draft)return;readForm();draft.media.push({id:uid(),type:'audio',mime:f.type||'audio/mpeg',cap:f.name,blob:f,size:f.size});renderMediaEdit()};
 /* registratore */
@@ -169,7 +206,7 @@ function saveDraft(){
   if(RECA.mr){toast('Ferma prima la registrazione audio');return}
   if(!draft.title){draft.title=(draft.sp&&(draft.sp.com||draft.sp.sci))||CAT(draft.cat).n+' '+fmtDate(draft.when)}
   var now=new Date().toISOString();
-  var rec={id:draft.id,cat:draft.cat,title:draft.title,sp:CAT(draft.cat).sp?draft.sp:null,x:draft.x,s:CAT(draft.cat).sch?draft.s:{},note:draft.note,tags:draft.tags,when:draft.when,lat:+draft.lat,lon:+draft.lon,acc:draft.acc,posSrc:draft.posSrc||'',alt:draft.alt,altSrc:draft.altSrc,gpsN:draft.gpsN,meteo:draft.meteo,comp:draft.comp,created:draft.created||now,updated:now,
+  var rec={id:draft.id,cat:draft.cat,title:draft.title,sp:CAT(draft.cat).sp?draft.sp:null,x:draft.x,s:CAT(draft.cat).sch?draft.s:{},note:draft.note,ric:draft.ric||'',rk:draft.rk||null,match:draft.match||null,tags:draft.tags,when:draft.when,lat:+draft.lat,lon:+draft.lon,acc:draft.acc,posSrc:draft.posSrc||'',alt:draft.alt,altSrc:draft.altSrc,gpsN:draft.gpsN,meteo:draft.meteo,comp:draft.comp,created:draft.created||now,updated:now,
     media:draft.media.map(function(m){return {id:m.id,type:m.type,mime:m.mime,cap:m.cap||'',size:m.size||0,dur:m.dur||null}})};
   var ops=draft.media.filter(function(m){return m.blob}).map(function(m){return DB.put('media',{id:m.id,pid:rec.id,blob:m.blob})});
   draft.removed.forEach(function(id){delete thumbCache[id];ops.push(DB.del('media',id))});
@@ -189,11 +226,15 @@ $('#pickOk').onclick=function(){pickEnd(true)};$('#pickNo').onclick=function(){p
 /* ---- nuovo punto ---- */
 function newPointMenu(){
   var h='<p class="mut">Dove si trova il punto?</p>';
-  var foot=[mkBtn('📡 Qui, dal GPS','f',function(){closeModal();newFromGps()}),mkBtn('🎯 Al centro della mappa','',function(){closeModal();pickStart(function(la,lo){openForm(null,{draft:newDraft(la,lo)})})}),mkBtn('🖼️ Da una foto con GPS','',function(){closeModal();newFromPhoto()})];
-  openModal('Nuovo punto',h+'<p class="mut">Suggerimento: puoi anche <b>tenere premuto</b> direttamente sulla mappa nel punto esatto.</p>',foot);
+  var foot=[mkBtn('📷 Foto e posizione, poi il resto','f',function(){closeModal();quickCapture()}),mkBtn('📡 Qui, dal GPS','',function(){closeModal();newFromGps()}),mkBtn('🎯 Al centro della mappa','',function(){closeModal();pickStart(function(la,lo){openForm(null,{draft:newDraft(la,lo)})})}),mkBtn('🖼️ Da una foto con GPS','',function(){closeModal();newFromPhoto()})];
+  openModal('Nuovo punto',h+'<p class="mut">Un tocco su <b>+</b> apre subito la fotocamera (foto e posizione, poi il resto). Tenendo premuto <b>+</b> apri questo menu. Puoi anche <b>tenere premuto</b> sulla mappa nel punto esatto.</p>',foot);
 }
 function newFromGps(){toast('Leggo il GPS per '+SET.gpsAvg+' secondi…',SET.gpsAvg*1000+1500);getFix(SET.gpsAvg).then(function(f){here={lat:f.lat,lon:f.lon,acc:f.acc,alt:f.alt};var d=newDraft(f.lat,f.lon,{acc:f.acc,gpsN:f.n,alt:f.alt,altSrc:f.alt!=null?'GPS':''});openForm(null,{draft:d})}).catch(function(e){toast('GPS non disponibile ('+e.message+'): scegli il punto sulla mappa',4000);var c=map.getCenter();openForm(null,{draft:newDraft(c.lat,c.lng)})})}
 function newFromPhoto(){var c=map.getCenter();openForm(null,{draft:newDraft(c.lat,c.lng)});setTimeout(function(){$('#fGal').value='';$('#fGal').click()},200)}
-$('#fabAdd').onclick=newPointMenu;
+(function(){var fab=$('#fabAdd'),lt=null,long=false;
+  fab.addEventListener('pointerdown',function(){long=false;clearTimeout(lt);lt=setTimeout(function(){long=true;if(navigator.vibrate)navigator.vibrate(30);newPointMenu()},550)});
+  ['pointerup','pointercancel','pointerleave'].forEach(function(ev){fab.addEventListener(ev,function(){clearTimeout(lt)})});
+  fab.addEventListener('contextmenu',function(e){e.preventDefault()});
+  fab.onclick=function(e){if(long){long=false;return}quickCapture()};})();
 map.on('contextmenu',function(e){if(picking)return;openForm(null,{draft:newDraft(e.latlng.lat,e.latlng.lng)});demForDraft()});
 map.on('click',function(e){if(picking)return;$('#coord').textContent=e.latlng.lat.toFixed(6)+', '+e.latlng.lng.toFixed(6)});

@@ -31,6 +31,11 @@
 <div id="coord" class="chip">tieni premuto sulla mappa per un nuovo punto</div>
 <div id="cross"></div>
 <div id="nearBar"></div>
+<div id="compass" title="Nord in alto"><svg id="compN" viewBox="0 0 40 40" width="40" height="40"><polygon points="20,3 26,20 20,17 14,20" fill="#ff1744"/><polygon points="20,37 26,20 20,23 14,20" fill="#cfd8dc"/><text x="20" y="14.5" text-anchor="middle" font-size="7" font-weight="700" fill="#fff">N</text></svg><span id="compL">N</span></div>
+<div id="spArrow"><svg viewBox="0 0 30 30" width="30" height="30"><path d="M15 1 L27 27 L15 20 L3 27 Z" fill="#ff1744" stroke="#fff" stroke-width="2" stroke-linejoin="round"/></svg></div>
+<div id="spChip" class="chip"></div>
+<div id="recAsk"><div class="ra"><b id="raT"></b><p id="raM" class="mut"></p><div id="raB"></div></div></div>
+<div id="pocket"><div class="pk"><div class="pkr">● REC</div><div id="pkS">—</div><div class="pkh">Modalità tasca: schermo nero per risparmiare batteria, tocchi bloccati.<br>Tieni premuto 2 secondi per sbloccare.</div><div class="pkbar"><i id="pkBar"></i></div></div></div>
 <div id="pickbar"><span>Sposta la mappa: il punto è al centro del mirino</span><button class="btn" id="pickNo">Annulla</button><button class="btn f" id="pickOk">Conferma</button></div>
 
 <section class="page" id="pg-cat">
@@ -74,7 +79,10 @@
 
 <!-- moduli dell'app: l'ordine conta -->
 <script src="lib/leaflet/leaflet.js"></script>
+<script src="lib/leaflet/leaflet-rotate.js"></script>
+<script src="lib/leaflet/leaflet-rotate.js"></script>
 <script src="data/alberi.js"></script>
+<script src="data/schede_ricerca.js"></script>
 <script src="js/version.js"></script>
 <script src="js/01-base.js"></script>
 <script src="js/02-mappa.js"></script>
@@ -87,6 +95,7 @@
 <script src="js/09-vicino.js"></script>
 <script src="js/10-pwa.js"></script>
 <script src="js/11-altro.js"></script>
-<script src="js/12-avvio.js"></script>
+<script src="js/12-bussola.js"></script>
+<script src="js/13-avvio.js"></script>
 </body>
 </html>

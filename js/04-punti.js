@@ -3,15 +3,15 @@
 'use strict';
 /* =================== PUNTI: CARICAMENTO, MAPPA, LISTA =================== */
 function loadPoints(){return DB.all('points').then(function(a){POINTS=a;drawPoints();renderCat();if(curPage==='dos')renderDossier()})}
-function pinIcon(c){return L.divIcon({className:'',html:'<div class="pin" style="background:'+c.c+'"><span>'+c.e+'</span></div>',iconSize:[30,30],iconAnchor:[15,30],popupAnchor:[0,-28]})}
+function pinIcon(c,ind){return L.divIcon({className:'',html:'<div class="pin'+(ind?' ind':'')+'" style="background:'+c.c+'"><span>'+c.e+'</span></div>',iconSize:[30,30],iconAnchor:[15,30],popupAnchor:[0,-28]})}
 function passFilter(p){
   var any=Object.keys(filterCats).some(function(k){return filterCats[k]});
   if(any&&!filterCats[p.cat])return false;
-  if(query){var q=query.toLowerCase();var hay=[p.title,p.note,(p.sp&&p.sp.sci),(p.sp&&p.sp.com),(p.tags||[]).join(' '),CAT(p.cat).n].join(' ').toLowerCase();if(hay.indexOf(q)<0)return false}
+  if(query){var q=query.toLowerCase();var hay=[p.title,p.note,p.ric,(p.sp&&p.sp.sci),(p.sp&&p.sp.com),(p.tags||[]).join(' '),CAT(p.cat).n].join(' ').toLowerCase();if(hay.indexOf(q)<0)return false}
   return true;
 }
-function drawPoints(){gPoints.clearLayers();if(!showPoints)return;POINTS.filter(passFilter).forEach(function(p){
-  var m=L.marker([p.lat,p.lon],{icon:pinIcon(CAT(p.cat)),title:p.title||''});
+function drawPoints(){gPoints.clearLayers();if(!showPoints)return;POINTS.filter(passFilter).forEach(function(p){if(SET.hideInd&&isInd(p))return;
+  var m=L.marker([p.lat,p.lon],{icon:pinIcon(CAT(p.cat),isInd(p)),title:(p.title||'')+(isInd(p)?' (posizione indicativa)':'')});
   m.on('click',function(){openDetail(p.id)});m.addTo(gPoints)})}
 function firstPhoto(p){var m=(p.media||[]).filter(function(x){return x.type==='photo'})[0];return m}
 function thumbURL(mid){if(thumbCache[mid])return Promise.resolve(thumbCache[mid]);return DB.get('media',mid).then(function(r){if(!r)return null;thumbCache[mid]=URL.createObjectURL(r.blob);return thumbCache[mid]})}
@@ -55,11 +55,12 @@ function openDetail(id){
   var h='<div class="row" style="margin:8px 0"><span class="cat on" style="border-color:'+c.c+'">'+c.e+' '+esc(c.n)+'</span><span class="mut">'+fmtDate(p.when)+'</span></div>';
   if(p.sp&&(p.sp.sci||p.sp.com))h+='<div class="card"><b>'+esc(p.sp.com||'')+'</b> <i>'+esc(p.sp.sci||'')+'</i>'+(p.sp.src?'<br><small class="mut">fonte nome: '+esc(p.sp.src)+'</small>':'')+(p.sp.tratti?'<p class="mut" style="margin:6px 0 0">'+esc(p.sp.tratti)+'</p>':'')+'</div>';
   if(p.note)h+='<h3>Descrizione e note</h3><div style="white-space:pre-wrap">'+esc(p.note)+'</div>';
+  if(p.ric)h+='<h3>Dalla ricerca</h3><div class="card ric" style="white-space:pre-wrap">'+linkify(p.ric)+'</div>';
   var kv=[];
   Object.keys(p.x||{}).forEach(function(k){if(p.x[k]!==''&&p.x[k]!=null)kv.push([extraLabel(k),p.x[k]])});
   SCHEDA.forEach(function(s){if(p.s&&p.s[s.k])kv.push([s.l,p.s[s.k]])});
   if(kv.length)h+='<h3>Scheda</h3><div class="kv">'+kv.map(function(r){var v=esc(r[1]);if(/^https?:\/\//.test(r[1]))v=v.replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>');return '<div>'+esc(r[0])+'</div><div style="white-space:pre-wrap">'+v+'</div>'}).join('')+'</div>';
-  h+='<h3>Posizione</h3><div class="kv"><div>Coordinate</div><div>'+p.lat.toFixed(6)+', '+p.lon.toFixed(6)+'</div>'+(p.acc?'<div>Precisione</div><div>±'+p.acc+' m'+(p.gpsN?' (media di '+p.gpsN+' letture)':'')+'</div>':'')+(p.alt!=null?'<div>Quota</div><div>'+p.alt+' m'+(p.altSrc?' ('+esc(p.altSrc)+')':'')+'</div>':'')+(here?'<div>Distanza da te</div><div>'+fmtDist(dist(here.lat,here.lon,p.lat,p.lon))+'</div>':'')+'</div>';
+  h+='<h3>Posizione</h3>'+(isInd(p)?'<div class="card" style="border-color:var(--warn)"><b style="color:var(--warn)">📍 Posizione indicativa</b><div class="mut">Messa a tavolino dalla ricerca: quando sei sul posto apri «Modifica» e premi «Aggiorna dal GPS» o «Scegli sulla mappa». Finché resta indicativa non fa scattare gli avvisi «Vicino a te».</div></div>':'')+'<div class="kv"><div>Coordinate</div><div>'+p.lat.toFixed(6)+', '+p.lon.toFixed(6)+'</div>'+(p.posSrc&&!isInd(p)?'<div>Origine</div><div>'+esc(p.posSrc)+'</div>':'')+(p.acc?'<div>Precisione</div><div>±'+p.acc+' m'+(p.gpsN?' (media di '+p.gpsN+' letture)':'')+'</div>':'')+(p.alt!=null?'<div>Quota</div><div>'+p.alt+' m'+(p.altSrc?' ('+esc(p.altSrc)+')':'')+'</div>':'')+(here?'<div>Distanza da te</div><div>'+fmtDist(dist(here.lat,here.lon,p.lat,p.lon))+'</div>':'')+'</div>';
   h+='<div class="row" style="margin-top:6px"><a class="btn s" href="geo:'+p.lat+','+p.lon+'?q='+p.lat+','+p.lon+'('+encodeURIComponent(p.title||'punto')+')">Naviga</a><a class="btn s" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query='+p.lat+','+p.lon+'">Google Maps</a></div>';
   if(p.meteo)h+='<h3>Meteo al momento</h3><div class="mut">'+esc(p.meteo)+'</div>';
   if(p.tags&&p.tags.length)h+='<h3>Tag</h3><div>'+p.tags.map(function(t){return '<span class="cat">#'+esc(t)+'</span>'}).join(' ')+'</div>';

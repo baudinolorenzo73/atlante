@@ -79,4 +79,6 @@ var EXTRA={
  criticita:[{k:'tipo_crit',l:'Tipo',t:'select',o:['rifiuti','erosione della sponda','specie invasiva','danno o vandalismo','sentiero impraticabile','inquinamento','altro']},{k:'gravita',l:'Gravità',t:'select',o:['bassa','media','alta']}]
 };
 var SCHEDA=[{k:'epoca',l:'Epoca'},{k:'indirizzo',l:'Indirizzo / località'},{k:'apertura',l:'Aperture / periodo'},{k:'costo',l:'Costo'},{k:'conservazione',l:'Stato di conservazione'},{k:'accessibilita',l:'Accessibilità'},{k:'bibliografia',l:'Bibliografia',ta:1},{k:'sitografia',l:'Sitografia (link)',ta:1}];
+function isInd(p){return /^indicativa/.test(p&&p.posSrc||'')}
+function linkify(t){return esc(t).replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>')}
 function extraLabel(k){for(var c in EXTRA)for(var i=0;i<EXTRA[c].length;i++)if(EXTRA[c][i].k===k)return EXTRA[c][i].l;return k}

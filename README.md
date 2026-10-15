@@ -24,9 +24,22 @@ L'app è divisa in moduli: ogni parte sta in un file separato, così una modific
 | `js/09-vicino.js` | Avvisi «Vicino a te» e archivio della zona | cambiare la zona o le regole degli avvisi |
 | `js/10-pwa.js` | Pulsanti Aggiorna e Installa tutto, mappe senza rete | |
 | `js/11-altro.js` | Scheda Altro e menu dei livelli | |
-| `js/12-avvio.js` | Navigazione tra le schede e avvio dell'app (**deve restare l'ultimo**) | |
+| `js/12-bussola.js` | Bussola (nord e mappa orientata secondo la direzione) e freccia rossa verso la specie più vicina | |
+| `js/13-avvio.js` | Navigazione tra le schede e avvio dell'app (**deve restare l'ultimo**) | |
 | `data/alberi.js` | Catalogo dei 144 alberi del corso | |
-| `lib/leaflet/` | Libreria delle mappe Leaflet 1.9.4 | — |
+| `data/schede_ricerca.js` | Le 81 schede iniziali della ricerca (flora, fauna, rocce, acque, storia, folclore, curiosità, sentieri) con fonti | aggiungere schede per tutti (vedi sotto) |
+
+**Schede della ricerca:**
+- Entrano nel Catalogo **una sola volta**, al primo avvio, con il tag «ricerca». Da lì le modifichi nell'app come qualsiasi punto: il testo «Dalla ricerca» è modificabile e le tue note restano separate.
+- Se elimini una scheda, non torna da sola. Per riaverla vai su Dossier → «Ripristina le mancanti».
+- Per aggiungere schede nuove valide per chiunque installi l'app:
+  1. Apri `data/schede_ricerca.js` e aggiungi una voce con una chiave `k` mai usata.
+  2. Aumenta `v` di 1.
+  3. Lancia `python tools/build.py`.
+
+  Al prossimo avvio entrano solo le voci nuove.
+- **Posizioni indicative:** il segnaposto tratteggiato indica una posizione messa a tavolino, che non fa scattare gli avvisi. Quando scarichi l'archivio della zona (🔔), l'app sposta da sola quelle che trova per nome (per esempio San Bartolomeo e il Monte Cuneo). Le altre le sposti tu sul posto con «Aggiorna dal GPS».
+| `lib/leaflet/` | Libreria delle mappe Leaflet 1.9.4 e il plugin leaflet-rotate 0.2.8 (rotazione della mappa) | — |
 | `icons/` | Icone dell'app | cambiare l'icona |
 | `manifest.webmanifest` | Nome, colori e icone dell'app installata | cambiare il nome sulla Home |
 | `sw.js` | Service worker: fa funzionare l'app senza rete | — |
@@ -36,8 +49,8 @@ L'app è divisa in moduli: ogni parte sta in un file separato, così una modific
 **Regole per i moduli:**
 - I file `js/` si caricano nell'ordine dei numeri. Ogni funzione si può usare da qualsiasi modulo, purché la si chiami dopo l'avvio.
 - Per aggiungere un modulo:
-  1. Crea per esempio `js/13-nuovo.js` e scrivi `'use strict';` come prima riga.
-  2. In `index.html` aggiungi `<script src="js/13-nuovo.js"></script>` **prima** della riga di `12-avvio.js`.
+  1. Crea per esempio `js/14-nuovo.js` e scrivi `'use strict';` come prima riga.
+  2. In `index.html` aggiungi `<script src="js/14-nuovo.js"></script>` **prima** della riga di `13-avvio.js`.
   3. Lancia `python tools/build.py`.
 - Non rinominare una funzione senza cercarla in tutti i file: può essere usata da altri moduli.
 

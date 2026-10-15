@@ -1,12 +1,13 @@
 /* Generato da tools/build.py: non modificare a mano (tranne VERSION, se vuoi). */
-var VERSION='1.3';
-var BUILD='37f053c1';
+var VERSION='1.6';
+var BUILD='59fe37bd';
 var ASSETS=[
   './',
   'index.html',
   'manifest.webmanifest',
   'css/app.css',
   'data/alberi.js',
+  'data/schede_ricerca.js',
   'icons/icon-192.png',
   'icons/icon-512.png',
   'icons/icon-maskable-512.png',
@@ -21,7 +22,9 @@ var ASSETS=[
   'js/09-vicino.js',
   'js/10-pwa.js',
   'js/11-altro.js',
-  'js/12-avvio.js',
+  'js/12-bussola.js',
+  'js/13-avvio.js',
+  'lib/leaflet/leaflet-rotate.js',
   'lib/leaflet/leaflet.css',
   'lib/leaflet/leaflet.js',
   'lib/leaflet/images/layers-2x.png',

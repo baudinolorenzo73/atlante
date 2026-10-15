@@ -29,7 +29,7 @@ function classify(s){s=(s||'').toLowerCase();
 function nearCands(){
   var n=NS(),out=[],seen={};
   function add(o){var sk=o.src==='wd'?'wiki':o.src;if(!n.src[sk])return;var k2=nameKey(o);if(seen[o.id]||seen[k2])return;seen[o.id]=seen[k2]=1;if(n.grp[grpOf(o.cat)])out.push(o)}
-  POINTS.forEach(function(p){if(p.lat==null)return;var spn=p.sp?[p.sp.com,p.sp.sci].filter(Boolean).join(' · '):'';add({id:'p:'+p.id,src:'mine',t:p.title||spn||CAT(p.cat).n,sub:spn||CAT(p.cat).n,lat:p.lat,lon:p.lon,cat:p.cat,pid:p.id})});
+  POINTS.forEach(function(p){if(p.lat==null||isInd(p))return;var spn=p.sp?[p.sp.com,p.sp.sci].filter(Boolean).join(' · '):'';add({id:'p:'+p.id,src:'mine',t:p.title||spn||CAT(p.cat).n,sub:spn||CAT(p.cat).n,lat:p.lat,lon:p.lon,cat:p.cat,pid:p.id})});
   (NEAR.pack&&NEAR.pack.items||[]).forEach(add);
   [['wiki','wiki'],['wd','wd'],['osm','osm'],['inat','inat']].forEach(function(k){(EXP[k[0]]||[]).forEach(function(o){if(o.lat==null)return;add({id:k[0]+':'+o.url,src:k[0],t:o.t,sub:o.kind||(o.types&&o.types.join(', '))||o.sci||'',lat:o.lat,lon:o.lon,cat:o.save&&o.save.cat||'curiosita',url:o.url,img:o.img,save:o.save})})});
   return out;
@@ -171,5 +171,17 @@ async function downloadPack(){
   NEAR.pack={when:new Date().toISOString(),items:clean};
   await DB.put('kv',{id:'zonepack',v:NEAR.pack});
   log('✓ Archivio salvato nel telefono: '+clean.length+' luoghi e osservazioni.','ok');
+  var fx=await fixIndicative();if(fx)log('✓ Posizioni indicative corrette dall\'archivio: '+fx+' schede della ricerca','ok');
   NEAR.busy=false;if(btn)btn.disabled=false;NEAR.st={};nearCheck(true);
+}
+/* sposta le schede della ricerca con posizione indicativa sul luogo omonimo trovato nell'archivio (Wikidata, Wikipedia, OSM) */
+function normTxt(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim()}
+async function fixIndicative(){
+  if(!NEAR.pack)return 0;var n=0,its=NEAR.pack.items.filter(function(o){return o.src!=='inat'});
+  for(var i=0;i<POINTS.length;i++){var p=POINTS[i];if(!isInd(p)||!p.match||!p.match.length)continue;
+    var best=null,bd=1e9;
+    its.forEach(function(o){var t=normTxt(o.t);if(!p.match.some(function(m){return t.indexOf(normTxt(m))>=0}))return;var d=dist(p.lat,p.lon,o.lat,o.lon);if(d<bd&&d<6000){bd=d;best=o}});
+    if(best){p.lat=best.lat;p.lon=best.lon;p.posSrc='da '+(SRCN[best.src]||best.src)+': «'+best.t+'» (verifica sul posto)';p.updated=new Date().toISOString();await DB.put('points',p);n++}}
+  if(n){markChange();await loadPoints()}
+  return n;
 }

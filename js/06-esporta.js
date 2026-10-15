@@ -15,11 +15,11 @@ function shareOne(p){var t=(p.title||'')+'\n'+CAT(p.cat).n+(p.sp&&p.sp.sci?' –
 
 /* =================== FORMATI DI ESPORTAZIONE =================== */
 function xesc(s){return String(s==null?'':s).replace(/[<>&'"]/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;',"'":'&apos;','"':'&quot;'}[c]})}
-function pointDesc(p){var a=[CAT(p.cat).n];if(p.sp&&(p.sp.com||p.sp.sci))a.push((p.sp.com||'')+(p.sp.sci?' ('+p.sp.sci+')':''));Object.keys(p.x||{}).forEach(function(k){if(p.x[k])a.push(extraLabel(k)+': '+p.x[k])});SCHEDA.forEach(function(s){if(p.s&&p.s[s.k])a.push(s.l+': '+p.s[s.k])});if(p.note)a.push(p.note);if(p.tags&&p.tags.length)a.push('Tag: '+p.tags.join(', '));if(p.meteo)a.push('Meteo: '+p.meteo);return a.join('\n')}
+function pointDesc(p){var a=[CAT(p.cat).n];if(p.sp&&(p.sp.com||p.sp.sci))a.push((p.sp.com||'')+(p.sp.sci?' ('+p.sp.sci+')':''));Object.keys(p.x||{}).forEach(function(k){if(p.x[k])a.push(extraLabel(k)+': '+p.x[k])});SCHEDA.forEach(function(s){if(p.s&&p.s[s.k])a.push(s.l+': '+p.s[s.k])});if(p.note)a.push(p.note);if(p.ric)a.push('Dalla ricerca: '+p.ric);if(isInd(p))a.push('Posizione indicativa, da verificare');if(p.tags&&p.tags.length)a.push('Tag: '+p.tags.join(', '));if(p.meteo)a.push('Meteo: '+p.meteo);return a.join('\n')}
 function toGPX(points,tracks){
   var s='<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="Atlante Lago Piccolo '+BRAND+'" xmlns="http://www.topografix.com/GPX/1/1">\n<metadata><name>Atlante Lago Piccolo di Avigliana</name><time>'+new Date().toISOString()+'</time></metadata>\n';
   points.forEach(function(p){s+='<wpt lat="'+p.lat.toFixed(7)+'" lon="'+p.lon.toFixed(7)+'">'+(p.alt!=null?'<ele>'+p.alt+'</ele>':'')+'<time>'+xesc(p.when)+'</time><name>'+xesc(p.title)+'</name><desc>'+xesc(pointDesc(p))+'</desc><type>'+xesc(CAT(p.cat).n)+'</type></wpt>\n'});
-  (tracks||[]).forEach(function(t){s+='<trk><name>'+xesc(t.name)+'</name><trkseg>\n';t.pts.forEach(function(q){s+='<trkpt lat="'+q[0]+'" lon="'+q[1]+'">'+(q[2]!=null?'<ele>'+q[2]+'</ele>':'')+'<time>'+new Date(q[3]).toISOString()+'</time></trkpt>\n'});s+='</trkseg></trk>\n'});
+  (tracks||[]).forEach(function(t){s+='<trk><name>'+xesc(t.name)+'</name><trkseg>\n';t.pts.forEach(function(q,qi){if(qi&&t.brk&&t.brk.indexOf(qi)>=0)s+='</trkseg><trkseg>\n';s+='<trkpt lat="'+q[0]+'" lon="'+q[1]+'">'+(q[2]!=null?'<ele>'+q[2]+'</ele>':'')+'<time>'+new Date(q[3]).toISOString()+'</time></trkpt>\n'});s+='</trkseg></trk>\n'});
   return s+'</gpx>\n';
 }
 function kmlColor(hex){var h=hex.replace('#','');return 'ff'+h.slice(4,6)+h.slice(2,4)+h.slice(0,2)}
@@ -35,7 +35,7 @@ function toKML(points,tracks,mediaName){
   return s+'</Document></kml>\n';
 }
 function toGeoJSON(points,tracks,mediaName){
-  var f=points.map(function(p){var pr={id:p.id,titolo:p.title,categoria:CAT(p.cat).n,data:p.when,specie_scientifica:p.sp&&p.sp.sci||'',nome_comune:p.sp&&p.sp.com||'',note:p.note,tag:(p.tags||[]).join(', '),precisione_m:p.acc,quota_m:p.alt,meteo:p.meteo,compilatore:p.comp,colore:CAT(p.cat).c};
+  var f=points.map(function(p){var pr={id:p.id,titolo:p.title,categoria:CAT(p.cat).n,data:p.when,specie_scientifica:p.sp&&p.sp.sci||'',nome_comune:p.sp&&p.sp.com||'',note:p.note,ricerca:p.ric||'',origine_posizione:p.posSrc||'',tag:(p.tags||[]).join(', '),precisione_m:p.acc,quota_m:p.alt,meteo:p.meteo,compilatore:p.comp,colore:CAT(p.cat).c};
     Object.keys(p.x||{}).forEach(function(k){pr[k]=p.x[k]});SCHEDA.forEach(function(s){if(p.s&&p.s[s.k])pr[s.k]=p.s[s.k]});
     if(mediaName)pr.media=(p.media||[]).map(function(m){return {file:mediaName(p,m),tipo:m.type,didascalia:m.cap}});
     return {type:'Feature',geometry:{type:'Point',coordinates:[+p.lon.toFixed(7),+p.lat.toFixed(7)].concat(p.alt!=null?[p.alt]:[])},properties:pr}});
@@ -44,11 +44,11 @@ function toGeoJSON(points,tracks,mediaName){
 }
 function toCSV(points){
   var xk=[];Object.keys(EXTRA).forEach(function(c){EXTRA[c].forEach(function(f){if(xk.indexOf(f.k)<0)xk.push(f.k)})});
-  var head=['id','data','categoria','titolo','nome_comune','specie_scientifica','lat','lon','precisione_m','quota_m','note','tag','n_foto','n_audio','meteo','compilatore'].concat(xk).concat(SCHEDA.map(function(s){return s.k}));
+  var head=['id','data','categoria','titolo','nome_comune','specie_scientifica','lat','lon','precisione_m','quota_m','note','ricerca','origine_posizione','tag','n_foto','n_audio','meteo','compilatore'].concat(xk).concat(SCHEDA.map(function(s){return s.k}));
   function q(v){v=v==null?'':String(v);return /[;"\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
   var rows=[head.join(';')];
   points.forEach(function(p){var ph=(p.media||[]).filter(function(m){return m.type==='photo'}).length;
-    var r=[p.id,fmtDate(p.when),CAT(p.cat).n,p.title,p.sp&&p.sp.com,p.sp&&p.sp.sci,p.lat.toFixed(7).replace('.',','),p.lon.toFixed(7).replace('.',','),p.acc,p.alt,p.note,(p.tags||[]).join(', '),ph,(p.media||[]).length-ph,p.meteo,p.comp].concat(xk.map(function(k){return p.x&&p.x[k]})).concat(SCHEDA.map(function(s){return p.s&&p.s[s.k]}));
+    var r=[p.id,fmtDate(p.when),CAT(p.cat).n,p.title,p.sp&&p.sp.com,p.sp&&p.sp.sci,p.lat.toFixed(7).replace('.',','),p.lon.toFixed(7).replace('.',','),p.acc,p.alt,p.note,p.ric||'',p.posSrc||'',(p.tags||[]).join(', '),ph,(p.media||[]).length-ph,p.meteo,p.comp].concat(xk.map(function(k){return p.x&&p.x[k]})).concat(SCHEDA.map(function(s){return p.s&&p.s[s.k]}));
     rows.push(r.map(q).join(';'))});
   return '﻿'+rows.join('\r\n');
 }
@@ -62,7 +62,7 @@ function reportHTML(points,imgSrc,audSrc){
     if(p.alt!=null)rows.push(['Quota',p.alt+' m']);
     if(p.sp&&(p.sp.com||p.sp.sci))rows.push(['Specie',(p.sp.com||'')+(p.sp.sci?' – '+p.sp.sci:'')]);
     Object.keys(p.x||{}).forEach(function(k){if(p.x[k])rows.push([extraLabel(k),p.x[k]])});
-    rows.push(['Descrizione',p.note||'']);
+    rows.push(['Descrizione',p.note||'']);if(p.ric)rows.push(['Dalla ricerca',p.ric]);if(p.posSrc)rows.push(['Origine posizione',p.posSrc]);
     SCHEDA.forEach(function(s){if(p.s&&p.s[s.k])rows.push([s.l,p.s[s.k]])});
     if(p.meteo)rows.push(['Meteo',p.meteo]);if(p.tags&&p.tags.length)rows.push(['Tag',p.tags.join(', ')]);rows.push(['Compilatore',p.comp||'']);
     h+='<div class="sch"><h2>'+esc(p.title)+'</h2><table>'+rows.map(function(r){var v=esc(r[1]).replace(/\n/g,'<br>').replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1">$1</a>');return '<tr><td class="k">'+esc(r[0])+'</td><td>'+v+'</td></tr>'}).join('')+'</table>';
@@ -136,15 +136,24 @@ function importFile(f){
   if(nm.endsWith('.zip'))return f.arrayBuffer().then(unzip).then(importZipFiles);
   return f.text().then(function(txt){
     if(nm.endsWith('.json')&&txt.indexOf('atlante-lago-piccolo')>=0)return importData(JSON.parse(txt),{});
-    var pts=[];
-    if(nm.endsWith('.gpx')||txt.indexOf('<gpx')>=0){var x=new DOMParser().parseFromString(txt,'application/xml');$$('wpt',x).forEach(function(w){pts.push({lat:+w.getAttribute('lat'),lon:+w.getAttribute('lon'),name:($('name',w)||{}).textContent,desc:($('desc',w)||{}).textContent,ele:($('ele',w)||{}).textContent,time:($('time',w)||{}).textContent})})}
+    var pts=[],trks=[];
+    if(nm.endsWith('.gpx')||txt.indexOf('<gpx')>=0){var x=new DOMParser().parseFromString(txt,'application/xml');$$('wpt',x).forEach(function(w){pts.push({lat:+w.getAttribute('lat'),lon:+w.getAttribute('lon'),name:($('name',w)||{}).textContent,desc:($('desc',w)||{}).textContent,ele:($('ele',w)||{}).textContent,time:($('time',w)||{}).textContent})});trks=gpxTracks(x,f.name)}
     else if(nm.endsWith('.kml')||txt.indexOf('<kml')>=0){var k=new DOMParser().parseFromString(txt,'application/xml');$$('Placemark',k).forEach(function(pm){var c=$('Point coordinates',pm);if(!c)return;var a=c.textContent.trim().split(',');pts.push({lat:+a[1],lon:+a[0],ele:a[2],name:($('name',pm)||{}).textContent,desc:(($('description',pm)||{}).textContent||'').replace(/<[^>]+>/g,' ')})})}
     else{var g=JSON.parse(txt);(g.features||[]).forEach(function(ft){if(ft.geometry&&ft.geometry.type==='Point'){var pr=ft.properties||{};pts.push({lat:ft.geometry.coordinates[1],lon:ft.geometry.coordinates[0],ele:ft.geometry.coordinates[2],name:pr.titolo||pr.name||pr.nome,desc:pr.note||pr.description||pr.desc})}})}
-    if(!pts.length)throw new Error('nessun punto trovato nel file');
+    if(!pts.length&&!trks.length)throw new Error('nessun punto né traccia trovati nel file');
     var now=new Date().toISOString();
-    return Promise.all(pts.filter(function(q){return isFinite(q.lat)&&isFinite(q.lon)}).map(function(q){return DB.put('points',{id:uid(),cat:'altro',title:q.name||'Punto importato',sp:null,x:{},s:{},note:q.desc||'',tags:['importato'],when:q.time||now,lat:q.lat,lon:q.lon,acc:null,alt:q.ele!=null&&q.ele!==''?Math.round(+q.ele):null,altSrc:'file importato',gpsN:0,meteo:'',comp:SET.compilatore,media:[],created:now,updated:now})})).then(function(a){return {np:a.length,nm:0,nt:0,sk:0}});
+    return Promise.all(pts.filter(function(q){return isFinite(q.lat)&&isFinite(q.lon)}).map(function(q){return DB.put('points',{id:uid(),cat:'altro',title:q.name||'Punto importato',sp:null,x:{},s:{},note:q.desc||'',tags:['importato'],when:q.time||now,lat:q.lat,lon:q.lon,acc:null,alt:q.ele!=null&&q.ele!==''?Math.round(+q.ele):null,altSrc:'file importato',gpsN:0,meteo:'',comp:SET.compilatore,media:[],created:now,updated:now})})).then(function(a){return Promise.all(trks.map(function(t){return DB.put('tracks',t)})).then(function(){if(trks.length)loadTracks();return {np:a.length,nm:0,nt:trks.length,sk:0}})});
   });
 }
+/* tracce GPX (per esempio registrate in background con la tua app nativa «Traccia GPS offline») */
+function gpxTracks(x,fname){var out=[];
+  $$('trk',x).forEach(function(t){var pts=[],brk=[];
+    $$('trkseg',t).forEach(function(sg,si){if(si>0&&pts.length)brk.push(pts.length);$$('trkpt',sg).forEach(function(q){var e=$('ele',q),tm=$('time',q);pts.push([+q.getAttribute('lat'),+q.getAttribute('lon'),e&&e.textContent!==''?Math.round(+e.textContent*10)/10:null,tm?Date.parse(tm.textContent)||null:null,null])})});
+    pts=pts.filter(function(p){return isFinite(p[0])&&isFinite(p[1])});if(pts.length<2)return;
+    var t0=pts[0][3]||Date.now();pts.forEach(function(p){if(p[3]==null)p[3]=t0});
+    var nm=null;for(var c=t.firstChild;c;c=c.nextSibling)if(c.nodeName==='name'){nm=c.textContent;break}
+    out.push({id:uid(),name:nm||String(fname||'Traccia importata').replace(/\.gpx$/i,''),start:t0,end:pts[pts.length-1][3]||t0,pts:pts,brk:brk,imported:true})});
+  return out}
 function importZipFiles(files){var dj=files['dati.json'];if(!dj)throw new Error('nello ZIP manca dati.json: non è un backup di questa app');return importData(JSON.parse(new TextDecoder().decode(dj)),files)}
 function importData(data,files){
   if(data.app!=='atlante-lago-piccolo')throw new Error('file non riconosciuto');

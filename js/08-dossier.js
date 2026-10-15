@@ -21,7 +21,17 @@ var SRC=[
  ['Lakes.it – Lago Piccolo, area naturale e attrezzata','https://www.lakes.it/laghi-di-avigliana/lago-piccolo-di-avigliana-area-naturale-area-attrezzata-spiaggia/'],
  ['Wikipedia (en) – Lakes of Avigliana Natural Park','https://en.wikipedia.org/wiki/Lakes_of_Avigliana_Natural_Park'],
  ['Corso GEA Giaveno – dispensa «Folclore locale» (S. Berto), nel tuo Drive','https://drive.google.com/file/d/1J1Y1Y6z9u16Ps9k7eTz7fmiiVeqUC8Qn/view'],
- ['Laboratorio Alte Valli – Laghi di Avigliana','https://www.laboratorioaltevalli.it/natura-ed-escursionismo/laghi-di-avigliana']
+ ['Laboratorio Alte Valli – Laghi di Avigliana','https://www.laboratorioaltevalli.it/natura-ed-escursionismo/laghi-di-avigliana'],
+ ["Piemonteis – Il priorato di San Bartolomeo, antica dipendenza dei monaci clusini", "https://www.piemonteis.org/?p=6398"],
+ ["Archeocarta – Avigliana (TO), Chiesa di San Bartolomeo", "https://archeocarta.org/avigliana-to-chiesa-di-san-bartolomeo/"],
+ ["DireFareMole – #AviglianaSegreta: la borgata di San Bartolomeo e i colori del Medioevo", "https://direfaremole.com/2017/03/25/il-piemonte-inaspettato-la-borgata-di-san-bartolomeo-ad-avigliana-e-i-colori-del-medioevo/"],
+ ["Mole24 – Torbiera di Trana: l'antico lago glaciale che racconta la preistoria", "https://mole24.it/2025/12/04/torbiera-di-trana/"],
+ ["A3 Associazione Archeologica Aviglianese – Note e articoli", "https://associazione-archeologica-aviglianese.webnode.it/archeologia-aviglianese/"],
+ ["komoot – Giovanni Valetti Memorial", "https://www.komoot.com/highlight/5462690"],
+ ["komoot – Giro del Lago Piccolo (pista ciclabile lungolago)", "https://www.komoot.com/smarttour/40392735"],
+ ["Geocaching GC5006B – Moncuni (descrizione)", "https://www.geocaching.com/geocache/GC5006B"],
+ ["UET CAI Torino – Moncuni, giro ad anello (2023)", "https://www.uetcaitorino.it/public/file/2023-04-02-moncuni-giro-ad-anello.pdf"],
+ ["GeoNames – località del comune di Avigliana", "https://www.geonames.org/search.html?q=avigliana&country=IT"]
 ];
 function S(){return Array.prototype.slice.call(arguments).map(function(n){return '<sup><a href="#src'+n+'">['+n+']</a></sup>'}).join('')}
 var CHECKLIST=[
@@ -108,11 +118,25 @@ var CHECKLIST=[
  ['Rarità del sito','Falasco','Cladium mariscus','paludi alcaline, soprattutto Mareschi']
 ];
 CHK_SPECIES=CHECKLIST.map(function(r){return {g:r[0],it:r[1],sci:r[2],note:r[3]}});
-function seenSci(){var s={};POINTS.forEach(function(p){if(p.sp&&p.sp.sci)s[p.sp.sci.toLowerCase().split(' ').slice(0,2).join(' ')]=(s[p.sp.sci.toLowerCase().split(' ').slice(0,2).join(' ')]||0)+1});return s}
+function seenSci(){var s={};POINTS.forEach(function(p){if(p.rk&&!p.note&&!(p.media&&p.media.length))return;if(p.sp&&p.sp.sci)s[p.sp.sci.toLowerCase().split(' ').slice(0,2).join(' ')]=(s[p.sp.sci.toLowerCase().split(' ').slice(0,2).join(' ')]||0)+1});return s}
+/* =================== SCHEDE DELLA RICERCA =================== */
+// Le schede di data/schede_ricerca.js entrano nel Catalogo una sola volta (non sovrascrivono mai le tue modifiche).
+function ricPoint(o,now){return {id:'ric-'+o.k,rk:o.k,cat:o.cat,title:o.t,sp:o.sp?{com:o.sp.com||'',sci:o.sp.sci||'',src:'ricerca'}:null,x:o.x||{},s:o.s||{},note:'',ric:o.ric,match:o.m||null,tags:o.tags||['ricerca'],when:now,lat:o.lat,lon:o.lon,acc:null,posSrc:o.ps||'',alt:null,altSrc:'',gpsN:0,meteo:'',comp:'Ricerca da fonti web (da verificare)',created:now,updated:now,media:[]}}
+function seedResearch(force){
+  if(typeof SCHEDE_RICERCA==='undefined')return Promise.resolve(0);
+  var done=SET.ricDone||{},have={},now=new Date().toISOString(),add=[];
+  POINTS.forEach(function(p){if(p.rk)have[p.rk]=1});
+  SCHEDE_RICERCA.items.forEach(function(o){if(have[o.k])return;if(done[o.k]&&!force)return;add.push(ricPoint(o,now))});
+  if(!add.length)return Promise.resolve(0);
+  return Promise.all(add.map(function(p){return DB.put('points',p)})).then(function(){
+    add.forEach(function(p){done[p.rk]=1});SET.ricDone=done;SET.ricV=SCHEDE_RICERCA.v;return saveSet()}).then(function(){markChange();return loadPoints()}).then(function(){return add.length});
+}
+function ricStats(){var n=0,ind=0;POINTS.forEach(function(p){if(p.rk){n++;if(isInd(p))ind++}});return {n:n,ind:ind,tot:typeof SCHEDE_RICERCA!=='undefined'?SCHEDE_RICERCA.items.length:0}}
 function renderDossier(){
   var seen=seenSci();var nseen=0;CHK_SPECIES.forEach(function(s){if(seen[s.sci.toLowerCase()]||CHECK[s.sci])nseen++});
   var h='';
   h+='<div class="card"><b>Lago Piccolo di Avigliana</b> (Lago di Trana, anticamente Lago di San Bartolomeo)<div class="mut">Superficie 61 ha · profondità massima 12 m · quota circa 356 m · Parco naturale dal 1980 · ZSC e ZPS IT1110007</div></div>';
+  var rs=ricStats();h+='<div class="card"><b>📚 Schede della ricerca nel Catalogo: '+rs.n+' su '+rs.tot+'</b><div class="mut">Flora, fauna, rocce, acque, storia, folclore, curiosità e sentieri, ognuna con le sue fonti. Hanno il tag «ricerca»: ampliale con le tue note, foto e audio. '+(rs.ind?rs.ind+' hanno ancora una <b style="color:var(--warn)">posizione indicativa</b> (segnaposto tratteggiato): spostale quando sei sul posto.':'')+'</div><div class="row" style="margin-top:8px"><button class="btn s f" id="ricShow">Mostra nel Catalogo</button>'+(rs.n<rs.tot?'<button class="btn s" id="ricAdd">Ripristina le '+(rs.tot-rs.n)+' mancanti</button>':'')+'</div></div>';
   h+='<details open><summary>Carta d\'identità</summary><div class="dc"><ul>'+
    '<li>È il più piccolo e più alto (circa 356 m) dei due laghi: il Lago Grande, 91 ha e 28 m di profondità, sta a circa 352 m. Il Lago Piccolo misura 61,09 ha con profondità massima di 12 m.'+S(1)+'</li>'+
    '<li>Nomi: «Lago di Trana»; anticamente «Lago di San Bartolomeo», dalla borgata e dal priorato sulla sponda sud. Sulle sue acque si affaccia anche la borgata Sada.'+S(1,16)+'</li>'+
@@ -203,6 +227,8 @@ function renderDossier(){
   h+='<details><summary>Catalogo alberi del corso ('+ALBERI.length+')</summary><div class="dc"><input type="search" id="alQ" placeholder="cerca genere, specie o famiglia"><div id="alL" style="margin-top:8px"></div></div></details>';
   var keep=$$('#dosBody details').map(function(d){return d.open});
   $('#dosBody').innerHTML=h;
+  $('#ricShow').onclick=function(){query='ricerca';$('#q').value='ricerca';go('cat')};
+  if($('#ricAdd'))$('#ricAdd').onclick=function(){seedResearch(true).then(function(n){toast(n===1?'1 scheda ripristinata':n+' schede ripristinate');renderDossier()})};
   if(keep.length)$$('#dosBody details').forEach(function(d,i){if(keep[i]!=null)d.open=keep[i]});
   $$('[data-ck]').forEach(function(c){c.onchange=function(){CHECK[c.getAttribute('data-ck')]=c.checked;saveCheck()}});
   $$('[data-add]').forEach(function(b){b.onclick=function(){var s=CHK_SPECIES[+b.getAttribute('data-add')];var gen=s.sci.split(' ')[0];var cat=['Alnus','Salix','Quercus','Castanea','Carpinus','Fraxinus','Robinia'].indexOf(gen)>=0?'albero':/^(Piante|Rarità)/.test(s.g)?'flora':'fauna';
