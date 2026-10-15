@@ -70,7 +70,7 @@ function openNearItem(o){
   if(o.src==='mine'){openDetail(o.pid);return}
   var d=here?dist(here.lat,here.lon,o.lat,o.lon):null;
   var h=(o.img?'<img src="'+esc(o.img)+'" style="max-width:100%;border-radius:10px;margin-top:6px" alt="">':'')+'<p><b>'+esc(o.t)+'</b>'+(o.sub&&o.sub!==o.t?'<br><span class="mut">'+esc(o.sub)+'</span>':'')+'</p><p class="mut">Fonte: '+esc(SRCN[o.src]||o.src)+(d!=null?' · '+fmtDist(d)+' verso '+dirTo(o):'')+'</p>'+(o.url?'<p><a href="'+esc(o.url)+'" target="_blank" rel="noopener">Apri la scheda della fonte</a></p>':'')+'<p class="mut">È un dato raccolto da altri: verificalo sul posto prima di catalogarlo.</p>';
-  var bM=el('<button class="btn">Mostra sulla mappa</button>');bM.onclick=function(){closeModal();go('map');map.setView([o.lat,o.lon],Math.max(map.getZoom(),18));L.popup().setLatLng([o.lat,o.lon]).setContent('<b>'+esc(o.t)+'</b>').openOn(map)};
+  var bM=el('<button class="btn">Mostra sulla mappa</button>');bM.onclick=function(){closeModal();flashPoint(o.lat,o.lon,o.t,o.pid)};
   var bS=el('<button class="btn f">Salva come punto</button>');bS.onclick=function(){saveAsPoint(o.save||{lat:o.lat,lon:o.lon,cat:o.cat,title:o.t,s:o.url?{sitografia:o.url}:{},tags:['da '+(SRCN[o.src]||o.src)]})};
   openModal('Vicino a te',h,[bM,bS]);
 }

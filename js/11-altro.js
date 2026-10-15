@@ -27,7 +27,7 @@ function renderAlt(){
   $('#bRepAll').onclick=function(){if(!POINTS.length)return toast('Nessun punto');printReport(POINTS.slice().sort(function(a,b){return (a.when||'').localeCompare(b.when||'')}))};
   $('#bRepF').onclick=function(){var a=POINTS.filter(passFilter);if(!a.length)return toast('Nessun punto filtrato');printReport(a)};
   $('#bImp').onclick=function(){$('#fImp').value='';$('#fImp').click()};
-  $$('[data-tv]').forEach(function(b){b.onclick=function(){var t=TRACKS.filter(function(x){return x.id===b.getAttribute('data-tv')})[0];if(!t)return;go('map');map.fitBounds(L.latLngBounds(t.pts.map(function(p){return [p[0],p[1]]})),{padding:[30,30]})}});
+  $$('[data-tv]').forEach(function(b){b.onclick=function(){var t=TRACKS.filter(function(x){return x.id===b.getAttribute('data-tv')})[0];if(!t)return;flashTrack(t)}});
   $$('[data-tg]').forEach(function(b){b.onclick=function(){var t=TRACKS.filter(function(x){return x.id===b.getAttribute('data-tg')})[0];if(t)shareOrDownload(new Blob([toGPX([],[t])],{type:'application/gpx+xml'}),slug(t.name)+'.gpx')}});
   $$('[data-tr]').forEach(function(b){b.onclick=function(){var t=TRACKS.filter(function(x){return x.id===b.getAttribute('data-tr')})[0];var n=t&&prompt('Nome della traccia',t.name);if(n){t.name=n;DB.put('tracks',t).then(loadTracks)}}});
   $$('[data-td]').forEach(function(b){b.onclick=function(){if(confirm('Eliminare la traccia?'))DB.del('tracks',b.getAttribute('data-td')).then(function(){markChange();loadTracks()})}});

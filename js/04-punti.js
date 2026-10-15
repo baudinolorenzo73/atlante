@@ -10,9 +10,25 @@ function passFilter(p){
   if(query){var q=query.toLowerCase();var hay=[p.title,p.note,p.ric,(p.sp&&p.sp.sci),(p.sp&&p.sp.com),(p.tags||[]).join(' '),CAT(p.cat).n].join(' ').toLowerCase();if(hay.indexOf(q)<0)return false}
   return true;
 }
-function drawPoints(){gPoints.clearLayers();if(!showPoints)return;POINTS.filter(passFilter).forEach(function(p){if(SET.hideInd&&isInd(p))return;
+var PMK={};
+function drawPoints(){gPoints.clearLayers();PMK={};if(!showPoints)return;POINTS.filter(passFilter).forEach(function(p){if(SET.hideInd&&isInd(p))return;
   var m=L.marker([p.lat,p.lon],{icon:pinIcon(CAT(p.cat),isInd(p)),title:(p.title||'')+(isInd(p)?' (posizione indicativa)':'')});
-  m.on('click',function(){openDetail(p.id)});m.addTo(gPoints)})}
+  m.on('click',function(){openDetail(p.id)});m.addTo(gPoints);PMK[p.id]=m})}
+/* evidenzia sulla mappa il punto scelto: anello pulsante giallo-rosso, etichetta e segnaposto in primo piano */
+var HL={ring:null,mk:null,t:null};
+function hlClear(){if(HL.ring){map.removeLayer(HL.ring);HL.ring=null}if(HL.mk){HL.mk.setZIndexOffset(0);var e=HL.mk.getElement&&HL.mk.getElement();if(e)e.classList.remove('pinhl');HL.mk=null}clearTimeout(HL.t)}
+function flashPoint(lat,lon,label,pid){
+  hlClear();go('map');map.setView([lat,lon],Math.max(map.getZoom(),18),{animate:false});
+  HL.ring=L.marker([lat,lon],{interactive:false,keyboard:false,zIndexOffset:-500,icon:L.divIcon({className:'',html:'<div class="hlr"><i></i><i></i><b>'+esc(label||'')+'</b></div>',iconSize:[0,0],iconAnchor:[0,0]})}).addTo(map);
+  var mk=pid&&PMK[pid];if(mk){mk.setZIndexOffset(2000);var e=mk.getElement&&mk.getElement();if(e)e.classList.add('pinhl');HL.mk=mk}
+  if(navigator.vibrate&&(!navigator.userActivation||navigator.userActivation.hasBeenActive))try{navigator.vibrate(40)}catch(err){}
+  HL.t=setTimeout(hlClear,15000);
+}
+/* evidenzia una traccia per qualche secondo */
+function flashTrack(t){var ll=t.pts.map(function(p){return [p[0],p[1]]});if(ll.length<2)return;go('map');map.fitBounds(L.latLngBounds(ll),{padding:[40,40]});
+  var a=L.polyline(ll,{color:'#ffeb3b',weight:12,opacity:.55,interactive:false}).addTo(map),b=L.polyline(ll,{color:'#ff1744',weight:4,opacity:1,interactive:false}).addTo(map);
+  var k=0,iv=setInterval(function(){k++;a.setStyle({opacity:k%2?.15:.6});if(k>9){clearInterval(iv);map.removeLayer(a);map.removeLayer(b)}},500)}
+map.on('click',function(){if(HL.ring)hlClear()});
 function firstPhoto(p){var m=(p.media||[]).filter(function(x){return x.type==='photo'})[0];return m}
 function thumbURL(mid){if(thumbCache[mid])return Promise.resolve(thumbCache[mid]);return DB.get('media',mid).then(function(r){if(!r)return null;thumbCache[mid]=URL.createObjectURL(r.blob);return thumbCache[mid]})}
 function renderCatFilter(){var h='';CATS.forEach(function(c){var n=POINTS.filter(function(p){return p.cat===c.id}).length;h+='<span class="cat'+(filterCats[c.id]?' on':'')+'" data-c="'+c.id+'">'+c.e+' '+esc(c.n)+(n?' <b>'+n+'</b>':'')+'</span>'});$('#catFilter').innerHTML=h}
@@ -84,7 +100,7 @@ function openDetail(id){
   if(photos.length)h+='<h3>Foto ('+photos.length+')</h3><div class="gal">'+photos.map(function(m){return '<figure><img data-mid="'+m.id+'" alt=""><figcaption>'+esc(m.cap||'')+'</figcaption></figure>'}).join('')+'</div>';
   if(auds.length)h+='<h3>Registrazioni ('+auds.length+')</h3>'+auds.map(function(m){return '<div class="au"><audio controls data-mid="'+m.id+'"></audio></div><div class="mut" style="margin:-2px 0 6px">'+esc(m.cap||'')+'</div>'}).join('');
   h+='<p class="mut" style="margin-top:14px">Compilatore: '+esc(p.comp||'')+' · creato '+fmtDate(p.created)+(p.updated&&p.updated!==p.created?' · modificato '+fmtDate(p.updated):'')+'</p>';
-  var foot=[mkBtn('Modifica','f',function(){closeModal();openForm(p)}),mkBtn('Sulla mappa','',function(){closeModal();go('map');map.setView([p.lat,p.lon],Math.max(map.getZoom(),18))}),mkBtn('Scheda stampabile','',function(){printReport([p])}),mkBtn('Condividi','',function(){shareOne(p)}),mkBtn('Elimina','r',function(){if(confirm('Eliminare definitivamente questo punto con foto e audio?'))deletePoint(p).then(closeModal)})];
+  var foot=[mkBtn('Modifica','f',function(){closeModal();openForm(p)}),mkBtn('Sulla mappa','',function(){closeModal();flashPoint(p.lat,p.lon,p.title,p.id)}),mkBtn('Scheda stampabile','',function(){printReport([p])}),mkBtn('Condividi','',function(){shareOne(p)}),mkBtn('Elimina','r',function(){if(confirm('Eliminare definitivamente questo punto con foto e audio?'))deletePoint(p).then(closeModal)})];
   openModal(p.title||'(senza titolo)',h,foot,freeDetail);
   $$('[data-mid]',$('#mbody')).forEach(function(n){DB.get('media',n.getAttribute('data-mid')).then(function(r){if(!r)return;var u=URL.createObjectURL(r.blob);detailURLs.push(u);n.src=u;if(n.tagName==='IMG')n.onclick=function(){view(u)}})});
 }
