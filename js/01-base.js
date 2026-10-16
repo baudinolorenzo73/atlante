@@ -23,6 +23,22 @@ function slug(s){return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').re
 function fetchJSON(url,opt){return fetch(url,opt).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json()})}
 function el(html){var t=document.createElement('template');t.innerHTML=html.trim();return t.content.firstChild}
 
+/* OpenStreetMap (Overpass): il server principale è spesso sovraccarico e in quel caso il browser mostra solo «Failed to fetch».
+   Si provano in ordine più server, con un tempo massimo per ciascuno. */
+var OVP=['https://overpass-api.de/api/interpreter','https://overpass.private.coffee/api/interpreter','https://overpass.kumi.systems/api/interpreter','https://maps.mail.ru/osm/tools/overpass/api/interpreter'];
+function overpass(q,ms){
+  var errs=[];
+  function one(i){
+    if(i>=OVP.length)return Promise.reject(new Error('OpenStreetMap non risponde ora ('+errs.join('; ')+'). Riprova tra qualche minuto'));
+    var ctl=window.AbortController?new AbortController():null,t=ctl&&setTimeout(function(){ctl.abort()},ms||45000);
+    return fetch(OVP[i],{method:'POST',body:'data='+encodeURIComponent(q),headers:{'Content-Type':'application/x-www-form-urlencoded'},signal:ctl?ctl.signal:undefined})
+      .then(function(r){clearTimeout(t);if(!r.ok)throw new Error('HTTP '+r.status);return r.json()})
+      .then(function(j){if(j&&j.remark&&!(j.elements||[]).length&&/timed out|out of memory|runtime error/i.test(j.remark))throw new Error('server sovraccarico');return j})
+      .catch(function(e){clearTimeout(t);errs.push(OVP[i].split('/')[2]+': '+(e.name==='AbortError'?'tempo scaduto':e.message==='Failed to fetch'?'non raggiungibile':e.message));return one(i+1)});
+  }
+  return one(0);
+}
+
 /* =================== DATABASE (IndexedDB) =================== */
 var DB={db:null,ok:false,mem:{points:{},media:{},tracks:{},kv:{}}};
 DB.open=function(){return new Promise(function(res){
