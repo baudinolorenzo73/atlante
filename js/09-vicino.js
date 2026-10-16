@@ -39,7 +39,7 @@ function nearCheck(force){
   var n=NS();if(!n.on||!here)return;
   var now=Date.now();if(!force&&now-NEAR.last<3000)return;NEAR.last=now;
   var z=inBB(AVI_BB,here.lat,here.lon);
-  if(z!==NEAR.inZone){var first=NEAR.inZone===null;NEAR.inZone=z;if(n.zone&&!(first&&z))toast(z?'🔔 Sei nella zona dei Laghi di Avigliana: avvisi attivi':'🔔 Fuori dalla zona dei laghi: avvisi in pausa',4000)}
+  if(z!==NEAR.inZone){var first=NEAR.inZone===null;NEAR.inZone=z;if(n.zone&&!(first&&z))toast(z?'🔔 Sei nella zona «'+PL.name()+'»: avvisi attivi':'🔔 Fuori dalla zona «'+PL.name()+'»: avvisi in pausa',4000)}
   if(n.zone&&!z)return;
   if(here.acc>75)return;
   var R=n.r,hits=[];
@@ -88,7 +88,7 @@ function openNear(){
   var n=NS(),R4=Math.max(n.r*4,300),list=[];
   if(here)nearCands().forEach(function(o){var d=dist(here.lat,here.lon,o.lat,o.lon);if(d<=R4)list.push({o:o,d:d})});
   list.sort(function(a,b){return a.d-b.d});list=list.slice(0,80);
-  var st=!here?'GPS spento o in attesa della posizione.':(inBB(AVI_BB,here.lat,here.lon)?'✓ Sei nella zona dei Laghi di Avigliana':'Sei fuori dalla zona dei laghi'+(n.zone?': avvisi in pausa':''))+(here?' · GPS ±'+Math.round(here.acc)+' m'+(here.acc>75?' (troppo impreciso: gli avvisi aspettano)':''):'');
+  var st=!here?'GPS spento o in attesa della posizione.':(inBB(AVI_BB,here.lat,here.lon)?'✓ Sei nella zona «'+PL.name()+'»':'Sei fuori dalla zona «'+PL.name()+'»'+(n.zone?': avvisi in pausa':''))+(here?' · GPS ±'+Math.round(here.acc)+' m'+(here.acc>75?' (troppo impreciso: gli avvisi aspettano)':''):'');
   var pk=NEAR.pack?'Archivio della zona: <b>'+NEAR.pack.items.length+'</b> luoghi e osservazioni, scaricato il '+fmtDate(NEAR.pack.when)+'. Funziona anche senza rete.':'<b>Archivio della zona non ancora scaricato.</b> Per ora gli avvisi usano i tuoi punti e ciò che carichi in Esplora. Scaricalo una volta con la rete: poi funziona anche senza.';
   var h='<div class="card"><div class="row"><b style="flex:1">Avvisi «Vicino a te» '+(n.on?'<span class="ok">accesi</span>':'<span class="mut">spenti</span>')+'</b><button class="btn '+(n.on?'r':'f')+'" id="nOn">'+(n.on?'Spegni':'Accendi')+'</button></div><div class="mut" style="margin-top:6px">'+st+'</div></div>';
   h+='<div class="card"><div class="mut">'+pk+'</div><div class="row" style="margin-top:8px"><button class="btn s f" id="nPack">⬇️ '+(NEAR.pack?'Aggiorna':'Scarica')+' l\'archivio della zona</button></div><div class="log" id="nLog"></div></div>';
@@ -158,7 +158,9 @@ async function packINat(){
   return out.filter(inPack);
 }
 async function downloadPack(){
-  if(NEAR.busy)return;NEAR.busy=true;
+  if(NEAR.busy)return;
+  if(!confirm('Scarico l\'archivio della zona «'+PL.name()+'» (area di circa '+Math.round((PACK_BB[2]-PACK_BB[0])*111)+' × '+Math.round((PACK_BB[3]-PACK_BB[1])*111*Math.cos(HOME[0]*Math.PI/180))+' km) da Wikidata, Wikipedia, OpenStreetMap e iNaturalist? Servono circa 1–3 MB di rete.'))return;
+  NEAR.busy=true;
   var lg=$('#nLog'),btn=$('#nPack');function log(t,c){lg=$('#nLog');if(!lg)return;var d=document.createElement('div');if(c)d.className=c;d.textContent=t;lg.appendChild(d)}
   if(lg)lg.innerHTML='';if(btn)btn.disabled=true;
   var items=[],ok=0,failed=[];
@@ -169,9 +171,9 @@ async function downloadPack(){
   if(NEAR.pack)items=items.concat(NEAR.pack.items.filter(function(o){return failed.indexOf(o.src)>=0}));
   var seen={},clean=[];items.forEach(function(o){var k=nameKey(o);if(seen[o.id]||seen[k])return;seen[o.id]=seen[k]=1;clean.push(o)});
   NEAR.pack={when:new Date().toISOString(),items:clean};
-  await DB.put('kv',{id:'zonepack',v:NEAR.pack});
+  await DB.put('kv',{id:PL.packKey(),v:NEAR.pack});
   log('✓ Archivio salvato nel telefono: '+clean.length+' luoghi e osservazioni.','ok');
-  var fx=await fixIndicative();if(fx)log('✓ Posizioni indicative corrette dall\'archivio: '+fx+' schede della ricerca','ok');
+  var fx=PL.isLake()?await fixIndicative():0;if(fx)log('✓ Posizioni indicative corrette dall\'archivio: '+fx+' schede della ricerca','ok');
   NEAR.busy=false;if(btn)btn.disabled=false;NEAR.st={};nearCheck(true);
 }
 /* sposta le schede della ricerca con posizione indicativa sul luogo omonimo trovato nell'archivio (Wikidata, Wikipedia, OSM) */

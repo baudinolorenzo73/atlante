@@ -27,7 +27,7 @@ var OVERS=[
 var baseLayer=null,baseId='sat',overOn={},overLayers={};
 function setBase(id){var b=BASES.filter(function(x){return x.id===id})[0]||BASES[0];if(baseLayer)map.removeLayer(baseLayer);baseLayer=b.mk().addTo(map);baseLayer.setZIndex(1);baseId=b.id;DB.put('kv',{id:'mapstate',v:{base:baseId,over:overOn}})}
 function setOver(o,on){overOn[o.id]=on;if(on){if(!overLayers[o.id])overLayers[o.id]=o.mk();overLayers[o.id].setOpacity(o.op).addTo(map).setZIndex(10+OVERS.indexOf(o))}else if(overLayers[o.id])map.removeLayer(overLayers[o.id]);DB.put('kv',{id:'mapstate',v:{base:baseId,over:overOn}})}
-L.circleMarker(HOME,{radius:4,color:'#fff',weight:1,fillColor:'#4fc3f7',fillOpacity:.7,interactive:false}).addTo(map);
+var HOMEMK=L.circleMarker(HOME,{radius:4,color:'#fff',weight:1,fillColor:'#4fc3f7',fillOpacity:.7,interactive:false}).addTo(map);
 
 /* =================== LEGENDA DELLE MAPPE =================== */
 // t = come leggere la mappa; w = legende ufficiali dei servizi WMS [indirizzo, livello, etichetta]; u = pagina ufficiale

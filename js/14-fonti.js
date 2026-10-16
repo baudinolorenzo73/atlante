@@ -283,7 +283,7 @@ HUBR.diario=function(){
       +spark(FON.dia.filter(function(e){return e.temp!==''&&e.temp!=null}).map(function(e){return [new Date(e.when).getTime(),+e.temp]}).sort(function(a,b){return a[0]-b[0]}),'#ffb74d','Temperatura dell\'acqua','°C');
     h+='<div class="row"><button class="btn s" id="dgX">📄 Esporta CSV</button></div>';
   }
-  h+=d.map(function(e){return '<div class="card"><div class="row"><b style="flex:1">'+esc(fmtDate(e.when))+'</b><button class="btn s" data-dr="'+ldate(e.when)+'">📊</button><button class="btn s" data-dd="'+e.id+'">✕</button></div><div class="mut">'+esc([e.liv&&'livello '+e.liv,e.asp,e.trasp!==''&&e.trasp!=null&&'trasparenza '+e.trasp+' cm',e.temp!==''&&e.temp!=null&&'acqua '+e.temp+' °C',e.ghi&&e.ghi!=='assente'&&'ghiaccio '+e.ghi].filter(Boolean).join(' · '))+'</div>'+(e.meteo?'<div class="mut">'+esc(e.meteo)+'</div>':'')+(e.note?'<div style="white-space:pre-wrap">'+esc(e.note)+'</div>':'')+(e.pid?'<div class="mut">punto: '+esc(ptTitle(e.pid))+'</div>':'')+'</div>'}).join('');
+  h+=d.map(function(e){return '<div class="card"><div class="row"><b style="flex:1">'+esc(fmtDate(e.when))+'</b><button class="btn s" data-dr="'+ldate(e.when)+'">📊</button><button class="btn s" data-dd="'+e.id+'">✕</button></div><div class="mut">'+esc([e.liv&&'livello '+e.liv,e.asp,e.trasp!==''&&e.trasp!=null&&'trasparenza '+e.trasp+' cm',e.temp!==''&&e.temp!=null&&'acqua '+e.temp+' °C',e.ghi&&e.ghi!=='assente'&&'ghiaccio '+e.ghi].filter(Boolean).join(' · '))+'</div>'+(e.meteo?'<div class="mut">'+esc(e.meteo)+'</div>':'')+(e.note?'<div style="white-space:pre-wrap">'+esc(e.note)+'</div>':'')+(e.pid?'<div class="mut">punto: '+esc(ptTitle(e.pid))+'</div>':'')+(e.pl&&e.pl!=='lago'?'<div class="mut">luogo: '+esc(PL.get(e.pl).name)+'</div>':'')+'</div>'}).join('');
   $('#hubC').innerHTML=h;
   var meteo='';
   $('#dgM').onclick=function(){
@@ -294,7 +294,7 @@ HUBR.diario=function(){
   };
   $('#dgS').onclick=function(){
     var w=$('#dgW').value;if(!w)return toast('Metti la data');
-    var e={id:uid(),when:new Date(w).toISOString(),liv:$('#dgL').value,asp:$('#dgA').value,trasp:$('#dgT').value,temp:$('#dgC').value,ghi:$('#dgG').value,note:$('#dgN').value.trim(),meteo:meteo,pid:c.pid||''};
+    var e={id:uid(),when:new Date(w).toISOString(),liv:$('#dgL').value,asp:$('#dgA').value,trasp:$('#dgT').value,temp:$('#dgC').value,ghi:$('#dgG').value,note:$('#dgN').value.trim(),meteo:meteo,pid:c.pid||'',pl:PL.cur};
     if(!e.liv&&!e.asp&&e.trasp===''&&e.temp===''&&!e.ghi&&!e.note&&!e.meteo)return toast('Compila almeno un campo');
     FON.dia.push(e);FON.saveDia().then(function(){toast('📔 Salvato nel diario');HUBR.diario()});
   };

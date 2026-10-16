@@ -20,6 +20,7 @@ function joinTracks(a,delOld){
 function renderAlt(){
   var h='';
   var late=SET.changes>0;
+  h+=PL.altCard();
   h+=FON.altCard();
   h+='<h3>Backup ed esportazione</h3><div class="card"><b>Backup completo (ZIP)</b><div class="mut">Contiene tutti i dati, le foto e gli audio, più le schede stampabili e i file GPX, KML, GeoJSON e CSV. Usalo anche per passare i dati ad altri telefoni o al PC.</div><div class="mut" style="margin-top:4px">Ultimo backup: '+(SET.lastBackup?fmtDate(new Date(SET.lastBackup).toISOString()):'mai')+(late?' · <b style="color:var(--warn)">'+SET.changes+' modifiche non salvate nel backup</b>':'')+'</div><div class="row" style="margin-top:8px"><button class="btn f" id="bZip">📦 Crea backup e condividi</button></div></div>';
   h+='<div class="card"><b>Singoli formati</b><div class="mut">Solo dati e coordinate, senza foto.</div><div class="row" style="margin-top:8px"><button class="btn s" data-ex="gpx">GPX (OsmAnd, Garmin)</button><button class="btn s" data-ex="kml">KML (Google Earth)</button><button class="btn s" data-ex="geojson">GeoJSON (QGIS)</button><button class="btn s" data-ex="csv">CSV (Excel)</button></div></div>';
@@ -40,7 +41,7 @@ function renderAlt(){
   h+='<h3>App: aggiornamento e installazione</h3><div class="card"><div id="appSt" class="mut">…</div><div class="row" style="margin-top:10px"><button class="btn f" id="bUpd">🔄 Aggiorna</button><button class="btn f" id="bInst">⬇️ Installa tutto</button></div><div class="bar" id="instBar" style="display:none"><i></i></div><div class="log" id="instLog"></div><div class="mut" style="margin-top:8px"><b>Aggiorna</b>: cerca online una versione più recente di questa pagina e la carica. Punti, foto e audio restano dove sono.<br><b>Installa tutto</b>: aggiunge l\'icona alla schermata Home, salva la pagina nel telefono e scarica le mappe dell\'area del lago per vederle anche senza rete. Serve la pagina pubblicata su un indirizzo https:// con accanto il file <b>sw.js</b>.</div><div class="row" style="margin-top:8px"><button class="btn s r" id="bClrT">Svuota mappe salvate</button></div></div>';
   h+='<h3>Memoria</h3><div class="card" id="memBox"><span class="mut">calcolo…</span></div>';
   h+='<p class="mut">Atlante Lago Piccolo v'+VERSION+' · '+BRAND+'</p>';
-  $('#altBody').innerHTML=h;FON.bindAlt();
+  $('#altBody').innerHTML=h;FON.bindAlt();PL.bindAlt();
   $('#bZip').onclick=exportZip;$$('[data-ex]').forEach(function(b){b.onclick=function(){exportText(b.getAttribute('data-ex'))}});
   $('#bRepAll').onclick=function(){if(!POINTS.length)return toast('Nessun punto');printReport(POINTS.slice().sort(function(a,b){return (a.when||'').localeCompare(b.when||'')}))};
   $('#bRepF').onclick=function(){var a=POINTS.filter(passFilter);if(!a.length)return toast('Nessun punto filtrato');printReport(a)};

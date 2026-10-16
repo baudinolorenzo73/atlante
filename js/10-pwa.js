@@ -51,7 +51,7 @@ async function tilePool(urls,from,ca,st,total){
 async function downloadMaps(){
   if(!window.caches){ilog('✗ Questo browser non può salvare le mappe','ko');return}
   var layers=offlineLayers(),total=0;layers.forEach(function(l){total+=l.urls.length});
-  if(!confirm('Scarico le mappe dell\'area del lago (zoom 12–17) per usarle anche senza rete: '+layers.length+' livelli, circa '+total+' tessere, stimo '+Math.round(total*0.02)+'–'+Math.round(total*0.04)+' MB. Meglio con il Wi-Fi. Procedo?')){ilog('• Mappe senza rete saltate');return}
+  if(!confirm('Scarico le mappe dell\'area di «'+PL.name()+'» (zoom 12–17) per usarle anche senza rete: '+layers.length+' livelli, circa '+total+' tessere, stimo '+Math.round(total*0.02)+'–'+Math.round(total*0.04)+' MB. Meglio con il Wi-Fi. Procedo?')){ilog('• Mappe senza rete saltate');return}
   var ca=await caches.open(TILE_CACHE),st={done:0,ok:0,skip:0,err:0},bad=[];
   for(var i=0;i<layers.length&&!inst.abort.v;i++){
     var ly=layers[i],first=ly.urls[0];

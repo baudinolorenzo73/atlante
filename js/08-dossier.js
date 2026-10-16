@@ -134,7 +134,7 @@ function seedResearch(force){
 function ricStats(){var n=0,ind=0;POINTS.forEach(function(p){if(p.rk){n++;if(isInd(p))ind++}});return {n:n,ind:ind,tot:typeof SCHEDE_RICERCA!=='undefined'?SCHEDE_RICERCA.items.length:0}}
 function renderDossier(){
   var seen=seenSci();var nseen=0;CHK_SPECIES.forEach(function(s){if(seen[s.sci.toLowerCase()]||CHECK[s.sci])nseen++});
-  var h='';
+  var h=PL.dossNote();
   h+='<div class="card"><b>Lago Piccolo di Avigliana</b> (Lago di Trana, anticamente Lago di San Bartolomeo)<div class="mut">Superficie 61 ha · profondità massima 12 m · quota circa 356 m · Parco naturale dal 1980 · ZSC e ZPS IT1110007</div></div>';
   var rs=ricStats();h+='<div class="card"><b>📚 Schede della ricerca nel Catalogo: '+rs.n+' su '+rs.tot+'</b><div class="mut">Flora, fauna, rocce, acque, storia, folclore, curiosità e sentieri, ognuna con le sue fonti. Hanno il tag «ricerca»: ampliale con le tue note, foto e audio. '+(rs.ind?rs.ind+' hanno ancora una <b style="color:var(--warn)">posizione indicativa</b> (segnaposto tratteggiato): spostale quando sei sul posto.':'')+'</div><div class="row" style="margin-top:8px"><button class="btn s f" id="ricShow">Mostra nel Catalogo</button>'+(rs.n<rs.tot?'<button class="btn s" id="ricAdd">Ripristina le '+(rs.tot-rs.n)+' mancanti</button>':'')+'</div></div>';
   h+='<details open><summary>Carta d\'identità</summary><div class="dc"><ul>'+
