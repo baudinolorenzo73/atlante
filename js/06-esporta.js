@@ -112,7 +112,7 @@ function exportZip(){
   var enc=new TextEncoder(),files=[],pts=POINTS.slice().sort(function(a,b){return (a.when||'').localeCompare(b.when||'')}),mjobs=[];
   pts.forEach(function(p){(p.media||[]).forEach(function(m){mjobs.push(DB.get('media',m.id).then(function(r){if(r)return r.blob.arrayBuffer().then(function(ab){files.push({name:mediaName(p,m),data:new Uint8Array(ab)})})}))})});
   return Promise.all(mjobs).then(function(){
-    var data={app:'atlante-lago-piccolo',version:VERSION,exported:new Date().toISOString(),points:pts.map(function(p){var q=JSON.parse(JSON.stringify(p));q.media.forEach(function(m,i){m.file=mediaName(p,p.media[i])});return q}),tracks:TRACKS,checklist:CHECK};
+    var data={app:'atlante-lago-piccolo',version:VERSION,exported:new Date().toISOString(),points:pts.map(function(p){var q=JSON.parse(JSON.stringify(p));q.media.forEach(function(m,i){m.file=mediaName(p,p.media[i])});return q}),tracks:TRACKS,checklist:CHECK,fonti:FON.lib,diario:FON.dia,livelli:FON.cl};
     files.unshift({name:'LEGGIMI.txt',data:enc.encode('Atlante del Lago Piccolo di Avigliana - backup del '+fmtDate(data.exported)+'\r\n\r\ndati.json      tutti i dati (per reimportarli nell\'app: Altro > Importa)\r\nschede.html    schede stampabili con foto (aprila nel browser)\r\npunti.gpx      punti e tracce per OsmAnd, Garmin, ecc.\r\npunti.kml      per Google Earth / My Maps\r\npunti.geojson  per QGIS\r\npunti.csv      per Excel / Fogli (separatore ;)\r\nmedia/         foto e registrazioni\r\n\r\n'+BRAND+'\r\n')},
       {name:'dati.json',data:enc.encode(JSON.stringify(data))},
       {name:'schede.html',data:enc.encode(reportHTML(pts,mediaName,mediaName))},
@@ -120,6 +120,8 @@ function exportZip(){
       {name:'punti.kml',data:enc.encode(toKML(pts,TRACKS,mediaName))},
       {name:'punti.geojson',data:enc.encode(toGeoJSON(pts,TRACKS,mediaName))},
       {name:'punti.csv',data:enc.encode(toCSV(pts))});
+    if(FON.dia.length)files.push({name:'diario.csv',data:enc.encode(csvText(diarioRows()))});
+    if(FON.lib.length)files.push({name:'bibliografia.txt',data:enc.encode(libText())});
     var z=zipBlob(files);
     SET.lastBackup=Date.now();SET.changes=0;saveSet();updBackupDot();
     return shareOrDownload(z,'atlante_lago_piccolo_'+stamp()+'.zip','Backup Atlante Lago Piccolo').then(function(){toast('Backup pronto ('+fmtSize(z.size)+')',4000);if(curPage==='alt')renderAlt()});
@@ -163,6 +165,7 @@ function importData(data,files){
     jobs.push(DB.put('points',p));res.np++});
   var ht={};TRACKS.forEach(function(t){ht[t.id]=1});(data.tracks||[]).forEach(function(t){if(!ht[t.id]){jobs.push(DB.put('tracks',t));res.nt++}});
   if(data.checklist){Object.keys(data.checklist).forEach(function(k){CHECK[k]=CHECK[k]||data.checklist[k]});jobs.push(saveCheck())}
+  if(data.fonti||data.diario||data.livelli)jobs.push(FON.load().then(function(){function mg(a,b){var h={};a.forEach(function(x){h[x.id]=1});(b||[]).forEach(function(x){if(!h[x.id]){a.push(x);h[x.id]=1}})}mg(FON.lib,data.fonti);mg(FON.dia,data.diario);mg(FON.cl,data.livelli);FON.regLayers();return Promise.all([FON.saveLib(),FON.saveDia(),FON.saveCl()])}));
   return Promise.all(jobs).then(function(){return res});
 }
 $('#fImp').onchange=function(){var f=this.files[0];if(!f)return;toast('Importo '+f.name+'…',6000);importFile(f).then(function(r){thumbCache={};return Promise.all([loadPoints(),loadTracks()]).then(function(){alert('Importazione completata.\n\nPunti nuovi o aggiornati: '+r.np+'\nFoto/audio: '+r.nm+'\nTracce: '+r.nt+(r.sk?'\nGià presenti (saltati): '+r.sk:''))})}).catch(function(e){alert('Importazione non riuscita: '+e.message)})};

@@ -83,6 +83,8 @@ h3:first-child{margin-top:4px}
 #pocket .pkh{font-size:13px;line-height:1.5}
 #pocket .pkbar{height:4px;background:#111;border-radius:2px;margin:18px auto 0;width:180px;overflow:hidden}#pkBar{display:block;height:100%;width:0;background:#444}
 #chipRec{cursor:pointer}
+.card.tson{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc)}
+.tsel{border-color:var(--acc);position:sticky;top:0;z-index:5}
 #recAsk{position:fixed;inset:0;z-index:3200;background:#000c;display:none;align-items:center;justify-content:center;padding:16px}
 #recAsk .ra{background:var(--panel);border:1px solid var(--warn);border-radius:18px;padding:18px;max-width:440px;width:100%;box-shadow:0 8px 30px #000}
 #recAsk b{font-size:17px;display:block;margin-bottom:4px}
@@ -172,3 +174,16 @@ sup a{text-decoration:none;font-size:11px}
 .prog i{display:block;height:100%;background:var(--acc);width:0}
 .rec{animation:bl 1s infinite}
 @keyframes bl{50%{opacity:.4}}
+
+/* ---- ricerca e fonti (v2.1) ---- */
+#tmBar{position:fixed;left:10px;right:84px;bottom:calc(var(--navh) + env(safe-area-inset-bottom) + 12px);z-index:955;display:none;background:var(--panel);border:1px solid var(--acc);border-radius:14px;padding:8px 10px;box-shadow:0 3px 12px #000a}
+#tmBar .tmr{display:flex;align-items:center;gap:8px;margin:4px 0}
+#tmBar .tmr b{font-size:16px;white-space:nowrap}
+#tmBar .tmr .mut{flex:1;font-size:11px;line-height:1.2}
+#tmBar input[type=range]{padding:0}
+.hubtabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:6px;position:sticky;top:0;background:var(--bg);z-index:3}
+.hubtabs .cat{flex:none}
+#hubC audio{height:34px}
+#hubC .gal{display:grid;grid-template-columns:1fr;gap:10px}
+#hubC .gal img{max-height:190px;width:100%;object-fit:cover;cursor:zoom-in}
+#hubC .gal figcaption{padding:6px 8px;font-size:13px}

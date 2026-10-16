@@ -33,7 +33,7 @@ function renderAppSt(){
 /* tessere da scaricare: si usano gli stessi indirizzi che userebbe Leaflet, così la cache le ritrova */
 function tileRange(z){var n=Math.pow(2,z);function X(lon){return Math.floor((lon+180)/360*n)}function Y(lat){var r=lat*Math.PI/180;return Math.floor((1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2*n)}return {x0:X(LAKE_BB[1]),x1:X(LAKE_BB[3]),y0:Y(LAKE_BB[2]),y1:Y(LAKE_BB[0])}}
 function offlineLayers(){
-  var all=BASES.map(function(b){return {n:b.n,tl:b.mk()}}).concat(OVERS.map(function(o){return {n:o.n,tl:o.mk()}}));
+  var all=BASES.map(function(b){return {n:b.n,tl:b.mk()}}).concat(OVERS.filter(function(o){return !o.custom}).map(function(o){return {n:o.n,tl:o.mk()}}));
   return all.map(function(a){var tl=a.tl;tl._map=map;tl._crs=map.options.crs;
     if(tl.wmsParams)tl.wmsParams[parseFloat(tl.wmsParams.version)>=1.3?'crs':'srs']=tl._crs.code;
     var nz=Math.min(OFFZ,tl.options.maxNativeZoom||OFFZ),urls=[];

@@ -2,15 +2,33 @@
    by Lollo ®2026 · i moduli si caricano nell'ordine dei numeri (vedi index.html) */
 'use strict';
 /* =================== PAGINA ALTRO =================== */
+/* ---- unione di tracce ---- */
+var TSEL={on:false,ids:{}};
+function selTracks(){return TRACKS.filter(function(t){return TSEL.ids[t.id]}).sort(function(a,b){return (a.pts[0]?a.pts[0][3]:a.start)-(b.pts[0]?b.pts[0][3]:b.start)})}
+function joinTracks(a,delOld){
+  if(a.length<2)return toast('Scegli almeno 2 tracce');
+  if(REC.on&&a.some(function(t){return t.id===REC.trk.id}))return toast('Ferma prima la registrazione in corso');
+  var pts=[],brk=[],dur=0,names=[],nmerg=0;
+  a.forEach(function(t,i){if(i>0&&pts.length)brk.push(pts.length);(t.brk||[]).forEach(function(b){brk.push(pts.length+b)});pts=pts.concat(t.pts.map(function(p){return p.slice()}));dur+=trkStats(t).t;names=names.concat(t.from||[t.name]);nmerg+=(t.merged||1)});
+  var t0=a[0].start,t1=a[a.length-1].end||a[a.length-1].start;
+  var nm='Unione '+fmtDate(new Date(t0).toISOString())+' – '+fmtDate(new Date(t1).toISOString()).slice(-5);
+  var nt={id:uid(),name:nm,start:t0,end:t1,pts:pts,brk:brk,dur:dur,merged:nmerg,from:names};
+  var ops=[DB.put('tracks',nt)];if(delOld)a.forEach(function(t){ops.push(DB.del('tracks',t.id))});
+  Promise.all(ops).then(function(){markChange();TSEL.on=false;TSEL.ids={};tones([[660,.1],[880,.1],[1100,.16]]);toast('🔗 Unite '+a.length+' tracce ('+nmerg+' registrazioni): '+fmtDist(trkStats(nt).d)+(delOld?' (originali eliminate)':' (le originali restano)'),4500);return loadTracks()}).then(function(){flashTrack(nt)});
+}
+
 function renderAlt(){
   var h='';
   var late=SET.changes>0;
+  h+=FON.altCard();
   h+='<h3>Backup ed esportazione</h3><div class="card"><b>Backup completo (ZIP)</b><div class="mut">Contiene tutti i dati, le foto e gli audio, più le schede stampabili e i file GPX, KML, GeoJSON e CSV. Usalo anche per passare i dati ad altri telefoni o al PC.</div><div class="mut" style="margin-top:4px">Ultimo backup: '+(SET.lastBackup?fmtDate(new Date(SET.lastBackup).toISOString()):'mai')+(late?' · <b style="color:var(--warn)">'+SET.changes+' modifiche non salvate nel backup</b>':'')+'</div><div class="row" style="margin-top:8px"><button class="btn f" id="bZip">📦 Crea backup e condividi</button></div></div>';
   h+='<div class="card"><b>Singoli formati</b><div class="mut">Solo dati e coordinate, senza foto.</div><div class="row" style="margin-top:8px"><button class="btn s" data-ex="gpx">GPX (OsmAnd, Garmin)</button><button class="btn s" data-ex="kml">KML (Google Earth)</button><button class="btn s" data-ex="geojson">GeoJSON (QGIS)</button><button class="btn s" data-ex="csv">CSV (Excel)</button></div></div>';
   h+='<div class="card"><b>Schede stampabili / PDF</b><div class="mut">Apre le schede di tutti i punti (oppure di quelli filtrati nel Catalogo) con le foto, nel formato della «Scheda sito» del corso. Dal menu del browser scegli Stampa → Salva come PDF.</div><div class="row" style="margin-top:8px"><button class="btn s" id="bRepAll">Tutti i punti</button><button class="btn s" id="bRepF">Solo i filtrati</button></div></div>';
   h+='<div class="card"><b>Importa</b><div class="mut">Backup ZIP di questa app (anche di un compagno di corso: i punti si uniscono senza doppioni) oppure punti da file GPX, KML o GeoJSON.</div><div class="row" style="margin-top:8px"><button class="btn s" id="bImp">📥 Scegli file</button></div></div>';
   h+='<h3>Tracce registrate ('+TRACKS.length+')</h3><p class="mut">Durante la registrazione tieni l\'app aperta: tocca il riquadro rosso in alto per la <b>modalità tasca</b> (schermo nero, tocchi bloccati). A schermo spento il browser sospende il GPS: per quei casi registra con la tua app nativa «Traccia GPS offline» e importa qui il GPX (Importa → Scegli file).</p>';
-  h+=TRACKS.length?TRACKS.map(function(t){var s=trkStats(t);return '<div class="card"><div class="row"><b style="flex:1">'+esc(t.name)+'</b></div><div class="mut">'+fmtDist(s.d)+' · '+fmtDur(s.t)+' · +'+s.up+' / −'+s.dn+' m · '+t.pts.length+' punti</div><div class="row" style="margin-top:6px"><button class="btn s" data-tv="'+t.id+'">Mostra</button><button class="btn s" data-tg="'+t.id+'">GPX</button><button class="btn s" data-tr="'+t.id+'">Rinomina</button><button class="btn s r" data-td="'+t.id+'">Elimina</button></div></div>'}).join(''):'<p class="mut">Nessuna traccia. Avviala dal pulsante ⏺ sulla mappa.</p>';
+  if(TRACKS.length>1)h+='<div class="row" style="margin-bottom:6px"><button class="btn s'+(TSEL.on?' f':'')+'" id="bTSel">🔗 '+(TSEL.on?'Fine selezione':'Unisci o esporta insieme')+'</button></div>';
+  if(TSEL.on)h+='<div class="card tsel"><b id="tsN"></b><div class="mut">Spunta le tracce, poi scegli. L\'ordine è quello cronologico.</div><label style="display:block;margin-top:6px"><input type="checkbox" id="tsDel"> elimina le tracce originali dopo l\'unione</label><div class="row" style="margin-top:8px"><button class="btn s f" id="tsJoin">🔗 Unisci in una traccia</button><button class="btn s" id="tsGpx">📄 Un solo GPX</button><button class="btn s" id="tsAll">Seleziona tutte</button></div></div>';
+  h+=TRACKS.length?TRACKS.map(function(t){var s=trkStats(t);return '<div class="card'+(TSEL.on&&TSEL.ids[t.id]?' tson':'')+'"><div class="row">'+(TSEL.on?'<input type="checkbox" data-ts="'+t.id+'" '+(TSEL.ids[t.id]?'checked':'')+' style="width:22px;height:22px">':'')+'<b style="flex:1">'+esc(t.name)+'</b>'+(t.merged?'<span class="tag">unione di '+t.merged+'</span>':'')+'</div><div class="mut">'+fmtDist(s.d)+' · '+fmtDur(s.t)+' · +'+s.up+' / −'+s.dn+' m · '+t.pts.length+' punti</div><div class="row" style="margin-top:6px"><button class="btn s" data-tv="'+t.id+'">Mostra</button><button class="btn s" data-tg="'+t.id+'">GPX</button><button class="btn s" data-tr="'+t.id+'">Rinomina</button><button class="btn s r" data-td="'+t.id+'">Elimina</button></div></div>'}).join(''):'<p class="mut">Nessuna traccia. Avviala dal pulsante ⏺ sulla mappa.</p>';
   h+='<h3>Mappa</h3><div class="card"><div class="row"><label><input type="checkbox" id="shP" '+(showPoints?'checked':'')+'> i miei punti</label><label><input type="checkbox" id="shT" '+(showTracks?'checked':'')+'> le mie tracce</label></div></div>';
   h+='<h3>Impostazioni</h3><div class="card">';
   h+='<label class="l">Compilatore (nome sulle schede)</label><input type="text" id="sComp" value="'+esc(SET.compilatore)+'">';
@@ -22,11 +40,20 @@ function renderAlt(){
   h+='<h3>App: aggiornamento e installazione</h3><div class="card"><div id="appSt" class="mut">…</div><div class="row" style="margin-top:10px"><button class="btn f" id="bUpd">🔄 Aggiorna</button><button class="btn f" id="bInst">⬇️ Installa tutto</button></div><div class="bar" id="instBar" style="display:none"><i></i></div><div class="log" id="instLog"></div><div class="mut" style="margin-top:8px"><b>Aggiorna</b>: cerca online una versione più recente di questa pagina e la carica. Punti, foto e audio restano dove sono.<br><b>Installa tutto</b>: aggiunge l\'icona alla schermata Home, salva la pagina nel telefono e scarica le mappe dell\'area del lago per vederle anche senza rete. Serve la pagina pubblicata su un indirizzo https:// con accanto il file <b>sw.js</b>.</div><div class="row" style="margin-top:8px"><button class="btn s r" id="bClrT">Svuota mappe salvate</button></div></div>';
   h+='<h3>Memoria</h3><div class="card" id="memBox"><span class="mut">calcolo…</span></div>';
   h+='<p class="mut">Atlante Lago Piccolo v'+VERSION+' · '+BRAND+'</p>';
-  $('#altBody').innerHTML=h;
+  $('#altBody').innerHTML=h;FON.bindAlt();
   $('#bZip').onclick=exportZip;$$('[data-ex]').forEach(function(b){b.onclick=function(){exportText(b.getAttribute('data-ex'))}});
   $('#bRepAll').onclick=function(){if(!POINTS.length)return toast('Nessun punto');printReport(POINTS.slice().sort(function(a,b){return (a.when||'').localeCompare(b.when||'')}))};
   $('#bRepF').onclick=function(){var a=POINTS.filter(passFilter);if(!a.length)return toast('Nessun punto filtrato');printReport(a)};
   $('#bImp').onclick=function(){$('#fImp').value='';$('#fImp').click()};
+  if($('#bTSel'))$('#bTSel').onclick=function(){TSEL.on=!TSEL.on;TSEL.ids={};renderAlt();if(TSEL.on){var c=$('.tsel');if(c)c.scrollIntoView({block:'center'})}};
+  if(TSEL.on){
+    var upd=function(){var n=Object.keys(TSEL.ids).filter(function(k){return TSEL.ids[k]}).length;$('#tsN').textContent=n+' tracce selezionate';$('#tsJoin').disabled=n<2;$('#tsGpx').disabled=n<1};
+    $$('[data-ts]').forEach(function(c){c.onchange=function(){TSEL.ids[c.getAttribute('data-ts')]=c.checked;c.closest('.card').classList.toggle('tson',c.checked);upd()}});
+    $('#tsAll').onclick=function(){TRACKS.forEach(function(t){TSEL.ids[t.id]=true});renderAlt()};
+    $('#tsJoin').onclick=function(){joinTracks(selTracks(),$('#tsDel').checked)};
+    $('#tsGpx').onclick=function(){var a=selTracks();if(!a.length)return;shareOrDownload(new Blob([toGPX([],a)],{type:'application/gpx+xml'}),'tracce_lago_piccolo_'+stamp()+'.gpx')};
+    upd();
+  }
   $$('[data-tv]').forEach(function(b){b.onclick=function(){var t=TRACKS.filter(function(x){return x.id===b.getAttribute('data-tv')})[0];if(!t)return;flashTrack(t)}});
   $$('[data-tg]').forEach(function(b){b.onclick=function(){var t=TRACKS.filter(function(x){return x.id===b.getAttribute('data-tg')})[0];if(t)shareOrDownload(new Blob([toGPX([],[t])],{type:'application/gpx+xml'}),slug(t.name)+'.gpx')}});
   $$('[data-tr]').forEach(function(b){b.onclick=function(){var t=TRACKS.filter(function(x){return x.id===b.getAttribute('data-tr')})[0];var n=t&&prompt('Nome della traccia',t.name);if(n){t.name=n;DB.put('tracks',t).then(loadTracks)}}});

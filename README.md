@@ -25,6 +25,8 @@ L'app è divisa in moduli: ogni parte sta in un file separato, così una modific
 | `js/10-pwa.js` | Pulsanti Aggiorna e Installa tutto, mappe senza rete | |
 | `js/11-altro.js` | Scheda Altro e menu dei livelli | |
 | `js/12-bussola.js` | Bussola (nord e mappa orientata secondo la direzione) e freccia rossa verso la specie più vicina | |
+| `js/14-fonti.js` | **Ricerca e fonti**: studi (OpenAlex), foto storiche (Wikimedia Commons, Panoramax), canti (Xeno-canto), diario delle stagioni, biblioteca delle fonti, macchina del tempo (Esri Wayback), livelli WMS/XYZ tuoi, confronto con Natura 2000 | aggiungere una fonte o una scheda di ricerca |
+| `data/n2000.js` | Habitat e specie del formulario Natura 2000 IT1110007 (con codici); le specie entrano nella checklist del Dossier | correggere i nomi comuni |
 | `js/13-avvio.js` | Navigazione tra le schede e avvio dell'app (**deve restare l'ultimo**) | |
 | `data/alberi.js` | Catalogo dei 144 alberi del corso | |
 | `data/schede_ricerca.js` | Le 81 schede iniziali della ricerca (flora, fauna, rocce, acque, storia, folclore, curiosità, sentieri) con fonti | aggiungere schede per tutti (vedi sotto) |

@@ -127,7 +127,7 @@ function recPoint(p){
   if(++REC.saveN%5===0)DB.put('tracks',REC.trk);
   updRecChip();
 }
-function trkStats(t){var d=0,up=0,dn=0,pa=null;for(var i=1;i<t.pts.length;i++){var a=t.pts[i-1],b=t.pts[i];d+=dist(a[0],a[1],b[0],b[1]);if(a[2]!=null&&b[2]!=null){var h=b[2]-a[2];if(Math.abs(h)>=2){if(h>0)up+=h;else dn-=h}}}return {d:d,up:Math.round(up),dn:Math.round(dn),t:((t.end||Date.now())-t.start)}}
+function trkStats(t){var d=0,up=0,dn=0,pa=null,br=t.brk||[];for(var i=1;i<t.pts.length;i++){if(t.merged&&br.indexOf(i)>=0)continue;var a=t.pts[i-1],b=t.pts[i];d+=dist(a[0],a[1],b[0],b[1]);if(a[2]!=null&&b[2]!=null){var h=b[2]-a[2];if(Math.abs(h)>=2){if(h>0)up+=h;else dn-=h}}}return {d:d,up:Math.round(up),dn:Math.round(dn),t:(t.dur!=null?t.dur:((t.end||Date.now())-t.start))}}
 function updRecChip(){var c=$('#chipRec');if(!REC.on){c.style.display='none';return}var s=trkStats(REC.trk);c.style.display='';c.innerHTML='<span class="rec">●</span> '+fmtDist(s.d)+' · '+fmtDur(s.t)+' · 🌙';updPocket()}
 setInterval(function(){if(REC.on)updRecChip()},15000);
 function recStop(){
