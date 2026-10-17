@@ -1,4 +1,4 @@
-/* Atlante Lago Piccolo - Mappa Leaflet, mappe di base, livelli sovrapposti e legenda.
+/* Atlante di campo - Mappa Leaflet, mappe di base, livelli sovrapposti e legenda.
    by Lollo ®2026 · i moduli si caricano nell'ordine dei numeri (vedi index.html) */
 'use strict';
 /* =================== MAPPA =================== */

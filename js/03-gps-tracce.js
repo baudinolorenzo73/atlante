@@ -1,4 +1,4 @@
-/* Atlante Lago Piccolo - GPS (posizione dal vivo, fix mediato) e registrazione delle tracce.
+/* Atlante di campo - GPS (posizione dal vivo, fix mediato) e registrazione delle tracce.
    by Lollo ®2026 · i moduli si caricano nell'ordine dei numeri (vedi index.html) */
 'use strict';
 /* =================== GPS =================== */
@@ -84,7 +84,7 @@ function recSplit(split,lastT){
   var old=REC.trk,rest=old.pts.slice(split),now=Date.now();
   old.pts=old.pts.slice(0,split);old.end=lastT||now;old.brk=(old.brk||[]).filter(function(i){return i<split});
   var pOld=old.pts.length>1?DB.put('tracks',old):DB.del('tracks',old.id);
-  REC.trk={id:uid(),name:'Traccia '+fmtDate(new Date(now).toISOString()),start:now,end:null,pts:rest,brk:[]};
+  REC.trk={id:uid(),name:'Traccia '+fmtDate(new Date(now).toISOString()),start:now,end:null,pts:rest,brk:[],perc:old.perc||null};
   REC.last=rest.length?rest[rest.length-1]:null;REC.line.setLatLngs(rest.map(function(p){return [p[0],p[1]]}));
   pOld.then(function(){return DB.put('tracks',REC.trk)}).then(function(){markChange();loadTracks()});
   sndRecStart();updRecChip();toast('🆕 Traccia precedente salvata: ne è iniziata una nuova',4000);
@@ -113,7 +113,7 @@ function checkOpenTracks(){
 setInterval(function(){if(!REC.on||document.visibilityState!=='visible')return;updPocket();var g=Date.now()-(REC.lastFix||REC.trk.start);if(g>90000&&!REC.warned){REC.warned=true;sndWarn();toast('⚠️ Nessuna posizione GPS da '+Math.round(g/1000)+' s: cerca il cielo aperto',6000)}else if(g<90000)REC.warned=false},5000);
 function recStart(){
   if(!navigator.geolocation)return toast('GPS non disponibile');
-  REC.trk={id:uid(),name:'Traccia '+fmtDate(new Date().toISOString()),start:Date.now(),end:null,pts:[]};
+  REC.trk={id:uid(),name:'Traccia '+fmtDate(new Date().toISOString()),start:Date.now(),end:null,pts:[],perc:PC.newId()};
   REC.on=true;REC.last=null;REC.lastFix=Date.now();REC.warned=false;sndRecStart();REC.line=L.polyline([],{color:'#ff5252',weight:4}).addTo(gTracks);
   startLive();$('#bRec').classList.add('recon');$('#bRec').textContent='⏹';
   if(navigator.wakeLock&&navigator.wakeLock.request){navigator.wakeLock.request('screen').then(function(w){REC.wake=w}).catch(function(){})}
@@ -138,4 +138,4 @@ function recStop(){
   DB.put('tracks',REC.trk).then(function(){markChange();toast('Traccia salvata ('+REC.trk.pts.length+' punti)');loadTracks()});
 }
 function loadTracks(){return DB.all('tracks').then(function(a){TRACKS=a.sort(function(x,y){return y.start-x.start});drawTracks();if(curPage==='alt')renderAlt()})}
-function drawTracks(){gTracks.clearLayers();if(REC.on&&REC.line)gTracks.addLayer(REC.line);if(!showTracks)return;TRACKS.forEach(function(t){if(REC.on&&REC.trk&&t.id===REC.trk.id)return;if(t.pts.length>1)L.polyline(t.pts.map(function(p){return [p[0],p[1]]}),{color:'#ffb74d',weight:3,opacity:.85}).bindPopup(esc(t.name)+'<br>'+fmtDist(trkStats(t).d)).addTo(gTracks)})}
+function drawTracks(){gTracks.clearLayers();if(REC.on&&REC.line)gTracks.addLayer(REC.line);if(!showTracks)return;TRACKS.forEach(function(t){if(REC.on&&REC.trk&&t.id===REC.trk.id)return;if(!PC.showT(t))return;if(t.pts.length>1)L.polyline(t.pts.map(function(p){return [p[0],p[1]]}),{color:'#ffb74d',weight:3,opacity:.85}).bindPopup(esc(t.name)+'<br>'+fmtDist(trkStats(t).d)).addTo(gTracks)})}

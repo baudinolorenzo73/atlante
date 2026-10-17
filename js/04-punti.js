@@ -1,10 +1,11 @@
-/* Atlante Lago Piccolo - Punti sulla mappa e nel catalogo, finestra modale, dettaglio del punto.
+/* Atlante di campo - Punti sulla mappa e nel catalogo, finestra modale, dettaglio del punto.
    by Lollo ®2026 · i moduli si caricano nell'ordine dei numeri (vedi index.html) */
 'use strict';
 /* =================== PUNTI: CARICAMENTO, MAPPA, LISTA =================== */
 function loadPoints(){return DB.all('points').then(function(a){POINTS=a;drawPoints();renderCat();if(curPage==='dos')renderDossier()})}
 function pinIcon(c,ind){return L.divIcon({className:'',html:'<div class="pin'+(ind?' ind':'')+'" style="background:'+c.c+'"><span>'+c.e+'</span></div>',iconSize:[30,30],iconAnchor:[15,30],popupAnchor:[0,-28]})}
 function passFilter(p){
+  if(typeof PC!=='undefined'&&!PC.show(p))return false;
   var any=Object.keys(filterCats).some(function(k){return filterCats[k]});
   if(any&&!filterCats[p.cat])return false;
   if(query){var q=query.toLowerCase();var hay=[p.title,p.note,p.ric,(p.sp&&p.sp.sci),(p.sp&&p.sp.com),(p.tags||[]).join(' '),CAT(p.cat).n].join(' ').toLowerCase();if(hay.indexOf(q)<0)return false}
@@ -30,7 +31,7 @@ function flashTrack(t){var ll=t.pts.map(function(p){return [p[0],p[1]]});if(ll.l
   var k=0,iv=setInterval(function(){k++;a.setStyle({opacity:k%2?.15:.6});if(k>9){clearInterval(iv);map.removeLayer(a);map.removeLayer(b)}},500)}
 map.on('click',function(){if(HL.ring)hlClear()});
 function firstPhoto(p){var m=(p.media||[]).filter(function(x){return x.type==='photo'})[0];return m}
-function thumbURL(mid){if(thumbCache[mid])return Promise.resolve(thumbCache[mid]);return DB.get('media',mid).then(function(r){if(!r)return null;thumbCache[mid]=URL.createObjectURL(r.blob);return thumbCache[mid]})}
+function thumbURL(mid){if(thumbCache[mid])return Promise.resolve(thumbCache[mid]);return DB.get('media',mid).then(function(r){if(!r||!r.blob)return null;thumbCache[mid]=URL.createObjectURL(r.blob);return thumbCache[mid]})}
 function renderCatFilter(){var h='';CATS.forEach(function(c){var n=POINTS.filter(function(p){return p.cat===c.id}).length;h+='<span class="cat'+(filterCats[c.id]?' on':'')+'" data-c="'+c.id+'">'+c.e+' '+esc(c.n)+(n?' <b>'+n+'</b>':'')+'</span>'});$('#catFilter').innerHTML=h}
 function renderCat(){
   renderCatFilter();
@@ -94,7 +95,7 @@ function openDetail(id){
   if(kv.length)h+='<h3>Scheda</h3><div class="kv">'+kv.map(function(r){var v=esc(r[1]);if(/^https?:\/\//.test(r[1]))v=v.replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>');return '<div>'+esc(r[0])+'</div><div style="white-space:pre-wrap">'+v+'</div>'}).join('')+'</div>';
   h+='<h3>Posizione</h3>'+(isInd(p)?'<div class="card" style="border-color:var(--warn)"><b style="color:var(--warn)">📍 Posizione indicativa</b><div class="mut">Messa a tavolino dalla ricerca: quando sei sul posto apri «Modifica» e premi «Aggiorna dal GPS» o «Scegli sulla mappa». Finché resta indicativa non fa scattare gli avvisi «Vicino a te».</div></div>':'')+'<div class="kv"><div>Coordinate</div><div>'+p.lat.toFixed(6)+', '+p.lon.toFixed(6)+'</div>'+(p.posSrc&&!isInd(p)?'<div>Origine</div><div>'+esc(p.posSrc)+'</div>':'')+(p.acc?'<div>Precisione</div><div>±'+p.acc+' m'+(p.gpsN?' (media di '+p.gpsN+' letture)':'')+'</div>':'')+(p.alt!=null?'<div>Quota</div><div>'+p.alt+' m'+(p.altSrc?' ('+esc(p.altSrc)+')':'')+'</div>':'')+(here?'<div>Distanza da te</div><div>'+fmtDist(dist(here.lat,here.lon,p.lat,p.lon))+'</div>':'')+'</div>';
   h+='<div class="row" style="margin-top:6px"><a class="btn s" href="geo:'+p.lat+','+p.lon+'?q='+p.lat+','+p.lon+'('+encodeURIComponent(p.title||'punto')+')">Naviga</a><a class="btn s" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query='+p.lat+','+p.lon+'">Google Maps</a></div>';
-  h+=FON.detailBtns(p);
+  h+=PC.detailRow(p);h+=FON.detailBtns(p);
   if(p.meteo)h+='<h3>Meteo al momento</h3><div class="mut">'+esc(p.meteo)+'</div>';
   if(p.tags&&p.tags.length)h+='<h3>Tag</h3><div>'+p.tags.map(function(t){return '<span class="cat">#'+esc(t)+'</span>'}).join(' ')+'</div>';
   var photos=(p.media||[]).filter(function(m){return m.type==='photo'}),auds=(p.media||[]).filter(function(m){return m.type==='audio'});
@@ -102,7 +103,7 @@ function openDetail(id){
   if(auds.length)h+='<h3>Registrazioni ('+auds.length+')</h3>'+auds.map(function(m){return '<div class="au"><audio controls data-mid="'+m.id+'"></audio></div><div class="mut" style="margin:-2px 0 6px">'+esc(m.cap||'')+'</div>'}).join('');
   h+='<p class="mut" style="margin-top:14px">Compilatore: '+esc(p.comp||'')+' · creato '+fmtDate(p.created)+(p.updated&&p.updated!==p.created?' · modificato '+fmtDate(p.updated):'')+'</p>';
   var foot=[mkBtn('Modifica','f',function(){closeModal();openForm(p)}),mkBtn('Sulla mappa','',function(){closeModal();flashPoint(p.lat,p.lon,p.title,p.id)}),mkBtn('Scheda stampabile','',function(){printReport([p])}),mkBtn('Condividi','',function(){shareOne(p)}),mkBtn('Elimina','r',function(){if(confirm('Eliminare definitivamente questo punto con foto e audio?'))deletePoint(p).then(closeModal)})];
-  openModal(p.title||'(senza titolo)',h,foot,freeDetail);FON.bindDetail(p);
-  $$('[data-mid]',$('#mbody')).forEach(function(n){DB.get('media',n.getAttribute('data-mid')).then(function(r){if(!r)return;var u=URL.createObjectURL(r.blob);detailURLs.push(u);n.src=u;if(n.tagName==='IMG')n.onclick=function(){view(u)}})});
+  openModal(p.title||'(senza titolo)',h,foot,freeDetail);FON.bindDetail(p);PC.bindDetail(p);
+  $$('[data-mid]',$('#mbody')).forEach(function(n){DB.get('media',n.getAttribute('data-mid')).then(function(r){if(!r||!r.blob)return;var u=URL.createObjectURL(r.blob);detailURLs.push(u);n.src=u;if(n.tagName==='IMG')n.onclick=function(){view(u)}})});
 }
-function deletePoint(p){var ps=(p.media||[]).map(function(m){delete thumbCache[m.id];return DB.del('media',m.id)});ps.push(DB.del('points',p.id));return Promise.all(ps).then(function(){markChange();toast('Punto eliminato');return loadPoints()})}
+function deletePoint(p){var ps=(p.media||[]).map(function(m){delete thumbCache[m.id];return DB.del('media',m.id)});ps.push(DB.del('points',p.id));tomb(p.id);return Promise.all(ps).then(function(){markChange();toast('Punto eliminato');return loadPoints()})}

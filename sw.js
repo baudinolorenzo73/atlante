@@ -1,4 +1,4 @@
-/* Atlante Lago Piccolo - service worker (uso senza rete). by Lollo ®2026
+/* Atlante di campo - service worker (uso senza rete). by Lollo ®2026
    - file dell'app: prima la rete (gli aggiornamenti arrivano subito); se la rete manca o è lenta (oltre 3,5 s) usa la copia salvata
    - tessere delle mappe: prima la copia salvata, poi la rete (e le tessere viste restano salvate)
    L'elenco dei file e il numero di versione arrivano da js/version.js (lo rigenera tools/build.py). */

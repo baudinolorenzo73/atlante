@@ -1,6 +1,8 @@
-# Atlante Lago Piccolo — PWA
+# Atlante di campo — PWA
 
-Atlante di campo del Lago Piccolo di Avigliana: catalogo di punti con foto, audio e GPS, mappe con legenda, avvisi «Vicino a te», dossier di ricerca, esportazioni. **by Lollo ®2026**
+> Dalla v3.6 l'app si chiama **Atlante di campo**. I dati restano gli stessi: il database nel telefono e il formato dei backup non cambiano, quindi i backup vecchi si importano senza problemi.
+
+Atlante di campo (nato per il Lago Piccolo di Avigliana, ora per qualsiasi luogo): catalogo di punti con foto, audio e GPS, percorsi, mappe con legenda, avvisi «Vicino a te», capitoli dei luoghi, sincronizzazione con Google Drive, esportazioni PDF ed Excel. **by Lollo ®2026**
 
 L'app è divisa in moduli: ogni parte sta in un file separato, così una modifica tocca solo il file che serve.
 
@@ -27,6 +29,10 @@ L'app è divisa in moduli: ogni parte sta in un file separato, così una modific
 | `js/12-bussola.js` | Bussola (nord e mappa orientata secondo la direzione) e freccia rossa verso la specie più vicina | |
 | `js/14-fonti.js` | **Ricerca e fonti**: studi (OpenAlex), foto storiche (Wikimedia Commons, Panoramax), canti (Xeno-canto), diario delle stagioni, biblioteca delle fonti, macchina del tempo (Esri Wayback), livelli WMS/XYZ tuoi, confronto con Natura 2000 | aggiungere una fonte o una scheda di ricerca |
 | `data/n2000.js` | Habitat e specie del formulario Natura 2000 IT1110007 (con codici); le specie entrano nella checklist del Dossier | correggere i nomi comuni |
+| `js/19-novita.js` | **Aggiornamento automatico** (all'avvio controlla se sul sito c'è una versione nuova e propone «Aggiorna ora») e finestra **Novità** dopo ogni aggiornamento |
+| `js/18-capitoli.js` | **Capitoli del Dossier**: il Lago Piccolo ha il suo capitolo scritto a mano; per ogni altro luogo l'app scarica e salva un capitolo automatico (Wikipedia, Wikidata, clima Open-Meteo, specie iNaturalist, OpenStreetMap, geologia Macrostrat) che funziona anche senza rete |
+| `js/17-percorsi.js` | **Percorsi** (uscite con le loro schede, foto e tracce: nuovo, apri, chiudi, aggiungi punti per giorno) ed esportazioni del percorso in ZIP, PDF con schema ed **Excel .xlsx con le foto** (scrittore XLSX interno, senza librerie) |
+| `js/16-drive.js` | **Sincronizzazione con Google Drive** (cartella «Atlante di campo»; quella vecchia «Atlante Lago Piccolo» viene rinominata da sola: dati.json, foto, audio, esporta/), unione per elemento e «lapidi» per le eliminazioni |
 | `js/15-luoghi.js` | **Luoghi di lavoro** (il lago e altri luoghi, ognuno con archivio e mappe senza rete) e **casella di ricerca** 🔍 (luoghi online, punti, note, specie, diario, fonti, coordinate) | cambiare le dimensioni dell'area o il servizio di ricerca |
 | `js/13-avvio.js` | Navigazione tra le schede e avvio dell'app (**deve restare l'ultimo**) | |
 | `data/alberi.js` | Catalogo dei 144 alberi del corso | |
@@ -62,8 +68,8 @@ L'app è divisa in moduli: ogni parte sta in un file separato, così una modific
 ## 2. Pubblicare la prima volta (con «Pubblica» e GitHub Pages)
 
 1. Apri la tua app «Pubblica».
-2. Crea un repository nuovo, per esempio **`atlante-lago-piccolo`**.
-3. Carica il file ZIP `atlante-lago-piccolo-v<versione>.zip` (per esempio `atlante-lago-piccolo-v1.7.zip`). I file sono già alla radice: `index.html` deve finire nella radice del repository, non in una sottocartella.
+2. Crea un repository nuovo, per esempio **`atlante-lago-piccolo`** (se esiste già, usa quello: il nome del repository non deve per forza cambiare con il nome dell'app, e cambiandolo cambierebbe l'indirizzo).
+3. Carica il file ZIP `atlante-di-campo-v<versione>.zip` (per esempio `atlante-di-campo-v3.6.zip`; fino alla v3.5 si chiamava `atlante-lago-piccolo-v<versione>.zip`). I file sono già alla radice: `index.html` deve finire nella radice del repository, non in una sottocartella.
 4. Su GitHub apri il repository, poi **Settings → Pages**.
 5. In **Source** scegli **Deploy from a branch**. Come branch scegli **main** e come cartella **/ (root)**, poi premi **Save**.
 6. Aspetta 1–2 minuti. L'indirizzo sarà:
@@ -88,7 +94,7 @@ Da quel momento l'app si apre anche senza rete.
    ```
    python tools/build.py --zip
    ```
-   Questo comando cambia il codice build e crea `../atlante-lago-piccolo-v<versione>.zip`. Per cambiare anche il numero di versione scrivi per esempio `python tools/build.py 1.4 --zip`.
+   Questo comando cambia il codice build e crea `../atlante-di-campo-v<versione>.zip`. Per cambiare anche il numero di versione scrivi per esempio `python tools/build.py 1.4 --zip`.
 3. Pubblica lo ZIP con «Pubblica» nello stesso repository.
 4. Sul telefono vai su **Altro → 🔄 Aggiorna**. L'app trova la nuova build, scarica i file nuovi e si riavvia.
 
@@ -109,7 +115,7 @@ Apri **http://localhost:8000** in Chrome sul telefono. Su `localhost` funzionano
 ```
 python tools/build_single.py
 ```
-Crea `dist/atlante_lago_piccolo.html` con tutto dentro, come le versioni precedenti. È comodo da mandare a qualcuno. Per la PWA si pubblica invece la cartella intera.
+Crea `dist/atlante_di_campo.html` con tutto dentro, come le versioni precedenti. È comodo da mandare a qualcuno. Per la PWA si pubblica invece la cartella intera.
 
 ---
 

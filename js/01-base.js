@@ -1,4 +1,4 @@
-/* Atlante Lago Piccolo - Configurazione, utilità, database (IndexedDB), impostazioni, categorie e campi delle schede.
+/* Atlante di campo - Configurazione, utilità, database (IndexedDB), impostazioni, categorie e campi delle schede.
    by Lollo ®2026 · i moduli si caricano nell'ordine dei numeri (vedi index.html) */
 'use strict';
 var BRAND='by Lollo ®2026';
@@ -53,7 +53,7 @@ DB.tx=function(store,mode,fn){return new Promise(function(res,rej){
   if(!DB.ok){try{res(fn(null))}catch(e){rej(e)}return}
   var t=DB.db.transaction(store,mode),s=t.objectStore(store),out;
   try{out=fn(s)}catch(e){rej(e);return}
-  t.oncomplete=function(){res(out&&out.result!==undefined?out.result:out)};
+  t.oncomplete=function(){res(out&&typeof IDBRequest!=='undefined'&&out instanceof IDBRequest?out.result:out)};
   t.onerror=function(){rej(t.error)};t.onabort=function(){rej(t.error||new Error('abort'))};
 })};
 DB.put=function(store,obj){if(!DB.ok){DB.mem[store][obj.id]=obj;return Promise.resolve()}return DB.tx(store,'readwrite',function(s){s.put(obj)})};

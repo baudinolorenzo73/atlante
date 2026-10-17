@@ -1,4 +1,4 @@
-/* Atlante Lago Piccolo - Scheda Esplora: meteo, iNaturalist, GBIF, Wikipedia, Wikidata, OpenStreetMap.
+/* Atlante di campo - Scheda Esplora: meteo, iNaturalist, GBIF, Wikipedia, Wikidata, OpenStreetMap.
    by Lollo ®2026 · i moduli si caricano nell'ordine dei numeri (vedi index.html) */
 'use strict';
 /* =================== ESPLORA (API gratuite) =================== */

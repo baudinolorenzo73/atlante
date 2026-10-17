@@ -1,4 +1,4 @@
-/* Atlante Lago Piccolo - Scheda Dossier: ricerca con fonti, checklist, calendario, catalogo alberi.
+/* Atlante di campo - Scheda Dossier: ricerca con fonti, checklist, calendario, catalogo alberi.
    by Lollo ®2026 · i moduli si caricano nell'ordine dei numeri (vedi index.html) */
 'use strict';
 /* =================== DOSSIER =================== */
@@ -132,9 +132,9 @@ function seedResearch(force){
     add.forEach(function(p){done[p.rk]=1});SET.ricDone=done;SET.ricV=SCHEDE_RICERCA.v;return saveSet()}).then(function(){markChange();return loadPoints()}).then(function(){return add.length});
 }
 function ricStats(){var n=0,ind=0;POINTS.forEach(function(p){if(p.rk){n++;if(isInd(p))ind++}});return {n:n,ind:ind,tot:typeof SCHEDE_RICERCA!=='undefined'?SCHEDE_RICERCA.items.length:0}}
-function renderDossier(){
+function renderLakeDossier(){
   var seen=seenSci();var nseen=0;CHK_SPECIES.forEach(function(s){if(seen[s.sci.toLowerCase()]||CHECK[s.sci])nseen++});
-  var h=PL.dossNote();
+  var h=CAP.head();
   h+='<div class="card"><b>Lago Piccolo di Avigliana</b> (Lago di Trana, anticamente Lago di San Bartolomeo)<div class="mut">Superficie 61 ha · profondità massima 12 m · quota circa 356 m · Parco naturale dal 1980 · ZSC e ZPS IT1110007</div></div>';
   var rs=ricStats();h+='<div class="card"><b>📚 Schede della ricerca nel Catalogo: '+rs.n+' su '+rs.tot+'</b><div class="mut">Flora, fauna, rocce, acque, storia, folclore, curiosità e sentieri, ognuna con le sue fonti. Hanno il tag «ricerca»: ampliale con le tue note, foto e audio. '+(rs.ind?rs.ind+' hanno ancora una <b style="color:var(--warn)">posizione indicativa</b> (segnaposto tratteggiato): spostale quando sei sul posto.':'')+'</div><div class="row" style="margin-top:8px"><button class="btn s f" id="ricShow">Mostra nel Catalogo</button>'+(rs.n<rs.tot?'<button class="btn s" id="ricAdd">Ripristina le '+(rs.tot-rs.n)+' mancanti</button>':'')+'</div></div>';
   h+='<details open><summary>Carta d\'identità</summary><div class="dc"><ul>'+
@@ -226,7 +226,8 @@ function renderDossier(){
   h+='<details><summary>Fonti ('+SRC.length+')</summary><div class="dc"><ol>'+SRC.map(function(s,i){return '<li id="src'+(i+1)+'"><a href="'+s[1]+'" target="_blank" rel="noopener">'+esc(s[0])+'</a></li>'}).join('')+'</ol></div></details>';
   h+='<details><summary>Catalogo alberi del corso ('+ALBERI.length+')</summary><div class="dc"><input type="search" id="alQ" placeholder="cerca genere, specie o famiglia"><div id="alL" style="margin-top:8px"></div></div></details>';
   var keep=$$('#dosBody details').map(function(d){return d.open});
-  $('#dosBody').innerHTML=h;
+  h+=CAP.lakeExtra();
+  $('#dosBody').innerHTML=h;CAP.bindHead();
   $('#ricShow').onclick=function(){query='ricerca';$('#q').value='ricerca';go('cat')};
   if($('#ricAdd'))$('#ricAdd').onclick=function(){seedResearch(true).then(function(n){toast(n===1?'1 scheda ripristinata':n+' schede ripristinate');renderDossier()})};
   if(keep.length)$$('#dosBody details').forEach(function(d,i){if(keep[i]!=null)d.open=keep[i]});

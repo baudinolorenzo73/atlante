@@ -1,4 +1,4 @@
-/* Atlante Lago Piccolo - Condivisione, esportazioni (GPX, KML, GeoJSON, CSV, schede stampabili), ZIP e importazione.
+/* Atlante di campo - Condivisione, esportazioni (GPX, KML, GeoJSON, CSV, schede stampabili), ZIP e importazione.
    by Lollo ®2026 · i moduli si caricano nell'ordine dei numeri (vedi index.html) */
 'use strict';
 /* =================== CONDIVISIONE / DOWNLOAD =================== */
@@ -17,14 +17,14 @@ function shareOne(p){var t=(p.title||'')+'\n'+CAT(p.cat).n+(p.sp&&p.sp.sci?' –
 function xesc(s){return String(s==null?'':s).replace(/[<>&'"]/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;',"'":'&apos;','"':'&quot;'}[c]})}
 function pointDesc(p){var a=[CAT(p.cat).n];if(p.sp&&(p.sp.com||p.sp.sci))a.push((p.sp.com||'')+(p.sp.sci?' ('+p.sp.sci+')':''));Object.keys(p.x||{}).forEach(function(k){if(p.x[k])a.push(extraLabel(k)+': '+p.x[k])});SCHEDA.forEach(function(s){if(p.s&&p.s[s.k])a.push(s.l+': '+p.s[s.k])});if(p.note)a.push(p.note);if(p.ric)a.push('Dalla ricerca: '+p.ric);if(isInd(p))a.push('Posizione indicativa, da verificare');if(p.tags&&p.tags.length)a.push('Tag: '+p.tags.join(', '));if(p.meteo)a.push('Meteo: '+p.meteo);return a.join('\n')}
 function toGPX(points,tracks){
-  var s='<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="Atlante Lago Piccolo '+BRAND+'" xmlns="http://www.topografix.com/GPX/1/1">\n<metadata><name>Atlante Lago Piccolo di Avigliana</name><time>'+new Date().toISOString()+'</time></metadata>\n';
+  var s='<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="Atlante di campo '+BRAND+'" xmlns="http://www.topografix.com/GPX/1/1">\n<metadata><name>Atlante di campo</name><time>'+new Date().toISOString()+'</time></metadata>\n';
   points.forEach(function(p){s+='<wpt lat="'+p.lat.toFixed(7)+'" lon="'+p.lon.toFixed(7)+'">'+(p.alt!=null?'<ele>'+p.alt+'</ele>':'')+'<time>'+xesc(p.when)+'</time><name>'+xesc(p.title)+'</name><desc>'+xesc(pointDesc(p))+'</desc><type>'+xesc(CAT(p.cat).n)+'</type></wpt>\n'});
   (tracks||[]).forEach(function(t){s+='<trk><name>'+xesc(t.name)+'</name><trkseg>\n';t.pts.forEach(function(q,qi){if(qi&&t.brk&&t.brk.indexOf(qi)>=0)s+='</trkseg><trkseg>\n';s+='<trkpt lat="'+q[0]+'" lon="'+q[1]+'">'+(q[2]!=null?'<ele>'+q[2]+'</ele>':'')+'<time>'+new Date(q[3]).toISOString()+'</time></trkpt>\n'});s+='</trkseg></trk>\n'});
   return s+'</gpx>\n';
 }
 function kmlColor(hex){var h=hex.replace('#','');return 'ff'+h.slice(4,6)+h.slice(2,4)+h.slice(0,2)}
 function toKML(points,tracks,mediaName){
-  var s='<?xml version="1.0" encoding="UTF-8"?>\n<kml xmlns="http://www.opengis.net/kml/2.2"><Document><name>Atlante Lago Piccolo di Avigliana</name>\n';
+  var s='<?xml version="1.0" encoding="UTF-8"?>\n<kml xmlns="http://www.opengis.net/kml/2.2"><Document><name>Atlante di campo</name>\n';
   CATS.forEach(function(c){s+='<Style id="c_'+c.id+'"><IconStyle><color>'+kmlColor(c.c)+'</color><Icon><href>http://maps.google.com/mapfiles/kml/paddle/wht-blank.png</href></Icon></IconStyle></Style>\n'});
   s+='<Style id="trk"><LineStyle><color>ff4db7ff</color><width>4</width></LineStyle></Style>\n';
   CATS.forEach(function(c){var ps=points.filter(function(p){return p.cat===c.id});if(!ps.length)return;s+='<Folder><name>'+xesc(c.n)+'</name>\n';
@@ -53,11 +53,11 @@ function toCSV(points){
   return '﻿'+rows.join('\r\n');
 }
 /* ---- report HTML (stampabile / PDF) ---- */
-function reportHTML(points,imgSrc,audSrc){
+function reportHTML(points,imgSrc,audSrc,opts){opts=opts||{};
   var cnt={};points.forEach(function(p){cnt[p.cat]=(cnt[p.cat]||0)+1});
   var css='body{font:13px/1.45 Georgia,serif;color:#111;margin:18px}h1{font-size:22px;margin:0}h2{font-size:17px;margin:0 0 6px;border-bottom:2px solid #333}table{border-collapse:collapse;width:100%;margin:6px 0}td{border:1px solid #999;padding:4px 6px;vertical-align:top}td.k{width:28%;background:#f1f1f1;font-weight:bold}.sch{page-break-after:always;margin-bottom:22px}.ph{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.ph figure{margin:0}.ph img{width:100%;height:150px;object-fit:cover;border:1px solid #999}.ph figcaption{font-size:11px}.ft{font-size:11px;color:#555;margin-top:10px}@media print{body{margin:8mm}}';
-  var h='<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Atlante Lago Piccolo – schede</title><style>'+css+'</style></head><body>';
-  h+='<div class="sch"><h1>Atlante del Lago Piccolo di Avigliana</h1><p>Schede di campo · '+points.length+' punti · generato il '+fmtDate(new Date().toISOString())+'</p><table>'+CATS.filter(function(c){return cnt[c.id]}).map(function(c){return '<tr><td class="k">'+esc(c.n)+'</td><td>'+cnt[c.id]+'</td></tr>'}).join('')+'</table><p class="ft">'+esc(SET.compilatore)+' · '+BRAND+'</p></div>';
+  var h='<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Atlante di campo – schede</title><style>'+css+'</style></head><body>';
+  if(opts.cover)h+=opts.cover;else h+='<div class="sch"><h1>Atlante di campo – '+esc(PL.name())+'</h1><p>Schede di campo · '+points.length+' punti · generato il '+fmtDate(new Date().toISOString())+'</p><table>'+CATS.filter(function(c){return cnt[c.id]}).map(function(c){return '<tr><td class="k">'+esc(c.n)+'</td><td>'+cnt[c.id]+'</td></tr>'}).join('')+'</table><p class="ft">'+esc(SET.compilatore)+' · '+BRAND+'</p></div>';
   points.forEach(function(p,i){var c=CAT(p.cat);var rows=[['N°',(i+1)],['Categoria',c.n],['Data e ora',fmtDate(p.when)],['Geolocalizzazione',p.lat.toFixed(6)+', '+p.lon.toFixed(6)+(p.acc?' (±'+p.acc+' m)':'')+' – https://www.google.com/maps/search/?api=1&query='+p.lat.toFixed(6)+','+p.lon.toFixed(6)]];
     if(p.alt!=null)rows.push(['Quota',p.alt+' m']);
     if(p.sp&&(p.sp.com||p.sp.sci))rows.push(['Specie',(p.sp.com||'')+(p.sp.sci?' – '+p.sp.sci:'')]);
@@ -72,11 +72,11 @@ function reportHTML(points,imgSrc,audSrc){
   return h+'<p class="ft">'+BRAND+'</p></body></html>';
 }
 function blobToDataURL(b){return new Promise(function(res){var r=new FileReader();r.onload=function(){res(r.result)};r.readAsDataURL(b)})}
-function printReport(points){
+function printReport(points,opts){
   toast('Preparo le schede…');
   var map2={};var jobs=[];points.forEach(function(p){(p.media||[]).forEach(function(m){if(m.type==='photo')jobs.push(DB.get('media',m.id).then(function(r){if(r)return blobToDataURL(r.blob).then(function(u){map2[m.id]=u})}))})});
-  Promise.all(jobs).then(function(){var html=reportHTML(points,function(p,m){return map2[m.id]||''},null);
-    var w=window.open('','_blank');if(w){w.document.open();w.document.write(html+'<script>setTimeout(function(){print()},600)<\/script>');w.document.close()}else shareOrDownload(new Blob([html],{type:'text/html'}),'schede_lago_piccolo_'+stamp()+'.html')});
+  Promise.all(jobs).then(function(){var html=reportHTML(points,function(p,m){return map2[m.id]||''},null,opts);
+    var w=window.open('','_blank');if(w){w.document.open();w.document.write(html+'<script>setTimeout(function(){print()},600)<\/script>');w.document.close()}else shareOrDownload(new Blob([html],{type:'text/html'}),'schede_atlante_'+stamp()+'.html')});
 }
 
 /* =================== ZIP (scrittura e lettura senza librerie) =================== */
@@ -107,30 +107,31 @@ function unzip(buf){
 }
 function ext(m){var t=(m.mime||'').toLowerCase();if(t.indexOf('jpeg')>=0||t.indexOf('jpg')>=0)return 'jpg';if(t.indexOf('png')>=0)return 'png';if(t.indexOf('webm')>=0)return 'webm';if(t.indexOf('mp4')>=0||t.indexOf('m4a')>=0||t.indexOf('aac')>=0)return 'm4a';if(t.indexOf('ogg')>=0)return 'ogg';if(t.indexOf('mpeg')>=0||t.indexOf('mp3')>=0)return 'mp3';if(t.indexOf('wav')>=0)return 'wav';return 'bin'}
 function mediaName(p,m){var idx=(p.media||[]).indexOf(m)+1;return 'media/'+slug(p.title)+'_'+p.id.slice(-5)+'_'+(m.type==='photo'?'foto':'audio')+idx+'.'+ext(m)}
-function exportZip(){
-  toast('Preparo il backup completo…',8000);
-  var enc=new TextEncoder(),files=[],pts=POINTS.slice().sort(function(a,b){return (a.when||'').localeCompare(b.when||'')}),mjobs=[];
+function exportZip(o){o=o&&o.pts?o:{};
+  toast(o.perc?'Preparo lo ZIP del percorso…':'Preparo il backup completo…',8000);
+  var trks=o.trks||TRACKS,enc=new TextEncoder(),files=[],pts=(o.pts||POINTS).slice().sort(function(a,b){return (a.when||'').localeCompare(b.when||'')}),mjobs=[];
   pts.forEach(function(p){(p.media||[]).forEach(function(m){mjobs.push(DB.get('media',m.id).then(function(r){if(r)return r.blob.arrayBuffer().then(function(ab){files.push({name:mediaName(p,m),data:new Uint8Array(ab)})})}))})});
   return Promise.all(mjobs).then(function(){
-    var data={app:'atlante-lago-piccolo',version:VERSION,exported:new Date().toISOString(),points:pts.map(function(p){var q=JSON.parse(JSON.stringify(p));q.media.forEach(function(m,i){m.file=mediaName(p,p.media[i])});return q}),tracks:TRACKS,checklist:CHECK,fonti:FON.lib,diario:FON.dia,livelli:FON.cl,luoghi:PL.list};
-    files.unshift({name:'LEGGIMI.txt',data:enc.encode('Atlante del Lago Piccolo di Avigliana - backup del '+fmtDate(data.exported)+'\r\n\r\ndati.json      tutti i dati (per reimportarli nell\'app: Altro > Importa)\r\nschede.html    schede stampabili con foto (aprila nel browser)\r\npunti.gpx      punti e tracce per OsmAnd, Garmin, ecc.\r\npunti.kml      per Google Earth / My Maps\r\npunti.geojson  per QGIS\r\npunti.csv      per Excel / Fogli (separatore ;)\r\nmedia/         foto e registrazioni\r\n\r\n'+BRAND+'\r\n')},
+    var data={app:'atlante-lago-piccolo',version:VERSION,exported:new Date().toISOString(),points:pts.map(function(p){var q=JSON.parse(JSON.stringify(p));q.media.forEach(function(m,i){m.file=mediaName(p,p.media[i])});return q}),tracks:trks,checklist:CHECK,fonti:FON.lib,diario:FON.dia,livelli:FON.cl,luoghi:PL.list,percorsi:o.perc?[o.perc]:PC.list};
+    files.unshift({name:'LEGGIMI.txt',data:enc.encode('Atlante di campo - backup del '+fmtDate(data.exported)+'\r\n\r\ndati.json      tutti i dati (per reimportarli nell\'app: Altro > Importa)\r\nschede.html    schede stampabili con foto (aprila nel browser)\r\npunti.gpx      punti e tracce per OsmAnd, Garmin, ecc.\r\npunti.kml      per Google Earth / My Maps\r\npunti.geojson  per QGIS\r\npunti.csv      per Excel / Fogli (separatore ;)\r\nmedia/         foto e registrazioni\r\n\r\n'+BRAND+'\r\n')},
       {name:'dati.json',data:enc.encode(JSON.stringify(data))},
-      {name:'schede.html',data:enc.encode(reportHTML(pts,mediaName,mediaName))},
-      {name:'punti.gpx',data:enc.encode(toGPX(pts,TRACKS))},
-      {name:'punti.kml',data:enc.encode(toKML(pts,TRACKS,mediaName))},
-      {name:'punti.geojson',data:enc.encode(toGeoJSON(pts,TRACKS,mediaName))},
+      {name:'schede.html',data:enc.encode(reportHTML(pts,mediaName,mediaName,o.perc?{cover:PC.cover(o.perc,{pts:pts,trks:trks})}:null))},
+      {name:'punti.gpx',data:enc.encode(toGPX(pts,trks))},
+      {name:'punti.kml',data:enc.encode(toKML(pts,trks,mediaName))},
+      {name:'punti.geojson',data:enc.encode(toGeoJSON(pts,trks,mediaName))},
       {name:'punti.csv',data:enc.encode(toCSV(pts))});
     if(FON.dia.length)files.push({name:'diario.csv',data:enc.encode(csvText(diarioRows()))});
     if(FON.lib.length)files.push({name:'bibliografia.txt',data:enc.encode(libText())});
+    return (pts.length?XLSX.points(pts,trks,o.perc||null).then(function(x){return x.arrayBuffer()}).then(function(ab){files.push({name:'schede.xlsx',data:new Uint8Array(ab)})}).catch(function(){}):Promise.resolve()).then(function(){
     var z=zipBlob(files);
-    SET.lastBackup=Date.now();SET.changes=0;saveSet();updBackupDot();
-    return shareOrDownload(z,'atlante_lago_piccolo_'+stamp()+'.zip','Backup Atlante Lago Piccolo').then(function(){toast('Backup pronto ('+fmtSize(z.size)+')',4000);if(curPage==='alt')renderAlt()});
+    if(!o.perc){SET.lastBackup=Date.now();SET.changes=0;saveSet();updBackupDot()}
+    return shareOrDownload(z,o.name||'atlante_di_campo_'+stamp()+'.zip',o.title||'Backup Atlante di campo').then(function(){toast((o.perc?'ZIP del percorso pronto (':'Backup pronto (')+fmtSize(z.size)+')',4000);if(curPage==='alt')renderAlt()})});
   }).catch(function(e){alert('Errore durante l\'esportazione: '+e.message)});
 }
 function exportText(kind){
   var pts=POINTS.slice().sort(function(a,b){return (a.when||'').localeCompare(b.when||'')}),s,t,n;
   if(kind==='gpx'){s=toGPX(pts,TRACKS);t='application/gpx+xml'}else if(kind==='kml'){s=toKML(pts,TRACKS,null);t='application/vnd.google-earth.kml+xml'}else if(kind==='geojson'){s=toGeoJSON(pts,TRACKS,null);t='application/geo+json'}else{s=toCSV(pts);t='text/csv'}
-  n='lago_piccolo_'+stamp()+'.'+kind;shareOrDownload(new Blob([s],{type:t}),n);
+  n='atlante_'+stamp()+'.'+kind;shareOrDownload(new Blob([s],{type:t}),n);
 }
 /* ---- importazione ---- */
 function importFile(f){
@@ -166,6 +167,7 @@ function importData(data,files){
   var ht={};TRACKS.forEach(function(t){ht[t.id]=1});(data.tracks||[]).forEach(function(t){if(!ht[t.id]){jobs.push(DB.put('tracks',t));res.nt++}});
   if(data.checklist){Object.keys(data.checklist).forEach(function(k){CHECK[k]=CHECK[k]||data.checklist[k]});jobs.push(saveCheck())}
   if(data.fonti||data.diario||data.livelli)jobs.push(FON.load().then(function(){function mg(a,b){var h={};a.forEach(function(x){h[x.id]=1});(b||[]).forEach(function(x){if(!h[x.id]){a.push(x);h[x.id]=1}})}mg(FON.lib,data.fonti);mg(FON.dia,data.diario);mg(FON.cl,data.livelli);FON.regLayers();return Promise.all([FON.saveLib(),FON.saveDia(),FON.saveCl()])}));
+  if(data.percorsi&&data.percorsi.length){var hq={};PC.list.forEach(function(x){hq[x.id]=1});data.percorsi.forEach(function(x){if(!hq[x.id]){PC.list.push(x);hq[x.id]=1}});jobs.push(PC.save(false))}
   if(data.luoghi&&data.luoghi.length){var hp={};PL.list.forEach(function(x){hp[x.id]=1});data.luoghi.forEach(function(x){if(!hp[x.id]){PL.list.push(x);hp[x.id]=1}});jobs.push(PL.save())}
   return Promise.all(jobs).then(function(){return res});
 }

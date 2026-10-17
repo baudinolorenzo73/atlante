@@ -35,7 +35,7 @@ js=("/* Generato da tools/build.py: non modificare a mano (tranne VERSION, se vu
 open(vf,'w',encoding='utf-8',newline='\n').write(js)
 print('Versione %s · build %s · %d file nell\'elenco'%(ver,build,len(assets)))
 if '--zip' in sys.argv:
-    zp=os.path.join(os.path.dirname(ROOT),'atlante-lago-piccolo-v%s.zip'%ver)
+    zp=os.path.join(os.path.dirname(ROOT),'atlante-di-campo-v%s.zip'%ver)
     with zipfile.ZipFile(zp,'w',zipfile.ZIP_DEFLATED) as z:
         for d,ds,fs in os.walk(ROOT):
             ds[:]=sorted(x for x in ds if x not in {'.git','node_modules','dist'})

@@ -1,4 +1,4 @@
-/* Atlante Lago Piccolo - Scheda nuovo/modifica punto: foto, audio, specie, campi «Scheda sito».
+/* Atlante di campo - Scheda nuovo/modifica punto: foto, audio, specie, campi «Scheda sito».
    by Lollo ®2026 · i moduli si caricano nell'ordine dei numeri (vedi index.html) */
 'use strict';
 /* =================== FORM NUOVO / MODIFICA =================== */
@@ -221,13 +221,13 @@ function saveDraft(){
   if(RECA.mr){toast('Ferma prima la registrazione audio');return}
   if(!draft.title){draft.title=(draft.sp&&(draft.sp.com||draft.sp.sci))||CAT(draft.cat).n+' '+fmtDate(draft.when)}
   var now=new Date().toISOString();
-  var rec={id:draft.id,cat:draft.cat,title:draft.title,sp:CAT(draft.cat).sp?draft.sp:null,x:draft.x,s:CAT(draft.cat).sch?draft.s:{},note:draft.note,ric:draft.ric||'',rk:draft.rk||null,match:draft.match||null,tags:draft.tags,when:draft.when,lat:+draft.lat,lon:+draft.lon,acc:draft.acc,posSrc:draft.posSrc||'',alt:draft.alt,altSrc:draft.altSrc,gpsN:draft.gpsN,meteo:draft.meteo,comp:draft.comp,created:draft.created||now,updated:now,
+  var rec={id:draft.id,cat:draft.cat,title:draft.title,sp:CAT(draft.cat).sp?draft.sp:null,x:draft.x,s:CAT(draft.cat).sch?draft.s:{},note:draft.note,ric:draft.ric||'',rk:draft.rk||null,match:draft.match||null,tags:draft.tags,when:draft.when,lat:+draft.lat,lon:+draft.lon,acc:draft.acc,posSrc:draft.posSrc||'',alt:draft.alt,altSrc:draft.altSrc,gpsN:draft.gpsN,meteo:draft.meteo,comp:draft.comp,perc:draft.isNew?PC.newId():(draft.perc||null),created:draft.created||now,updated:now,
     media:draft.media.map(function(m){return {id:m.id,type:m.type,mime:m.mime,cap:m.cap||'',size:m.size||0,dur:m.dur||null}})};
   var ops=draft.media.filter(function(m){return m.blob}).map(function(m){return DB.put('media',{id:m.id,pid:rec.id,blob:m.blob})});
   draft.removed.forEach(function(id){delete thumbCache[id];ops.push(DB.del('media',id))});
   Promise.all(ops).then(function(){return DB.put('points',rec)}).then(function(){markChange();var isNew=draft.isNew;closeModal();toast(isNew?'Punto salvato':'Modifiche salvate');return loadPoints()}).catch(function(e){alert('Errore nel salvataggio: '+e.message+'\nSe lo spazio è finito, esporta un backup e libera memoria.')});
 }
-function markChange(){SET.changes=(SET.changes||0)+1;saveSet();updBackupDot()}
+function markChange(){SET.changes=(SET.changes||0)+1;saveSet();updBackupDot();if(typeof GD!=='undefined')GD.touch()}
 function updBackupDot(){var late=SET.changes>0&&(Date.now()-(SET.lastBackup||0)>2*86400000||SET.changes>=15);$('#navAlt').classList.toggle('dotb',!!late)}
 
 /* ---- scelta posizione sulla mappa ---- */

@@ -1,4 +1,4 @@
-/* Atlante Lago Piccolo - Navigazione tra le schede e avvio dell'app.
+/* Atlante di campo - Navigazione tra le schede e avvio dell'app.
    by Lollo ®2026 · i moduli si caricano nell'ordine dei numeri (vedi index.html) */
 'use strict';
 /* =================== NAVIGAZIONE =================== */
@@ -25,12 +25,12 @@ injectManifest();
 if(isWeb()&&isModular()&&'serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(function(){});
 DB.open().then(function(ok){
   if(!ok)toast('Attenzione: questo browser non permette di salvare i dati (vedi Altro → Memoria)',6000);
-  return Promise.all([DB.get('kv','settings'),DB.get('kv','mapstate'),DB.get('kv','checklist'),DB.get('kv','zonepack'),DB.get('kv','customlayers'),DB.get('kv','places')]);
+  return Promise.all([DB.get('kv','settings'),DB.get('kv','mapstate'),DB.get('kv','checklist'),DB.get('kv','zonepack'),DB.get('kv','customlayers'),DB.get('kv','places'),DB.get('kv','tomb'),DB.get('kv','percorsi')]);
 }).then(function(r){
   if(r[0]&&r[0].v)Object.assign(SET,r[0].v);
   var ms=r[1]&&r[1].v;if(ms){baseId=ms.base||baseId;overOn=ms.over||{}}
   if(r[2]&&r[2].v)CHECK=r[2].v;
-  PL.load(r[5]);if(PL.isLake()&&r[3]&&r[3].v)NEAR.pack=r[3].v;PL.apply({view:!PL.isLake()});
+  PL.load(r[5]);CAP.init();if(r[6]&&r[6].v)TOMB=r[6].v;PC.load(r[7]);PC.badge();if(PL.isLake()&&r[3]&&r[3].v)NEAR.pack=r[3].v;PL.apply({view:!PL.isLake()});
   if(r[4]&&r[4].v)FON.cl=r[4].v;FON.regLayers();FON.load();
   updNearBtn();
   setBase(baseId);OVERS.forEach(function(o){if(overOn[o.id])setOver(o,true)});
@@ -42,5 +42,7 @@ DB.open().then(function(ok){
   return checkOpenTracks();
 }).then(function(){
   if(!/[?&]noseed/.test(location.search))return seedResearch(false).then(function(n){if(n)toast('📚 Aggiunte al Catalogo '+n+' schede dalla ricerca (tag «ricerca»)',5000)});
-}).catch(function(e){console.error(e);toast('Errore di avvio: '+e.message,6000)});
-window._atlTest={PL:PL,openSearch:openSearch,searchLocal:searchLocal,parseCoords:parseCoords,dayText:dayText,totText:totText,dayData:dayData,totData:totData,FON:FON,TM:TM,HUB:HUB,HUBR:HUBR,openHub:openHub,hubGo:hubGo,wmsCaps:wmsCaps,studiGo:studiGo,fotoGo:fotoGo,cantiGo:cantiGo,libText:libText,diarioRows:diarioRows,FON:FON,TM:TM,HUB:HUB,HUBR:HUBR,openHub:openHub,hubGo:hubGo,wmsCaps:wmsCaps,studiGo:studiGo,fotoGo:fotoGo,cantiGo:cantiGo,libText:libText,diarioRows:diarioRows,TSEL:TSEL,joinTracks:joinTracks,trkStats:trkStats,flashPoint:flashPoint,HL:HL,PMK:function(){return PMK},VW:VW,view:view,vGo:vGo,askRec:askRec,recSplit:recSplit,checkOpenTracks:checkOpenTracks,ORI:ORI,setOriMode:setOriMode,updArrow:updArrow,spCands:spCands,ARW:ARW,quickCapture:quickCapture,QC:QC,recBreak:recBreak,pocketOn:pocketOn,gpxTracks:gpxTracks,importFile:importFile,seedResearch:seedResearch,ricStats:ricStats,fixIndicative:fixIndicative,NEAR:NEAR,NS:NS,nearCheck:nearCheck,nearCands:nearCands,nearSet:nearSet,openNear:openNear,downloadPack:downloadPack,here:function(){return here},map:map,offlineLayers:offlineLayers,doUpdate:doUpdate,openLegend:openLegend,BUILD:function(){return BUILD},DB:DB,POINTS:function(){return POINTS},TRACKS:function(){return TRACKS},exportZip:exportZip,zipBlob:zipBlob,unzip:unzip,toGPX:toGPX,toKML:toKML,toCSV:toCSV,toGeoJSON:toGeoJSON,reportHTML:reportHTML,importData:importData,exifGPS:exifGPS,loadPoints:loadPoints,loadTracks:loadTracks,openForm:openForm,newDraft:newDraft,saveDraft:saveDraft,mediaName:mediaName,draft:function(){return draft},addPhotos:addPhotos,recStart:recStart,recStop:recStop,REC:REC};
+}).then(function(){if(SET.gAuto&&SET.gClient&&GD.ready()&&navigator.onLine!==false)setTimeout(function(){GD.sync(true)},3000)})
+.then(function(){NOV.start()})
+.catch(function(e){console.error(e);toast('Errore di avvio: '+e.message,6000)});
+window._atlTest={NOV:NOV,CAP:CAP,PC:PC,XLSX:XLSX,GD:GD,tomb:tomb,TOMBS:function(){return TOMB},PL:PL,openSearch:openSearch,searchLocal:searchLocal,parseCoords:parseCoords,dayText:dayText,totText:totText,dayData:dayData,totData:totData,FON:FON,TM:TM,HUB:HUB,HUBR:HUBR,openHub:openHub,hubGo:hubGo,wmsCaps:wmsCaps,studiGo:studiGo,fotoGo:fotoGo,cantiGo:cantiGo,libText:libText,diarioRows:diarioRows,FON:FON,TM:TM,HUB:HUB,HUBR:HUBR,openHub:openHub,hubGo:hubGo,wmsCaps:wmsCaps,studiGo:studiGo,fotoGo:fotoGo,cantiGo:cantiGo,libText:libText,diarioRows:diarioRows,TSEL:TSEL,joinTracks:joinTracks,trkStats:trkStats,flashPoint:flashPoint,HL:HL,PMK:function(){return PMK},VW:VW,view:view,vGo:vGo,askRec:askRec,recSplit:recSplit,checkOpenTracks:checkOpenTracks,ORI:ORI,setOriMode:setOriMode,updArrow:updArrow,spCands:spCands,ARW:ARW,quickCapture:quickCapture,QC:QC,recBreak:recBreak,pocketOn:pocketOn,gpxTracks:gpxTracks,importFile:importFile,seedResearch:seedResearch,ricStats:ricStats,fixIndicative:fixIndicative,NEAR:NEAR,NS:NS,nearCheck:nearCheck,nearCands:nearCands,nearSet:nearSet,openNear:openNear,downloadPack:downloadPack,here:function(){return here},map:map,offlineLayers:offlineLayers,doUpdate:doUpdate,openLegend:openLegend,BUILD:function(){return BUILD},DB:DB,POINTS:function(){return POINTS},TRACKS:function(){return TRACKS},exportZip:exportZip,zipBlob:zipBlob,unzip:unzip,toGPX:toGPX,toKML:toKML,toCSV:toCSV,toGeoJSON:toGeoJSON,reportHTML:reportHTML,importData:importData,exifGPS:exifGPS,loadPoints:loadPoints,loadTracks:loadTracks,openForm:openForm,newDraft:newDraft,saveDraft:saveDraft,mediaName:mediaName,draft:function(){return draft},addPhotos:addPhotos,recStart:recStart,recStop:recStop,REC:REC};

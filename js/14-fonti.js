@@ -1,4 +1,4 @@
-/* Atlante Lago Piccolo - Ricerca e fonti: studi (OpenAlex), foto storiche (Wikimedia Commons, Panoramax), canti (Xeno-canto),
+/* Atlante di campo - Ricerca e fonti: studi (OpenAlex), foto storiche (Wikimedia Commons, Panoramax), canti (Xeno-canto),
    diario delle stagioni, biblioteca delle fonti, macchina del tempo (Esri Wayback), livelli WMS/XYZ personalizzati, Natura 2000.
    by Lollo ®2026 · i moduli si caricano nell'ordine dei numeri (vedi index.html) */
 'use strict';
@@ -298,12 +298,12 @@ HUBR.diario=function(){
     if(!e.liv&&!e.asp&&e.trasp===''&&e.temp===''&&!e.ghi&&!e.note&&!e.meteo)return toast('Compila almeno un campo');
     FON.dia.push(e);FON.saveDia().then(function(){toast('📔 Salvato nel diario');HUBR.diario()});
   };
-  $$('[data-dd]').forEach(function(b){b.onclick=function(){if(confirm('Eliminare questa riga del diario?')){FON.dia=FON.dia.filter(function(x){return x.id!==b.getAttribute('data-dd')});FON.saveDia().then(HUBR.diario)}}});
+  $$('[data-dd]').forEach(function(b){b.onclick=function(){if(confirm('Eliminare questa riga del diario?')){tomb(b.getAttribute('data-dd'));FON.dia=FON.dia.filter(function(x){return x.id!==b.getAttribute('data-dd')});FON.saveDia().then(HUBR.diario)}}});
   if($('#dgX'))$('#dgX').onclick=diarioCSV;
   $$('[data-dr]').forEach(function(b){b.onclick=function(){HUB.ctx.day=b.getAttribute('data-dr');hubGo('riep')}});
 };
 function diarioRows(){return [['data','livello','aspetto','trasparenza_cm','acqua_C','ghiaccio','meteo','note','punto']].concat(FON.dia.slice().sort(function(a,b){return a.when.localeCompare(b.when)}).map(function(e){return [e.when,e.liv,e.asp,e.trasp,e.temp,e.ghi,e.meteo,e.note,ptTitle(e.pid)]}))}
-function diarioCSV(){saveCSV(diarioRows(),'diario_lago_piccolo_'+stamp()+'.csv')}
+function diarioCSV(){saveCSV(diarioRows(),'diario_atlante_'+stamp()+'.csv')}
 
 /* ---- Biblioteca delle fonti ---- */
 var LIBK={studio:'📖 studio',foto:'📷 foto',canto:'🎵 canto',documento:'📄 documento',link:'🔗 link',altro:'• altro'};
@@ -317,7 +317,7 @@ HUBR.fonti=function(){
     $('#lbL').innerHTML=(pid?'<div class="mut">Solo le fonti legate a questo punto ('+a.length+')</div>':'<div class="mut">'+a.length+' di '+FON.lib.length+'</div>')+a.map(function(x){
       return '<div class="card"><div class="row"><span class="tag">'+esc(LIBK[x.type]||LIBK.altro)+'</span><b style="flex:1">'+esc(x.title)+'</b></div><div class="mut">'+esc([x.year,x.authors,x.venue].filter(Boolean).join(' · '))+'</div>'+(x.note?'<div style="white-space:pre-wrap;font-size:13px">'+esc(x.note)+'</div>':'')+(x.pid?'<div class="mut">punto: '+esc(ptTitle(x.pid))+'</div>':'')+'<div class="row" style="margin-top:6px">'+aLink(x.url,'Apri')+'<button class="btn s" data-ln="'+x.id+'">✎ Nota</button><button class="btn s" data-ld="'+x.id+'">✕</button></div></div>'}).join('');
     $$('[data-ln]',$('#lbL')).forEach(function(b){b.onclick=function(){var x=FON.lib.filter(function(y){return y.id===b.getAttribute('data-ln')})[0],n=prompt('Nota',x.note||'');if(n!=null){x.note=n;FON.saveLib().then(draw)}}});
-    $$('[data-ld]',$('#lbL')).forEach(function(b){b.onclick=function(){if(confirm('Togliere dalla biblioteca?')){FON.lib=FON.lib.filter(function(y){return y.id!==b.getAttribute('data-ld')});FON.saveLib().then(draw)}}});
+    $$('[data-ld]',$('#lbL')).forEach(function(b){b.onclick=function(){if(confirm('Togliere dalla biblioteca?')){tomb(b.getAttribute('data-ld'));FON.lib=FON.lib.filter(function(y){return y.id!==b.getAttribute('data-ld')});FON.saveLib().then(draw)}}});
   }
   draw();$('#lbQ').oninput=draw;
   $('#lbAdd').onclick=function(){
@@ -326,10 +326,10 @@ HUBR.fonti=function(){
     $('#lfS').onclick=function(){var t=$('#lfT').value.trim();if(!t)return toast('Metti un titolo');var u=$('#lfU').value.trim();if(u&&!safeUrl(u))u='https://'+u;
       FON.addLib({type:u?'link':'altro',title:t,url:u,authors:$('#lfA').value.trim(),note:$('#lfN').value.trim(),pid:HUB.ctx.pid||'',src:'manuale'}).then(function(){$('#lbF').innerHTML='';draw()})};
   };
-  $('#lbC').onclick=function(){saveCSV([['tipo','titolo','autori','anno','sede','doi','indirizzo','nota','punto','aggiunta']].concat(FON.lib.map(function(x){return [x.type,x.title,x.authors,x.year,x.venue,x.doi,x.url,x.note,ptTitle(x.pid),x.added]})),'fonti_lago_piccolo_'+stamp()+'.csv')};
-  $('#lbM').onclick=function(){shareOrDownload(new Blob([libText()],{type:'text/plain'}),'bibliografia_lago_piccolo_'+stamp()+'.txt')};
+  $('#lbC').onclick=function(){saveCSV([['tipo','titolo','autori','anno','sede','doi','indirizzo','nota','punto','aggiunta']].concat(FON.lib.map(function(x){return [x.type,x.title,x.authors,x.year,x.venue,x.doi,x.url,x.note,ptTitle(x.pid),x.added]})),'fonti_atlante_'+stamp()+'.csv')};
+  $('#lbM').onclick=function(){shareOrDownload(new Blob([libText()],{type:'text/plain'}),'bibliografia_atlante_'+stamp()+'.txt')};
 };
-function libText(){return 'Bibliografia - Lago Piccolo di Avigliana\r\n'+BRAND+'\r\n\r\n'+FON.lib.slice().sort(function(a,b){return String(a.year||'').localeCompare(String(b.year||''))}).map(function(x){return '- '+[x.authors,x.year&&'('+x.year+')',x.title,x.venue,x.doi?'doi:'+x.doi:x.url].filter(Boolean).join('. ')+(x.note?'\r\n    '+x.note.replace(/\s*\n\s*/g,' '):'')}).join('\r\n')+'\r\n'}
+function libText(){return 'Bibliografia - Atlante di campo\r\n'+BRAND+'\r\n\r\n'+FON.lib.slice().sort(function(a,b){return String(a.year||'').localeCompare(String(b.year||''))}).map(function(x){return '- '+[x.authors,x.year&&'('+x.year+')',x.title,x.venue,x.doi?'doi:'+x.doi:x.url].filter(Boolean).join('. ')+(x.note?'\r\n    '+x.note.replace(/\s*\n\s*/g,' '):'')}).join('\r\n')+'\r\n'}
 
 /* ---- Mappe storiche e livelli personalizzati ---- */
 HUBR.mappe=function(){

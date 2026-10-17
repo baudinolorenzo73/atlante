@@ -1,4 +1,4 @@
-/* Atlante Lago Piccolo - Avvisi «Vicino a te» e archivio della zona.
+/* Atlante di campo - Avvisi «Vicino a te» e archivio della zona.
    by Lollo ®2026 · i moduli si caricano nell'ordine dei numeri (vedi index.html) */
 'use strict';
 /* =================== VICINO A TE (avvisi di prossimità) =================== */
@@ -159,7 +159,7 @@ async function packINat(){
 }
 async function downloadPack(){
   if(NEAR.busy)return;
-  if(!confirm('Scarico l\'archivio della zona «'+PL.name()+'» (area di circa '+Math.round((PACK_BB[2]-PACK_BB[0])*111)+' × '+Math.round((PACK_BB[3]-PACK_BB[1])*111*Math.cos(HOME[0]*Math.PI/180))+' km) da Wikidata, Wikipedia, OpenStreetMap e iNaturalist? Servono circa 1–3 MB di rete.'))return;
+  if(!confirm('Scarico l\'archivio della zona «'+PL.name()+'» (area di circa '+Math.round((PACK_BB[2]-PACK_BB[0])*111)+' × '+Math.round((PACK_BB[3]-PACK_BB[1])*111*Math.cos(HOME[0]*Math.PI/180))+' km) da Wikidata, Wikipedia, OpenStreetMap e iNaturalist? Servono circa 1–3 MB di rete.'+(PL.isLake()?'':'\n\nInsieme scarico anche il capitolo del Dossier di questo luogo (storia, specie, clima, geologia).')))return;
   NEAR.busy=true;
   var lg=$('#nLog'),btn=$('#nPack');function log(t,c){lg=$('#nLog');if(!lg)return;var d=document.createElement('div');if(c)d.className=c;d.textContent=t;lg.appendChild(d)}
   if(lg)lg.innerHTML='';if(btn)btn.disabled=true;
@@ -174,6 +174,7 @@ async function downloadPack(){
   await DB.put('kv',{id:PL.packKey(),v:NEAR.pack});
   log('✓ Archivio salvato nel telefono: '+clean.length+' luoghi e osservazioni.','ok');
   var fx=PL.isLake()?await fixIndicative():0;if(fx)log('✓ Posizioni indicative corrette dall\'archivio: '+fx+' schede della ricerca','ok');
+  if(!PL.isLake()){log('… capitolo del Dossier');try{await CAP.download(PL.active(),log)}catch(e){log('✗ capitolo: '+e.message,'ko')}}
   NEAR.busy=false;if(btn)btn.disabled=false;NEAR.st={};nearCheck(true);
 }
 /* sposta le schede della ricerca con posizione indicativa sul luogo omonimo trovato nell'archivio (Wikidata, Wikipedia, OSM) */

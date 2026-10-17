@@ -1,4 +1,4 @@
-/* Atlante Lago Piccolo - Aggiorna, Installa tutto, mappe senza rete.
+/* Atlante di campo - Aggiorna, Installa tutto, mappe senza rete.
    by Lollo ®2026 · i moduli si caricano nell'ordine dei numeri (vedi index.html) */
 'use strict';
 /* =================== AGGIORNA E INSTALLA TUTTO =================== */
@@ -18,7 +18,7 @@ function injectManifest(){
   if(!isWeb()||document.querySelector('link[rel=manifest]'))return;
   try{
     var base=pageUrl().split('?')[0];
-    var m={name:'Atlante Lago Piccolo',short_name:'Lago Piccolo',description:'Atlante di campo del Lago Piccolo di Avigliana - '+BRAND,start_url:base,scope:new URL('./',base).href,display:'standalone',orientation:'any',background_color:'#161a1f',theme_color:'#161a1f',lang:'it',icons:[{src:mkIcon(192),sizes:'192x192',type:'image/png',purpose:'any'},{src:mkIcon(512),sizes:'512x512',type:'image/png',purpose:'any'}]};
+    var m={name:'Atlante di campo',short_name:'Atlante',description:'Atlante di campo: punti con foto, audio e GPS, percorsi, mappe e capitoli dei luoghi - '+BRAND,start_url:base,scope:new URL('./',base).href,display:'standalone',orientation:'any',background_color:'#161a1f',theme_color:'#161a1f',lang:'it',icons:[{src:mkIcon(192),sizes:'192x192',type:'image/png',purpose:'any'},{src:mkIcon(512),sizes:'512x512',type:'image/png',purpose:'any'}]};
     var l=document.createElement('link');l.rel='manifest';l.href=URL.createObjectURL(new Blob([JSON.stringify(m)],{type:'application/manifest+json'}));document.head.appendChild(l);
   }catch(e){}
 }

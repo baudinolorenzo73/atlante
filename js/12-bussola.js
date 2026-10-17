@@ -1,4 +1,4 @@
-/* Atlante Lago Piccolo - Bussola sulla mappa (nord e direzione di marcia) e freccia rossa verso la specie più vicina.
+/* Atlante di campo - Bussola sulla mappa (nord e direzione di marcia) e freccia rossa verso la specie più vicina.
    by Lollo ®2026 · i moduli si caricano nell'ordine dei numeri (vedi index.html) */
 'use strict';
 /* =================== BUSSOLA E ORIENTAMENTO =================== */

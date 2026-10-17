@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#161a1f">
-<meta name="description" content="Atlante di campo del Lago Piccolo di Avigliana - by Lollo ®2026">
-<title>Atlante Lago Piccolo</title>
+<meta name="description" content="Atlante di campo - punti, percorsi e capitoli dei luoghi - by Lollo ®2026">
+<title>Atlante di campo</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -15,7 +15,7 @@
 <body>
 <div id="map"></div>
 <div id="top">
-  <div class="t"><b id="topT">Lago Piccolo di Avigliana</b><small>Atlante di campo · by Lollo ®2026</small></div>
+  <div class="t"><b id="topT">Lago Piccolo di Avigliana</b><small>Atlante di campo · by Lollo ®2026</small><span id="pcBadge" style="display:none" onclick="go('alt')"></span></div>
   <span class="chip" id="chipGps" style="display:none"></span>
   <span class="chip rec" id="chipRec" style="display:none"></span>
 </div>
@@ -54,7 +54,7 @@
 </section>
 
 <section class="page" id="pg-dos">
-  <div class="ph"><h2>Dossier del lago</h2><small>Ricerca con fonti · checklist · calendario</small></div>
+  <div class="ph"><h2 id="dosT">Dossier</h2><small id="dosS">Capitoli dei luoghi · fonti · checklist</small></div>
   <div class="pb" id="dosBody"></div>
 </section>
 
@@ -100,6 +100,10 @@
 <script src="js/12-bussola.js"></script>
 <script src="js/14-fonti.js"></script>
 <script src="js/15-luoghi.js"></script>
+<script src="js/16-drive.js"></script>
+<script src="js/17-percorsi.js"></script>
+<script src="js/18-capitoli.js"></script>
+<script src="js/19-novita.js"></script>
 <script src="js/13-avvio.js"></script>
 </body>
 </html>

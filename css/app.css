@@ -16,7 +16,7 @@ a{color:var(--acc)}
 .mb.on{background:var(--acc);color:#04202e}
 .mb.recon{background:var(--bad);color:#fff}
 #fabAdd{position:fixed;right:14px;bottom:calc(var(--navh) + env(safe-area-inset-bottom) + 16px);z-index:900;width:62px;height:62px;border-radius:50%;border:none;background:var(--acc);color:#04202e;font-size:34px;line-height:1;box-shadow:0 4px 14px #0009;cursor:pointer}
-#coord{position:fixed;left:10px;bottom:calc(var(--navh) + env(safe-area-inset-bottom) + 30px);z-index:900;max-width:62vw;font-size:12px}
+#coord{position:fixed;left:10px;bottom:calc(var(--navh) + env(safe-area-inset-bottom) + 30px);z-index:900;max-width:calc(100vw - 140px);font-size:12px}
 #cross{position:fixed;left:50%;top:calc(50% - (var(--navh))/2);width:44px;height:44px;margin:-22px 0 0 -22px;z-index:950;display:none;pointer-events:none}
 #cross{width:84px!important;height:84px!important;margin:-42px 0 0 -42px!important;border:3px solid #ffeb3b;border-radius:50%;box-shadow:0 0 0 2px #000a,inset 0 0 0 2px #000a,0 0 18px #ffeb3b88;animation:crossp 1.4s ease-in-out infinite}
 #cross:before,#cross:after{content:"";position:absolute;background:#ff1744;box-shadow:0 0 0 1px #000c}
@@ -187,3 +187,10 @@ sup a{text-decoration:none;font-size:11px}
 #hubC .gal{display:grid;grid-template-columns:1fr;gap:10px}
 #hubC .gal img{max-height:190px;width:100%;object-fit:cover;cursor:zoom-in}
 #hubC .gal figcaption{padding:6px 8px;font-size:13px}
+
+/* percorsi (v3.3) */
+#pcBadge{pointer-events:auto;cursor:pointer;width:max-content;margin:4px 0 0 56px;background:rgba(46,125,50,.9);color:#fff;border-radius:12px;padding:2px 9px;font-size:12px;max-width:calc(100vw - 140px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;vertical-align:middle}
+/* capitoli (v3.5) */
+table.kv{border-collapse:collapse;width:100%}table.kv td{padding:3px 6px;border-bottom:1px solid rgba(255,255,255,.08);vertical-align:top}table.clim td{text-align:center;font-size:12px;padding:3px 4px;white-space:nowrap}table.clim td:first-child{text-align:left}
+/* novità (v3.7) */
+#novBar{position:fixed;left:10px;right:10px;bottom:calc(env(safe-area-inset-bottom) + 74px);z-index:1500;background:#1e3a26;border:1px solid #2e7d32;color:#fff;border-radius:12px;padding:10px 12px;box-shadow:0 4px 18px rgba(0,0,0,.5);font-size:14px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}

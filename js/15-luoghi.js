@@ -1,4 +1,4 @@
-/* Atlante Lago Piccolo - Luoghi di lavoro e casella di ricerca (v3.0).
+/* Atlante di campo - Luoghi di lavoro e casella di ricerca (v3.0).
    Il lago resta il luogo di partenza; si possono aggiungere altri luoghi (ognuno con il suo archivio della zona e le sue mappe senza rete)
    e cercare luoghi o qualsiasi cosa trovata (punti, note, specie, diario, fonti).
    by Lollo ®2026 · i moduli si caricano nell'ordine dei numeri (vedi index.html) */
@@ -34,13 +34,14 @@ PL.apply=function(opt){
   HOME[0]=p.lat;HOME[1]=p.lon;setArr(PACK_BB,b.pack);setArr(AVI_BB,b.zone);setArr(LAKE_BB,b.tiles);
   if(typeof HOMEMK!=='undefined')HOMEMK.setLatLng(HOME);
   var t=$('#topT');if(t)t.textContent=p.name;
-  document.title=PL.isLake()?'Atlante Lago Piccolo':'Atlante · '+p.name;
+  document.title=PL.isLake()?'Atlante di campo · Lago Piccolo':'Atlante di campo · '+p.name;
   NEAR.st={};NEAR.inZone=null;
   var done=DB.get('kv',PL.packKey()).then(function(r){NEAR.pack=r&&r.v||null;if(typeof updNearBtn==='function')updNearBtn()});
   if(opt.view)map.setView(HOME,opt.zoom||15);
   return done;
 };
-PL.switchTo=function(id,view){
+PL.switchTo=function(){if(typeof CAP!=='undefined')CAP.sel=null;return PL._switchTo.apply(null,arguments)};
+PL._switchTo=function(id,view){
   PL.cur=id;return PL.save().then(function(){return PL.apply({view:view!==false})}).then(function(){markChange();if(curPage==='alt')renderAlt()});
 };
 PL.add=function(o){
@@ -75,7 +76,7 @@ PL.bindAlt=function(){
   if($('#plR'))$('#plR').onclick=function(){var p=PL.active(),v=prompt('Raggio dell\'area in km (da 1 a 10)',p.r);var n=parseFloat(String(v).replace(',','.'));if(!(n>=1&&n<=10))return;p.r=n;PL.save().then(function(){return PL.apply({})}).then(function(){renderAlt();toast('Raggio: '+n+' km (riscarica l\'archivio per coprire la nuova area)',4500)})};
   if($('#plDel'))$('#plDel').onclick=function(){
     var p=PL.active();if(!confirm('Eliminare il luogo «'+p.name+'» e il suo archivio? I punti, le tracce e il diario NON vengono toccati.'))return;
-    DB.del('kv',PL.packKey(p.id));PL.list=PL.list.filter(function(x){return x.id!==p.id});PL.cur='lago';
+    tomb(p.id);DB.del('kv',PL.packKey(p.id));PL.list=PL.list.filter(function(x){return x.id!==p.id});PL.cur='lago';
     PL.save().then(function(){return PL.apply({view:true,zoom:16})}).then(function(){markChange();renderAlt()});
   };
 };

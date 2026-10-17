@@ -1,4 +1,4 @@
-/* Atlante Lago Piccolo - Scheda Altro e menu dei livelli.
+/* Atlante di campo - Scheda Altro e menu dei livelli.
    by Lollo ®2026 · i moduli si caricano nell'ordine dei numeri (vedi index.html) */
 'use strict';
 /* =================== PAGINA ALTRO =================== */
@@ -13,17 +13,17 @@ function joinTracks(a,delOld){
   var t0=a[0].start,t1=a[a.length-1].end||a[a.length-1].start;
   var nm='Unione '+fmtDate(new Date(t0).toISOString())+' – '+fmtDate(new Date(t1).toISOString()).slice(-5);
   var nt={id:uid(),name:nm,start:t0,end:t1,pts:pts,brk:brk,dur:dur,merged:nmerg,from:names};
-  var ops=[DB.put('tracks',nt)];if(delOld)a.forEach(function(t){ops.push(DB.del('tracks',t.id))});
+  var ops=[DB.put('tracks',nt)];if(delOld)a.forEach(function(t){ops.push(DB.del('tracks',t.id));tomb(t.id)});
   Promise.all(ops).then(function(){markChange();TSEL.on=false;TSEL.ids={};tones([[660,.1],[880,.1],[1100,.16]]);toast('🔗 Unite '+a.length+' tracce ('+nmerg+' registrazioni): '+fmtDist(trkStats(nt).d)+(delOld?' (originali eliminate)':' (le originali restano)'),4500);return loadTracks()}).then(function(){flashTrack(nt)});
 }
 
 function renderAlt(){
   var h='';
   var late=SET.changes>0;
-  h+=PL.altCard();
+  h+=PC.altCard();h+=PL.altCard();h+=GD.altCard();
   h+=FON.altCard();
   h+='<h3>Backup ed esportazione</h3><div class="card"><b>Backup completo (ZIP)</b><div class="mut">Contiene tutti i dati, le foto e gli audio, più le schede stampabili e i file GPX, KML, GeoJSON e CSV. Usalo anche per passare i dati ad altri telefoni o al PC.</div><div class="mut" style="margin-top:4px">Ultimo backup: '+(SET.lastBackup?fmtDate(new Date(SET.lastBackup).toISOString()):'mai')+(late?' · <b style="color:var(--warn)">'+SET.changes+' modifiche non salvate nel backup</b>':'')+'</div><div class="row" style="margin-top:8px"><button class="btn f" id="bZip">📦 Crea backup e condividi</button></div></div>';
-  h+='<div class="card"><b>Singoli formati</b><div class="mut">Solo dati e coordinate, senza foto.</div><div class="row" style="margin-top:8px"><button class="btn s" data-ex="gpx">GPX (OsmAnd, Garmin)</button><button class="btn s" data-ex="kml">KML (Google Earth)</button><button class="btn s" data-ex="geojson">GeoJSON (QGIS)</button><button class="btn s" data-ex="csv">CSV (Excel)</button></div></div>';
+  h+='<div class="card"><b>Singoli formati</b><div class="mut">Solo dati e coordinate, senza foto.</div><div class="row" style="margin-top:8px"><button class="btn s" data-ex="gpx">GPX (OsmAnd, Garmin)</button><button class="btn s" data-ex="kml">KML (Google Earth)</button><button class="btn s" data-ex="geojson">GeoJSON (QGIS)</button><button class="btn s" data-ex="csv">CSV (Excel)</button></div><div class="row" style="margin-top:6px"><button class="btn f" id="bXls">📊 Excel .xlsx con foto (tutte le schede)</button></div></div>';
   h+='<div class="card"><b>Schede stampabili / PDF</b><div class="mut">Apre le schede di tutti i punti (oppure di quelli filtrati nel Catalogo) con le foto, nel formato della «Scheda sito» del corso. Dal menu del browser scegli Stampa → Salva come PDF.</div><div class="row" style="margin-top:8px"><button class="btn s" id="bRepAll">Tutti i punti</button><button class="btn s" id="bRepF">Solo i filtrati</button></div></div>';
   h+='<div class="card"><b>Importa</b><div class="mut">Backup ZIP di questa app (anche di un compagno di corso: i punti si uniscono senza doppioni) oppure punti da file GPX, KML o GeoJSON.</div><div class="row" style="margin-top:8px"><button class="btn s" id="bImp">📥 Scegli file</button></div></div>';
   h+='<h3>Tracce registrate ('+TRACKS.length+')</h3><p class="mut">Durante la registrazione tieni l\'app aperta: tocca il riquadro rosso in alto per la <b>modalità tasca</b> (schermo nero, tocchi bloccati). A schermo spento il browser sospende il GPS: per quei casi registra con la tua app nativa «Traccia GPS offline» e importa qui il GPX (Importa → Scegli file).</p>';
@@ -40,9 +40,9 @@ function renderAlt(){
   h+='<div class="row" style="margin-top:10px"><button class="btn f" id="bSet">Salva impostazioni</button><button class="btn s" id="bNearSet">🔔 Avvisi «Vicino a te»</button></div></div>';
   h+='<h3>App: aggiornamento e installazione</h3><div class="card"><div id="appSt" class="mut">…</div><div class="row" style="margin-top:10px"><button class="btn f" id="bUpd">🔄 Aggiorna</button><button class="btn f" id="bInst">⬇️ Installa tutto</button></div><div class="bar" id="instBar" style="display:none"><i></i></div><div class="log" id="instLog"></div><div class="mut" style="margin-top:8px"><b>Aggiorna</b>: cerca online una versione più recente di questa pagina e la carica. Punti, foto e audio restano dove sono.<br><b>Installa tutto</b>: aggiunge l\'icona alla schermata Home, salva la pagina nel telefono e scarica le mappe dell\'area del lago per vederle anche senza rete. Serve la pagina pubblicata su un indirizzo https:// con accanto il file <b>sw.js</b>.</div><div class="row" style="margin-top:8px"><button class="btn s r" id="bClrT">Svuota mappe salvate</button></div></div>';
   h+='<h3>Memoria</h3><div class="card" id="memBox"><span class="mut">calcolo…</span></div>';
-  h+='<p class="mut">Atlante Lago Piccolo v'+VERSION+' · '+BRAND+'</p>';
-  $('#altBody').innerHTML=h;FON.bindAlt();PL.bindAlt();
-  $('#bZip').onclick=exportZip;$$('[data-ex]').forEach(function(b){b.onclick=function(){exportText(b.getAttribute('data-ex'))}});
+  h+='<p class="mut">Atlante di campo v'+VERSION+' · '+BRAND+' · <a href="#" id="novAll">🆕 Novità</a></p>';
+  $('#altBody').innerHTML=h;FON.bindAlt();PL.bindAlt();GD.bindAlt();PC.bindAlt();if($('#novAll'))$('#novAll').onclick=function(e){e.preventDefault();NOV.show(true)};
+  $('#bZip').onclick=function(){exportZip()};if($('#bXls'))$('#bXls').onclick=function(){var a=POINTS.slice().sort(function(x,y){return (x.when||'').localeCompare(y.when||'')});if(!a.length)return toast('Nessun punto');toast('Preparo il file Excel con le foto…',8000);XLSX.points(a,TRACKS,null).then(function(b){return shareOrDownload(b,'atlante_schede_'+stamp()+'.xlsx')}).catch(function(e){alert('Errore Excel: '+e.message)})};$$('[data-ex]').forEach(function(b){b.onclick=function(){exportText(b.getAttribute('data-ex'))}});
   $('#bRepAll').onclick=function(){if(!POINTS.length)return toast('Nessun punto');printReport(POINTS.slice().sort(function(a,b){return (a.when||'').localeCompare(b.when||'')}))};
   $('#bRepF').onclick=function(){var a=POINTS.filter(passFilter);if(!a.length)return toast('Nessun punto filtrato');printReport(a)};
   $('#bImp').onclick=function(){$('#fImp').value='';$('#fImp').click()};
@@ -52,13 +52,13 @@ function renderAlt(){
     $$('[data-ts]').forEach(function(c){c.onchange=function(){TSEL.ids[c.getAttribute('data-ts')]=c.checked;c.closest('.card').classList.toggle('tson',c.checked);upd()}});
     $('#tsAll').onclick=function(){TRACKS.forEach(function(t){TSEL.ids[t.id]=true});renderAlt()};
     $('#tsJoin').onclick=function(){joinTracks(selTracks(),$('#tsDel').checked)};
-    $('#tsGpx').onclick=function(){var a=selTracks();if(!a.length)return;shareOrDownload(new Blob([toGPX([],a)],{type:'application/gpx+xml'}),'tracce_lago_piccolo_'+stamp()+'.gpx')};
+    $('#tsGpx').onclick=function(){var a=selTracks();if(!a.length)return;shareOrDownload(new Blob([toGPX([],a)],{type:'application/gpx+xml'}),'tracce_atlante_'+stamp()+'.gpx')};
     upd();
   }
   $$('[data-tv]').forEach(function(b){b.onclick=function(){var t=TRACKS.filter(function(x){return x.id===b.getAttribute('data-tv')})[0];if(!t)return;flashTrack(t)}});
   $$('[data-tg]').forEach(function(b){b.onclick=function(){var t=TRACKS.filter(function(x){return x.id===b.getAttribute('data-tg')})[0];if(t)shareOrDownload(new Blob([toGPX([],[t])],{type:'application/gpx+xml'}),slug(t.name)+'.gpx')}});
   $$('[data-tr]').forEach(function(b){b.onclick=function(){var t=TRACKS.filter(function(x){return x.id===b.getAttribute('data-tr')})[0];var n=t&&prompt('Nome della traccia',t.name);if(n){t.name=n;DB.put('tracks',t).then(loadTracks)}}});
-  $$('[data-td]').forEach(function(b){b.onclick=function(){if(confirm('Eliminare la traccia?'))DB.del('tracks',b.getAttribute('data-td')).then(function(){markChange();loadTracks()})}});
+  $$('[data-td]').forEach(function(b){b.onclick=function(){if(confirm('Eliminare la traccia?')){var tid=b.getAttribute('data-td');tomb(tid);DB.del('tracks',tid).then(function(){markChange();loadTracks()})}}});
   $('#shP').onchange=function(){showPoints=this.checked;drawPoints()};$('#shT').onchange=function(){showTracks=this.checked;drawTracks()};
   $('#bNearSet').onclick=openNear;$('#bUpd').onclick=doUpdate;$('#bInst').onclick=installAll;$('#bClrT').onclick=clearTiles;if(inst.busy)$('#bInst').textContent='⏹ Annulla';renderAppSt();
   $('#bSet').onclick=function(){SET.compilatore=$('#sComp').value.trim();SET.gpsAvg=+$('#sGps').value;SET.photoMax=+$('#sPh').value;SET.wikiLang=$('#sWl').value;SET.plantnet=$('#sPn').value.trim();saveSet().then(function(){toast('Impostazioni salvate')})};

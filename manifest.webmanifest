@@ -1,7 +1,7 @@
 {
- "name": "Atlante Lago Piccolo",
- "short_name": "Lago Piccolo",
- "description": "Atlante di campo del Lago Piccolo di Avigliana: catalogo di punti con foto, audio e GPS, mappe, dossier di ricerca. by Lollo ®2026",
+ "name": "Atlante di campo",
+ "short_name": "Atlante",
+ "description": "Atlante di campo: catalogo di punti con foto, audio e GPS, percorsi, mappe e capitoli dei luoghi (a partire dal Lago Piccolo di Avigliana). by Lollo ®2026",
  "id": "./",
  "start_url": "./",
  "scope": "./",
