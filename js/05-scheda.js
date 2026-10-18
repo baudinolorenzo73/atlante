@@ -16,12 +16,12 @@ function renderForm(){
   var c=CAT(draft.cat),h='';
   if(draft.qc){var ph=draft.media.filter(function(m){return m.type==='photo'&&m.blob})[0],u='';if(ph){u=URL.createObjectURL(ph.blob);draftURLs.push(u)}
     h+='<div class="card row" style="align-items:center">'+(u?'<img src="'+u+'" alt="" style="width:64px;height:64px;object-fit:cover;border-radius:10px">':'')+'<div style="flex:1"><b>✓ Foto e posizione salvate nella bozza</b><div class="mut">'+(draft.acc?'📍 GPS ±'+draft.acc+' m':'📍 '+esc(draft.posSrc||''))+' · ora scegli la categoria e completa</div></div></div>'}
-  h+='<h3>Foto e audio</h3><div class="row"><button class="btn" id="fCamB">📷 Scatta</button><button class="btn" id="fGalB">🖼️ Galleria</button><button class="btn" id="fRecB">🎙️ Registra</button><button class="btn s" id="fAudB">📁 File audio</button><span id="fRecT" class="mut"></span></div><div class="media" id="fPhotos"></div><div id="fAuds"></div><div class="row" style="margin-top:6px"><button class="btn s" id="fPlant">🌿 Riconosci con Pl@ntNet (prime 5 foto)</button></div><div id="fPlantBox"></div>';
   h+='<label class="l">Categoria</label><div class="cats" id="fCats">'+catSel()+'</div>';
-  if(c.sp){h+='<label class="l">Specie (nome italiano o scientifico)</label><input type="text" id="fSp" autocomplete="off" value="'+esc(draft.sp?spLabel(draft.sp):'')+'" placeholder="es. svasso maggiore, Alnus glutinosa…"><div id="fSpSug"></div>';
+  if(c.sp){h+='<label class="l">Specie (nome italiano o scientifico)</label><input type="text" id="fSp" autocomplete="off" value="'+esc(draft.sp?((draft.sp.com||'')+(draft.sp.sci&&draft.sp.com?' – ':'')+(draft.sp.sci||'')):'')+'" placeholder="es. svasso maggiore, Alnus glutinosa…"><div id="fSpSug"></div>';
     h+='<div id="fSpInfo" class="mut">'+(draft.sp&&draft.sp.tratti?esc(draft.sp.tratti):'')+'</div>';
-}
+    if(draft.cat==='flora'||draft.cat==='albero'||draft.cat==='fungo')h+='<div class="row" style="margin-top:6px"><button class="btn s" id="fPlant">🔍 Identifica con Pl@ntNet (fino a 5 foto)</button></div><div id="fPlantBox"></div>';}
   h+='<label class="l">Titolo</label><input type="text" id="fTitle" value="'+esc(draft.title)+'" placeholder="es. Svassi in parata davanti al canneto">';
+  h+='<h3>Foto e audio</h3><div class="row"><button class="btn" id="fCamB">📷 Scatta</button><button class="btn" id="fGalB">🖼️ Galleria</button><button class="btn" id="fRecB">🎙️ Registra</button><button class="btn s" id="fAudB">📁 File audio</button><span id="fRecT" class="mut"></span></div><div class="media" id="fPhotos"></div><div id="fAuds"></div>';
   h+='<label class="l">Descrizione e note (solo testo tuo)</label><textarea id="fNote" placeholder="Cosa vedi, cosa senti, dettagli, comportamento, ipotesi…">'+esc(draft.note)+'</textarea>';
   var ex=EXTRA[draft.cat]||[];
   if(ex.length){h+='<details open><summary>Dati di «'+esc(c.n)+'»</summary><div class="dc">';
@@ -31,8 +31,7 @@ function renderForm(){
       else h+='<input type="'+(f.t==='number'?'number':'text')+'" inputmode="'+(f.t==='number'?'decimal':'text')+'" data-x="'+f.k+'" value="'+esc(v)+'">'+(f.k==='alt_alb'?'<div class="row" style="margin-top:6px"><button class="btn s" type="button" data-clino="alt_alb">📐 Misura con il telefono</button></div>':'');});
     h+='</div></details>'}
   h+='<h3>Posizione</h3><div id="fPos" class="card"></div><div class="row"><button class="btn s" id="fGpsB">📡 Aggiorna dal GPS ('+SET.gpsAvg+' s)</button><button class="btn s" id="fPickB">🎯 Scegli sulla mappa</button><button class="btn s" id="fExifB" style="display:none">🖼️ Usa posizione della foto</button><button class="btn s" id="fEleB">⛰️ Quota dal terreno</button></div><div id="fGpsP" class="prog" style="display:none;margin-top:6px"><i></i></div>';
-  h+='<div class="row" style="margin-top:8px"><button class="btn s" id="fInfo">📖 Cerca informazioni (Wikipedia)</button></div><div id="fInfoLinks" class="mut" style="margin-top:4px">'+infoLinksHtml()+'</div>';
-  h+='<details'+(draft._ricOpen?' open':'')+'><summary>Dalla ricerca'+(draft.ric?' ✓':'')+'</summary><div class="dc"><label class="l">Testi da libri, siti, dispense, con le fonti – modificabile</label><textarea id="fRic" style="min-height:'+(draft.ric?'160':'60')+'px" placeholder="Informazioni raccolte da fonti esterne, con la fonte">'+esc(draft.ric||'')+'</textarea></div></details>';
+  h+='<details><summary>Dalla ricerca'+(draft.ric?' ✓':'')+'</summary><div class="dc"><label class="l">Testi da libri, siti, dispense, con le fonti – modificabile</label><textarea id="fRic" style="min-height:'+(draft.ric?'160':'60')+'px" placeholder="Informazioni raccolte da fonti esterne, con la fonte">'+esc(draft.ric||'')+'</textarea></div></details>';
   if(c.sch){var sf=SCHEDA.some(function(s){return draft.s[s.k]});h+='<details><summary>Scheda sito (modello del corso)'+(sf?' ✓':'')+'</summary><div class="dc">';SCHEDA.forEach(function(s){var v=draft.s[s.k]||'';h+='<label class="l">'+esc(s.l)+'</label>'+(s.ta?'<textarea data-s="'+s.k+'" style="min-height:60px">'+esc(v)+'</textarea>':'<input type="text" data-s="'+s.k+'" value="'+esc(v)+'">')});h+='</div></details>'}
   h+='<details><summary>Data, tag, meteo, compilatore</summary><div class="dc">';
   h+='<label class="l">Data e ora</label><input type="datetime-local" id="fWhen" value="'+localInput(draft.when)+'">';
@@ -55,7 +54,7 @@ function readForm(){
   $$('[data-cap]',$('#mbody')).forEach(function(e){var m=byId(draft.media,e.getAttribute('data-cap'));if(m)m.cap=e.value});
   var sp=$('#fSp');if(sp){var v=sp.value.trim();if(!v)draft.sp=null;else if(!draft.sp||v!==spLabel(draft.sp))draft.sp={com:'',sci:v,src:'inserito a mano'}}
 }
-function spLabel(s){return (s.sci||'')+(s.sci&&s.com?' – ':'')+(s.com||'')}
+function spLabel(s){return (s.com||'')+(s.sci&&s.com?' – ':'')+(s.sci||'')}
 function bindForm(){
   $$('[data-clino]').forEach(function(b){b.onclick=function(){CLINO.open({field:b.getAttribute('data-clino')})}});
   $$('#fCats .cat').forEach(function(e){e.onclick=function(){readForm();draft.cat=e.getAttribute('data-c');var keep={};(EXTRA[draft.cat]||[]).forEach(function(f){if(draft.x[f.k]!=null)keep[f.k]=draft.x[f.k]});draft.x=keep;var y=$('#mbody').scrollTop;renderForm();$('#mbody').scrollTop=y}});
@@ -70,7 +69,6 @@ function bindForm(){
   if(draft._exif)$('#fExifB').style.display='';
   var sp=$('#fSp');if(sp){sp.oninput=debounce(function(){spSuggest(sp.value)},350);sp.onfocus=function(){if(sp.value.length>=2)spSuggest(sp.value)}}
   var pl=$('#fPlant');if(pl)pl.onclick=plantnetId;
-  var fi=$('#fInfo');if(fi)fi.onclick=function(){cercaInfo(false)};
 }
 function debounce(f,ms){var t;return function(){var a=arguments,s=this;clearTimeout(t);t=setTimeout(function(){f.apply(s,a)},ms)}}
 function renderPos(){var e=$('#fPos');if(!e)return;
@@ -102,91 +100,34 @@ function spSuggest(q){
     paint((j.results||[]).map(function(t){return {com:t.preferred_common_name||'',sci:t.name,src:'iNaturalist · '+(t.rank||''),key:'inat:'+t.id,img:t.default_photo&&t.default_photo.square_url}}));
   }).catch(function(){});
 }
-/* ---- Pl@ntNet: manda in automatico le prime 5 foto; nome in latino e poi in italiano ---- */
+/* ---- Pl@ntNet: fino a 5 foto della stessa pianta, ognuna con il suo organo ---- */
 var PN_ORG=[['auto','automatico'],['leaf','foglia'],['flower','fiore'],['fruit','frutto'],['bark','corteccia'],['habit','pianta intera']];
 function plantnetId(){
   readForm();
   if(!SET.plantnet){alert('Serve una chiave Pl@ntNet gratuita.\n\n1) Vai su my.plantnet.org e crea un account.\n2) Nella sezione "Your API key" copia la chiave.\n3) In questa app: Altro → Riconoscimento piante (Pl@ntNet) → incolla la chiave e tocca «Verifica chiave».');return}
   var phs=draft.media.filter(function(m){return m.type==='photo'});if(!phs.length)return toast('Aggiungi prima una o più foto della pianta');
-  plantnetSend(phs.slice(0,5).map(function(m){return {m:m,o:'auto'}}));
-}
-/* nome comune italiano: prima iNaturalist (locale it), se manca quello che dà Pl@ntNet */
-function nomeItaliano(sci,fallback){
-  return fetchJSON('https://api.inaturalist.org/v1/taxa/autocomplete?q='+encodeURIComponent(sci)+'&locale=it&per_page=5',null,8000).then(function(j){
-    var t=(j.results||[]).filter(function(x){return (x.name||'').toLowerCase()===sci.toLowerCase()})[0];
-    return (t&&t.preferred_common_name)||fallback||''
-  }).catch(function(){return fallback||''});
+  if(phs.length===1)return plantnetSend([{m:phs[0],o:'auto'}]);
+  var box=$('#fPlantBox');
+  box.innerHTML='<div class="card"><b>Quali foto mando a Pl@ntNet?</b><div class="mut">Massimo 5, della stessa pianta. Più organi diversi (foglia, fiore, frutto, corteccia) = riconoscimento più sicuro.</div><div id="pnL"></div><div class="row" style="margin-top:8px"><button class="btn s f" id="pnGo">🔍 Identifica</button><button class="btn s" id="pnNo">Annulla</button><span class="mut" id="pnN"></span></div></div>';
+  var L2=$('#pnL');
+  phs.forEach(function(m,i){var r=el('<div class="row pnr" style="margin-top:6px"><input type="checkbox" '+(i<5?'checked':'')+' data-pn="'+i+'"><img alt="" style="width:56px;height:56px;object-fit:cover;border-radius:8px;background:#000"><select data-po="'+i+'" style="flex:1;width:auto">'+PN_ORG.map(function(o){return '<option value="'+o[0]+'">'+o[1]+'</option>'}).join('')+'</select></div>');L2.appendChild(r);
+    getBlob(m).then(function(b){if(!b)return;var u=URL.createObjectURL(b);draftURLs.push(u);$('img',r).src=u})});
+  function cnt(){var n=$$('[data-pn]',L2).filter(function(c){return c.checked}).length;$('#pnN').textContent=n+' foto scelte'+(n>5?' (massimo 5!)':'');$('#pnGo').disabled=!n||n>5}
+  $$('[data-pn]',L2).forEach(function(c){c.onchange=cnt});cnt();
+  $('#pnNo').onclick=function(){box.innerHTML=''};
+  $('#pnGo').onclick=function(){var sel=[];$$('[data-pn]',L2).forEach(function(c){if(c.checked){var i=+c.getAttribute('data-pn');sel.push({m:phs[i],o:$('[data-po="'+i+'"]',L2).value})}});box.innerHTML='';plantnetSend(sel)};
 }
 function plantnetSend(sel){
   sel=sel.slice(0,5);toast('Invio '+sel.length+' foto a Pl@ntNet…',8000);
-  var btn=$('#fPlant');if(btn)btn.disabled=true;
-  function fine(){var b=$('#fPlant');if(b)b.disabled=false}
   Promise.all(sel.map(function(s){return getBlob(s.m)})).then(function(bl){
     var fd=new FormData();bl.forEach(function(b,i){if(b){fd.append('images',b,'foto'+(i+1)+'.jpg');fd.append('organs',sel[i].o)}});
     return fetch('https://my-api.plantnet.org/v2/identify/all?include-related-images=false&no-reject=false&lang=it&api-key='+encodeURIComponent(SET.plantnet),{method:'POST',body:fd})
   }).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status+(r.status===401?' (chiave non valida)':r.status===404?' (specie non trovata)':r.status===429?' (troppe richieste oggi)':''));return r.json()}).then(function(j){
-    var res=(j.results||[]).slice(0,6);if(!res.length){fine();return toast('Nessuna specie riconosciuta')}
-    return Promise.all(res.map(function(r){var sci=r.species.scientificNameWithoutAuthor;return nomeItaliano(sci,(r.species.commonNames||[])[0]).then(function(com){return {sci:sci,com:com,score:r.score,fam:r.species.family&&r.species.family.scientificNameWithoutAuthor||''}})})).then(function(list){
-      fine();var box=$('#fPlantBox');if(!box)return;
-      box.innerHTML='<div class="mut" style="margin:6px 0">Pl@ntNet su '+sel.length+' foto'+(j.remainingIdentificationRequests!=null?' · richieste rimaste oggi: '+j.remainingIdentificationRequests:'')+'. Tocca il nome giusto.</div><div class="sug">'+list.map(function(r,i){return '<div data-i="'+i+'"><span><b><i>'+esc(r.sci)+'</i></b>'+(r.com?' – '+esc(r.com):'')+'<br><small>Pl@ntNet · probabilità '+Math.round(r.score*100)+'%'+(r.fam?' · '+esc(r.fam):'')+'</small></span></div>'}).join('')+'</div>';
-      $$('.sug div',box).forEach(function(d){d.onclick=function(){var r=list[+d.getAttribute('data-i')];readForm();
-        draft.sp={com:r.com,sci:r.sci,src:'Pl@ntNet '+Math.round(r.score*100)+'% su '+sel.length+' foto'};
-        if(['flora','albero','fungo'].indexOf(draft.cat)<0)draft.cat='flora';
-        if(!draft.title)draft.title=spLabel(draft.sp);
-        var y=$('#mbody').scrollTop;renderForm();$('#mbody').scrollTop=y;toast('✓ '+spLabel(draft.sp));cercaInfo(true)}});
-    });
-  }).catch(function(e){fine();toast('Pl@ntNet: '+e.message,5000)});
-}
-/* ---- Informazioni sulla specie / roccia / luogo: Wikipedia (it, poi en), scritte in «Dalla ricerca» ---- */
-function infoQuery(){
-  if(draft.sp&&draft.sp.sci)return draft.sp.sci;
-  var e=$('#fSp'),v=e&&e.value.trim();if(v)return v.split(' – ')[0];
-  return (draft.title||'').trim();
-}
-function infoLinksHtml(){
-  return (draft._links||[]).map(function(l){return '<a href="'+esc(l[1])+'" target="_blank" rel="noopener">🔗 '+esc(l[0])+'</a>'}).join(' &nbsp; ')
-}
-var WK_SEZ=/descri|caratter|morfolog|aspetto|habitat|distribuz|ecolog|biolog|alimenta|riprod|compor|utili|usi\b|usi e|propriet|compos|origine|formaz|giacitur|storia|etimolog|tossic|curios|fioritura|fenolog|architettura|arte/i;
-var WK_NO=/^(note|bibliograf|altri progetti|collegamenti|voci correlate|sinonim|tassonomia|galleria|references|external|see also|notes|further)/i;
-function taglia(t,n){t=t.replace(/\s+\n/g,'\n').replace(/\[\d+\]/g,'').trim();if(t.length<=n)return t;var c=t.slice(0,n),i=Math.max(c.lastIndexOf('. '),c.lastIndexOf('.\n'));return (i>n*0.5?c.slice(0,i+1):c.replace(/\s+\S*$/,'')+'…')}
-function wikiPagina(q,lang){
-  var base='https://'+lang+'.wikipedia.org/w/api.php?action=query&format=json&origin=*&redirects=1&prop=extracts|info&explaintext=1&inprop=url&exlimit=1';
-  function pick(j){var ps=j.query&&j.query.pages;if(!ps)return null;var k=Object.keys(ps).map(function(x){return ps[x]}).filter(function(p){return !p.missing&&p.extract&&p.extract.length>80}).sort(function(a,b){return (a.index||0)-(b.index||0)})[0];return k?{title:k.title,url:k.fullurl||('https://'+lang+'.wikipedia.org/wiki/'+encodeURIComponent(k.title.replace(/ /g,'_'))),text:k.extract,lang:lang}:null}
-  return fetchJSON(base+'&titles='+encodeURIComponent(q),null,15000).then(pick).then(function(r){
-    return r||fetchJSON(base+'&generator=search&gsrlimit=1&gsrsearch='+encodeURIComponent(q),null,15000).then(pick)
-  }).catch(function(){return null});
-}
-function wikiRiassunto(pg){
-  var parts=pg.text.split(/\n=+ *([^=\n]+?) *=+ *\n/),intro=parts[0],out=[taglia(intro,1000)],tot=0;
-  for(var i=1;i<parts.length;i+=2){var nome=parts[i],txt=(parts[i+1]||'').trim();
-    if(WK_NO.test(nome)||!txt||!WK_SEZ.test(nome)||tot>3200)continue;
-    var t=taglia(txt,650);tot+=t.length;out.push('▸ '+nome+': '+t)}
-  return out.join('\n\n');
-}
-function cercaInfo(auto){
-  readForm();var q=infoQuery();
-  if(!q)return toast('Scrivi prima la specie o il titolo da cercare');
-  var btn=$('#fInfo');if(btn){btn.disabled=true;btn.textContent='📖 Cerco «'+q+'»…'}
-  function fine(){var b=$('#fInfo');if(b){b.disabled=false;b.textContent='📖 Cerca informazioni (Wikipedia)'}}
-  var cat=draft.cat;
-  wikiPagina(q,'it').then(function(r){return r||wikiPagina(q,'en')}).then(function(pg){
-    fine();
-    var enc=encodeURIComponent(q);
-    draft._links=[];
-    if(cat==='flora'||cat==='albero'||cat==='fungo')draft._links.push(['Acta Plantarum (cerca «'+q+'»)','https://www.google.com/search?q='+encodeURIComponent('site:actaplantarum.org '+q)]);
-    if(cat==='geo')draft._links.push(['Mindat (rocce e minerali)','https://www.mindat.org/search.php?search='+enc]);
-    if(!pg){var y0=$('#mbody').scrollTop;renderForm();$('#mbody').scrollTop=y0;return toast('Nessuna voce Wikipedia per «'+q+'»'+(auto?'':': prova a cambiare il nome nel Titolo o nella Specie'),5000)}
-    draft._links.unshift(['Wikipedia ('+pg.lang+'): '+pg.title,pg.url]);
-    var ric=draft.ric||'';
-    if(ric.indexOf(pg.url)>=0){var y1=$('#mbody').scrollTop;renderForm();$('#mbody').scrollTop=y1;return toast('Queste informazioni sono già nella scheda')}
-    var blocco='📖 Wikipedia ('+pg.lang+') · «'+pg.title+'»\n'+pg.url+'\n\n'+wikiRiassunto(pg);
-    draft.ric=(ric.trim()?ric.replace(/\s+$/,'')+'\n\n———\n\n':'')+blocco;
-    if(draft.sp&&!draft.sp.tratti){draft.sp.tratti=taglia(pg.text.split('\n')[0],220)}
-    if(CAT(cat).sch){draft.s=draft.s||{};draft.s.sitografia=((draft.s.sitografia||'').trim()?draft.s.sitografia.trim()+'\n':'')+pg.url}
-    draft._ricOpen=true;
-    var y=$('#mbody').scrollTop;renderForm();$('#mbody').scrollTop=y;
-    toast('✓ Informazioni aggiunte in «Dalla ricerca» (Wikipedia '+pg.lang+')',4000);
-  }).catch(function(e){fine();toast('Ricerca non riuscita: '+e.message,4000)});
+    var res=(j.results||[]).slice(0,6);if(!res.length)return toast('Nessuna specie riconosciuta');
+    var used=sel.map(function(s){return (PN_ORG.filter(function(o){return o[0]===s.o})[0]||[,''])[1]}).join(', ');
+    var box=$('#fSpSug');box.innerHTML='<div class="mut" style="margin:6px 0">Pl@ntNet su '+sel.length+' foto ('+esc(used)+')'+(j.remainingIdentificationRequests!=null?' · richieste rimaste oggi: '+j.remainingIdentificationRequests:'')+'</div><div class="sug">'+res.map(function(r,i){return '<div data-i="'+i+'"><span><b>'+esc((r.species.commonNames||[])[0]||r.species.scientificNameWithoutAuthor)+'</b> <i>'+esc(r.species.scientificNameWithoutAuthor)+'</i><br><small>Pl@ntNet · probabilità '+Math.round(r.score*100)+'%'+(r.species.family&&r.species.family.scientificNameWithoutAuthor?' · '+esc(r.species.family.scientificNameWithoutAuthor):'')+'</small></span></div>'}).join('')+'</div>';
+    $$('.sug div',box).forEach(function(d){d.onclick=function(){var r=res[+d.getAttribute('data-i')];draft.sp={com:(r.species.commonNames||[])[0]||'',sci:r.species.scientificNameWithoutAuthor,src:'Pl@ntNet '+Math.round(r.score*100)+'% su '+sel.length+' foto'};$('#fSp').value=spLabel(draft.sp);box.innerHTML='';if(!$('#fTitle').value)$('#fTitle').value=draft.sp.com||draft.sp.sci}});
+  }).catch(function(e){toast('Pl@ntNet: '+e.message,5000)});
 }
 function getBlob(m){return m.blob?Promise.resolve(m.blob):DB.get('media',m.id).then(function(r){return r&&r.blob})}
 function renderMediaEdit(){
