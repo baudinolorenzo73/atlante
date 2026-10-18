@@ -104,7 +104,7 @@ function spSuggest(q){
 var PN_ORG=[['auto','automatico'],['leaf','foglia'],['flower','fiore'],['fruit','frutto'],['bark','corteccia'],['habit','pianta intera']];
 function plantnetId(){
   readForm();
-  if(!SET.plantnet){alert('Serve una chiave Pl@ntNet gratuita.\n\n1) Vai su my.plantnet.org e crea un account.\n2) Nella sezione "Your API key" copia la chiave.\n3) In questa app: Altro → Impostazioni → incolla la chiave.');return}
+  if(!SET.plantnet){alert('Serve una chiave Pl@ntNet gratuita.\n\n1) Vai su my.plantnet.org e crea un account.\n2) Nella sezione "Your API key" copia la chiave.\n3) In questa app: Altro → Riconoscimento piante (Pl@ntNet) → incolla la chiave e tocca «Verifica chiave».');return}
   var phs=draft.media.filter(function(m){return m.type==='photo'});if(!phs.length)return toast('Aggiungi prima una o più foto della pianta');
   if(phs.length===1)return plantnetSend([{m:phs[0],o:'auto'}]);
   var box=$('#fPlantBox');

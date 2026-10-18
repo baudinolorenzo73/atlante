@@ -260,3 +260,10 @@ a.btn{text-decoration:none}
 .clbig small{font-size:14px;font-weight:500;opacity:.8}
 .clm{font-size:12.5px;color:#c5d0c9;margin-top:6px}
 #chipRie{cursor:pointer}
+/* v4.6 - Altro a menu a tendina */
+details.sec{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);margin:8px 0;padding:0 12px}
+details.sec>summary{min-height:50px;display:flex;align-items:center;gap:4px;font-size:15.5px;padding:8px 0}
+details.sec[open]>summary{border-bottom:1px solid var(--line2);margin-bottom:8px}
+.secb{padding:0 0 12px}
+.secb>.card{background:none;border:0;padding:0;margin:0}
+.secb>h3:first-child{margin-top:0}
