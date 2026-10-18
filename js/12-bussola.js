@@ -13,7 +13,7 @@ function onOrient(e){
   if(e.webkitCompassHeading!=null)h=e.webkitCompassHeading;                 // iPhone
   else if(e.absolute&&e.alpha!=null)h=360-e.alpha;                           // Android (deviceorientationabsolute)
   if(h==null)return;
-  var sa=(screen.orientation&&screen.orientation.angle)||window.orientation||0;h=(h+sa+360)%360;
+  var sa=(screen.orientation&&screen.orientation.angle)||window.orientation||0;h=(h+sa+(typeof CAMPO!=='undefined'?CAMPO.declCorr():0)+720)%360;
   ORI.head=ORI.head==null?h:(ORI.head+angDiff(h,ORI.head)*0.25+360)%360;ORI.src='bussola';applyHeading();
 }
 function applyHeading(){

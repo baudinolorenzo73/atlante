@@ -89,7 +89,7 @@ function openNear(){
   if(here)nearCands().forEach(function(o){var d=dist(here.lat,here.lon,o.lat,o.lon);if(d<=R4)list.push({o:o,d:d})});
   list.sort(function(a,b){return a.d-b.d});list=list.slice(0,80);
   var st=!here?'GPS spento o in attesa della posizione.':(inBB(AVI_BB,here.lat,here.lon)?'✓ Sei nella zona «'+PL.name()+'»':'Sei fuori dalla zona «'+PL.name()+'»'+(n.zone?': avvisi in pausa':''))+(here?' · GPS ±'+Math.round(here.acc)+' m'+(here.acc>75?' (troppo impreciso: gli avvisi aspettano)':''):'');
-  var pk=NEAR.pack?'Archivio della zona: <b>'+NEAR.pack.items.length+'</b> luoghi e osservazioni, scaricato il '+fmtDate(NEAR.pack.when)+'. Funziona anche senza rete.':'<b>Archivio della zona non ancora scaricato.</b> Per ora gli avvisi usano i tuoi punti e ciò che carichi in Esplora. Scaricalo una volta con la rete: poi funziona anche senza.';
+  var pk=NEAR.pack?'Archivio della zona: <b>'+NEAR.pack.items.length+'</b> luoghi e osservazioni, scaricato il '+fmtDate(NEAR.pack.when)+'. Funziona anche senza rete.':'<b>Archivio della zona non ancora scaricato.</b> Per ora gli avvisi usano i tuoi punti e ciò che carichi in Luogo → Esplora. Scaricalo una volta con la rete: poi funziona anche senza.';
   var h='<div class="card"><div class="row"><b style="flex:1">Avvisi «Vicino a te» '+(n.on?'<span class="ok">accesi</span>':'<span class="mut">spenti</span>')+'</b><button class="btn '+(n.on?'r':'f')+'" id="nOn">'+(n.on?'Spegni':'Accendi')+'</button></div><div class="mut" style="margin-top:6px">'+st+'</div></div>';
   h+='<div class="card"><div class="mut">'+pk+'</div><div class="row" style="margin-top:8px"><button class="btn s f" id="nPack">⬇️ '+(NEAR.pack?'Aggiorna':'Scarica')+' l\'archivio della zona</button></div><div class="log" id="nLog"></div></div>';
   h+='<h3>Intorno a te, entro '+fmtDist(R4)+' ('+list.length+')</h3>';
@@ -119,10 +119,8 @@ function packBox(){var b=PACK_BB;return '&swlat='+b[0]+'&swlng='+b[1]+'&nelat='+
 function inPack(o){return o.lat!=null&&inBB(PACK_BB,o.lat,o.lon)}
 function packWD(){
   var c=[(PACK_BB[0]+PACK_BB[2])/2,(PACK_BB[1]+PACK_BB[3])/2];
-  var q='SELECT ?item ?itemLabel ?coord ?typeLabel ?image ?art WHERE { SERVICE wikibase:around { ?item wdt:P625 ?coord. bd:serviceParam wikibase:center "Point('+c[1].toFixed(5)+' '+c[0].toFixed(5)+')"^^geo:wktLiteral; wikibase:radius "4.5". } OPTIONAL{?item wdt:P31 ?type} OPTIONAL{?item wdt:P18 ?image} OPTIONAL{?art schema:about ?item; schema:isPartOf <https://it.wikipedia.org/>} SERVICE wikibase:label { bd:serviceParam wikibase:language "it,en". } } LIMIT 4000';
-  return fetchJSON('https://query.wikidata.org/sparql?format=json&query='+encodeURIComponent(q),{headers:{Accept:'application/sparql-results+json'}}).then(function(j){var by={};
-    (j.results.bindings||[]).forEach(function(b){var id=b.item.value;var m=/Point\(([-\d.]+) ([-\d.]+)\)/.exec(b.coord.value);if(!m)return;var o=by[id]||(by[id]={t:b.itemLabel?b.itemLabel.value:id,lat:+m[2],lon:+m[1],types:[],img:null,url:id,art:null});if(b.typeLabel&&o.types.indexOf(b.typeLabel.value)<0)o.types.push(b.typeLabel.value);if(b.image&&!o.img)o.img=b.image.value.replace('http://','https://')+'?width=320';if(b.art)o.art=b.art.value});
-    return Object.keys(by).map(function(k){var o=by[k],ty=o.types.join(', ');if(/^Q\d+$/.test(o.t)||/entity\/Q/.test(o.t))return null;var cat=classify(o.t+' '+ty);
+  return NET.wdAround(c[0],c[1],4.5,4000,320).then(function(list){
+    return list.map(function(o){var ty=o.types.join(', ');if(/^Q\d+$/.test(o.t)||/entity\/Q/.test(o.t))return null;var cat=classify(o.t+' '+ty);
       return {id:'wd:'+o.url,src:'wd',t:o.t,sub:ty,lat:o.lat,lon:o.lon,cat:cat,url:o.art||o.url,img:o.img,save:{lat:o.lat,lon:o.lon,cat:cat,title:o.t,s:{sitografia:[o.url,o.art].filter(Boolean).join('\n')}}}}).filter(function(o){return o&&inPack(o)});
   });
 }
@@ -159,7 +157,7 @@ async function packINat(){
 }
 async function downloadPack(){
   if(NEAR.busy)return;
-  if(!confirm('Scarico l\'archivio della zona «'+PL.name()+'» (area di circa '+Math.round((PACK_BB[2]-PACK_BB[0])*111)+' × '+Math.round((PACK_BB[3]-PACK_BB[1])*111*Math.cos(HOME[0]*Math.PI/180))+' km) da Wikidata, Wikipedia, OpenStreetMap e iNaturalist? Servono circa 1–3 MB di rete.'+(PL.isLake()?'':'\n\nInsieme scarico anche il capitolo del Dossier di questo luogo (storia, specie, clima, geologia).')))return;
+  if(!confirm('Scarico l\'archivio della zona «'+PL.name()+'» (area di circa '+Math.round((PACK_BB[2]-PACK_BB[0])*111)+' × '+Math.round((PACK_BB[3]-PACK_BB[1])*111*Math.cos(HOME[0]*Math.PI/180))+' km) da Wikidata, Wikipedia, OpenStreetMap e iNaturalist? Servono circa 1–3 MB di rete.'+(PL.isLake()?'':'\n\nInsieme scarico anche il capitolo di questo luogo (scheda Luogo) (storia, specie, clima, geologia).')))return;
   NEAR.busy=true;
   var lg=$('#nLog'),btn=$('#nPack');function log(t,c){lg=$('#nLog');if(!lg)return;var d=document.createElement('div');if(c)d.className=c;d.textContent=t;lg.appendChild(d)}
   if(lg)lg.innerHTML='';if(btn)btn.disabled=true;
@@ -174,7 +172,7 @@ async function downloadPack(){
   await DB.put('kv',{id:PL.packKey(),v:NEAR.pack});
   log('✓ Archivio salvato nel telefono: '+clean.length+' luoghi e osservazioni.','ok');
   var fx=PL.isLake()?await fixIndicative():0;if(fx)log('✓ Posizioni indicative corrette dall\'archivio: '+fx+' schede della ricerca','ok');
-  if(!PL.isLake()){log('… capitolo del Dossier');try{await CAP.download(PL.active(),log)}catch(e){log('✗ capitolo: '+e.message,'ko')}}
+  if(!PL.isLake()){log('… capitolo del luogo');try{await CAP.download(PL.active(),log)}catch(e){log('✗ capitolo: '+e.message,'ko')}}
   NEAR.busy=false;if(btn)btn.disabled=false;NEAR.st={};nearCheck(true);
 }
 /* sposta le schede della ricerca con posizione indicativa sul luogo omonimo trovato nell'archivio (Wikidata, Wikipedia, OSM) */

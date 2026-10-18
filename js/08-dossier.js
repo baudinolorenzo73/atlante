@@ -124,12 +124,20 @@ function seenSci(){var s={};POINTS.forEach(function(p){if(p.rk&&!p.note&&!(p.med
 function ricPoint(o,now){return {id:'ric-'+o.k,rk:o.k,cat:o.cat,title:o.t,sp:o.sp?{com:o.sp.com||'',sci:o.sp.sci||'',src:'ricerca'}:null,x:o.x||{},s:o.s||{},note:'',ric:o.ric,match:o.m||null,tags:o.tags||['ricerca'],when:now,lat:o.lat,lon:o.lon,acc:null,posSrc:o.ps||'',alt:null,altSrc:'',gpsN:0,meteo:'',comp:'Ricerca da fonti web (da verificare)',created:now,updated:now,media:[]}}
 function seedResearch(force){
   if(typeof SCHEDE_RICERCA==='undefined')return Promise.resolve(0);
-  var done=SET.ricDone||{},have={},now=new Date().toISOString(),add=[];
-  POINTS.forEach(function(p){if(p.rk)have[p.rk]=1});
+  var done=SET.ricDone||{},have={},byK={},now=new Date().toISOString(),add=[],fixes=[];
+  POINTS.forEach(function(p){if(p.rk){have[p.rk]=1;byK[p.rk]=p}});
   SCHEDE_RICERCA.items.forEach(function(o){if(have[o.k])return;if(done[o.k]&&!force)return;add.push(ricPoint(o,now))});
-  if(!add.length)return Promise.resolve(0);
-  return Promise.all(add.map(function(p){return DB.put('points',p)})).then(function(){
-    add.forEach(function(p){done[p.rk]=1});SET.ricDone=done;SET.ricV=SCHEDE_RICERCA.v;return saveSet()}).then(function(){markChange();return loadPoints()}).then(function(){return add.length});
+  // Correzioni (v3.8): una scheda già nel Catalogo viene aggiornata solo se NON l'hai toccata
+  // (nessuna modifica, nota o foto); se l'hai modificata resta com'è.
+  if((SET.ricFixV||0)<(SCHEDE_RICERCA.v||1)){
+    (SCHEDE_RICERCA.fix||[]).forEach(function(f){var p=byK[f.k];
+      if(!p||p.updated!==p.created||p.note||(p.media&&p.media.length))return;
+      if(f.t)p.title=f.t;if(f.ric)p.ric=f.ric;if(f.m)p.match=f.m;p.updated=now;fixes.push(p)});
+  }
+  seedResearch.fixed=fixes.length;
+  if(!add.length&&!fixes.length){if((SET.ricFixV||0)<(SCHEDE_RICERCA.v||1)){SET.ricFixV=SCHEDE_RICERCA.v;return saveSet().then(function(){return 0})}return Promise.resolve(0)}
+  return Promise.all(add.concat(fixes).map(function(p){return DB.put('points',p)})).then(function(){
+    add.forEach(function(p){done[p.rk]=1});SET.ricDone=done;SET.ricV=SCHEDE_RICERCA.v;SET.ricFixV=SCHEDE_RICERCA.v;return saveSet()}).then(function(){markChange();return loadPoints()}).then(function(){return add.length});
 }
 function ricStats(){var n=0,ind=0;POINTS.forEach(function(p){if(p.rk){n++;if(isInd(p))ind++}});return {n:n,ind:ind,tot:typeof SCHEDE_RICERCA!=='undefined'?SCHEDE_RICERCA.items.length:0}}
 function renderLakeDossier(){
@@ -140,10 +148,36 @@ function renderLakeDossier(){
   h+='<details open><summary>Carta d\'identità</summary><div class="dc"><ul>'+
    '<li>È il più piccolo e più alto (circa 356 m) dei due laghi: il Lago Grande, 91 ha e 28 m di profondità, sta a circa 352 m. Il Lago Piccolo misura 61,09 ha con profondità massima di 12 m.'+S(1)+'</li>'+
    '<li>Nomi: «Lago di Trana»; anticamente «Lago di San Bartolomeo», dalla borgata e dal priorato sulla sponda sud. Sulle sue acque si affaccia anche la borgata Sada.'+S(1,16)+'</li>'+
-   '<li>È alimentato da piccoli rii (il principale è il Rio Freddo) e defluisce nel Lago Grande con un canale che taglia l\'istmo tra i due laghi.'+S(1)+'</li>'+
+   '<li>Riceve acqua da piccoli rii: dal lato ovest il Rio Freddo e il Rio Giacomino; la mappa del Piano di Gestione riporta anche il Rio Bui (a sud) e il Rio Grosso (a sud-est). Defluisce nel Lago Grande con il canale Meana, che taglia l\'istmo tra i due laghi. Vedi la sezione «Rii, canali e livello dell\'acqua».'+S(1,2)+'</li>'+
    '<li>La Regione lo classifica come lago «caldo dimittico», cioè con due rimescolamenti delle acque all\'anno. ARPA lo campiona con una stazione al centro del lago.'+S(3)+'</li>'+
    '<li>La balneazione è vietata. È l\'ambiente più naturale del parco: prati, una fascia di boschi e il canneto.'+S(1,5)+'</li>'+
    '<li>Il Parco naturale dei Laghi di Avigliana copre circa 400 ha, è stato istituito nel 1980 e dal 2012 è gestito dall\'Ente Aree protette delle Alpi Cozie. Fa parte della rete Natura 2000 come IT1110007.'+S(2,5,17)+'</li></ul></div></details>';
+  h+='<details><summary>Rii, canali e livello dell\'acqua</summary><div class="dc">'+
+   '<p class="mut">Dalla mappa idrografica e dal testo del Piano di Gestione (2017). Sulla mappa del Piano le posizioni sono schematiche: verifica sul posto con il GPS.'+S(2)+'</p>'+
+   '<table class="tbl">'+
+   '<tr><td><b>Rio Freddo</b></td><td>Lato ovest. Scende dal versante di Giaveno; la portata cala fino a sparire solo per pochi mesi l\'anno. A monte grandi ontani neri e frassini vecchi.</td></tr>'+
+   '<tr><td><b>Rio Giacomino</b></td><td>Lato ovest, accanto al Freddo (la scheda regionale lo chiama «Rio Giacomo»). Qui inizia la fascia sommersa di <i>Najas marina</i> e, 100 m dopo la foce, la zona dove la pesca è vietata.</td></tr>'+
+   '<tr><td><b>Rio Bui</b></td><td>Lato sud. Compare solo come nome sulla mappa del Piano: nessun altro dato, da esplorare.</td></tr>'+
+   '<tr><td><b>Rio Grosso</b></td><td>Lato sud-est. Il Piano lo cita anche come «canale Naviglia di Trana»: pesca vietata.</td></tr>'+
+   '<tr><td><b>Canale Meana</b></td><td>Fra i due laghi: porta l\'acqua del Lago Piccolo (356 m) al Lago Grande (352 m). Pesca vietata, nessuna nuova derivazione.</td></tr>'+
+   '<tr><td><b>Canale della Naviglia</b></td><td>Esce dal Lago Grande verso nord e raccoglie i canali che drenano la palude dei Mareschi. Molto carico di nutrienti d\'estate; pesca vietata.</td></tr></table>'+
+   '<ul>'+
+   '<li><b>Risorgive:</b> il versante tra Giaveno e il lago ha risorgive attive tutto l\'anno; alimentano i rii, i boschi umidi di ontano e frassino e il pioppeto.'+S(2)+'</li>'+
+   '<li><b>Gambero di fiume:</b> il Piano lo segnala «in alcuni rii affluenti del Lago Piccolo», senza dire quali; la consistenza non è nota. È un buon indicatore di acqua pulita: non toccarlo e non spostare acqua tra un rio e l\'altro.'+S(2)+'</li>'+
+   '<li><b>Il livello cala d\'estate:</b> i prelievi irrigui del Consorzio delle Gerbole abbassano il lago di quasi due metri ad agosto (oltre due nel 2003). Le piante acquatiche vicine alla riva rischiano di restare all\'asciutto. Il Piano propone aste idrometriche e un livello critico sotto cui fermare i prelievi.'+S(2)+'</li>'+
+   '<li><b>Ricambio:</b> l\'acqua del Lago Piccolo si rinnova in circa 0,9 anni; quella del Grande in 2,3.'+S(2)+'</li>'+
+   '<li><b>Contratto di Lago:</b> accordo tra gli enti per gestire le acque del bacino dei Laghi di Avigliana; nel 2017 l\'Ente di gestione ha approvato i documenti per sottoscriverlo.'+S(2)+'</li>'+
+   '<li><b>Clima e ghiaccio:</b> quasi tutti gli inverni il Lago Piccolo gela, almeno in parte. Le piogge medie, stimate da stazioni vicine con dati vecchi (1921–1970), sono di circa 850–970 mm l\'anno, poche in inverno (100–115 mm).'+S(2)+'</li></ul>'+
+   '<table class="tbl"><tr><td><b>Dati del Piano</b></td><td><b>Lago Piccolo</b></td><td><b>Lago Grande</b></td></tr>'+
+   '<tr><td>Bacino imbrifero</td><td>8,1 km²</td><td>11,5 km²</td></tr>'+
+   '<tr><td>Superficie</td><td>0,62 km²</td><td>0,91 km²</td></tr>'+
+   '<tr><td>Quota</td><td>356 m</td><td>352 m</td></tr>'+
+   '<tr><td>Volume</td><td>4,5 milioni di m³</td><td>16,2 milioni di m³</td></tr>'+
+   '<tr><td>Profondità media / massima</td><td>8 m / 12 m</td><td>19 m / 27 m</td></tr>'+
+   '<tr><td>Lunghezza massima</td><td>1,13 km</td><td>1,23 km</td></tr>'+
+   '<tr><td>Perimetro</td><td>3,10 km</td><td>3,78 km</td></tr>'+
+   '<tr><td>Ricambio teorico</td><td>0,9 anni</td><td>2,3 anni</td></tr></table>'+
+   '<p class="mut">Le schede «Rio Freddo», «Rio Giacomino», «Rio Bui», «Rio Grosso», «Canale Meana», «Canale della Naviglia» e «Risorgive» sono nel Catalogo (tag «ricerca»): spostale sulla posizione vera.</p></div></details>';
   h+='<details><summary>Origine e geologia</summary><div class="dc"><ul>'+
    '<li>I laghi sono conche intermoreniche dell\'<b>anfiteatro morenico di Rivoli-Avigliana</b>, costruito da una lingua meridionale del ghiacciaio pleistocenico della Valle di Susa.'+S(1,3)+'</li>'+
    '<li>Sono riconoscibili tre cerchie moreniche: la prima separa la torbiera di Trana dal Lago Piccolo, la seconda chiude il Lago Piccolo a valle, la terza sbarra il Lago Grande.'+S(3)+'</li>'+
@@ -171,13 +205,13 @@ function renderLakeDossier(){
    '<li>Specie scomparse, non più ritrovate dalla prima metà del Novecento: <i>Drosera anglica</i>, <i>Hydrocharis morsus-ranae</i>, <i>Samolus valerandi</i>. Ritrovarle sarebbe una scoperta da segnalare al parco.'+S(2)+'</li>'+
    '<li>Per gli alberi hai nell\'app anche il <b>catalogo del corso</b> (144 specie e varietà dal PDF «Gli alberi – riconoscimento vegetale»): compare tra i suggerimenti quando scrivi una specie.</li></ul></div></details>';
   h+='<details><summary>Fauna</summary><div class="dc"><ul>'+
-   '<li><b>Uccelli:</b> il sito conta oltre 160 specie (circa 60 nidificanti, una quarantina svernanti, una cinquantina di passo); è il terzo sito del Piemonte per lo svernamento degli acquatici.'+S(2)+'</li>'+
+   '<li><b>Uccelli:</b> 164 specie segnalate nel tempo, più della metà di quelle note per Piemonte e Valle d\'Aosta. Delle 142 presenti: 56 nidificanti (probabili o certe), 31 svernanti, 44 di passo, 32 in Allegato I della Direttiva Uccelli. È il terzo sito del Piemonte per lo svernamento degli acquatici. Nidificano in ambiente palustre solo svasso maggiore, germano reale, porciglione, gallinella d\'acqua, folaga, usignolo di fiume e migliarino di palude; l\'airone cenerino nidifica alla palude dei Mareschi.'+S(2)+'</li>'+
    '<li>Il <b>svasso maggiore</b> nidifica sui laghi: a fine inverno e inizio primavera esegue la «danza dello specchio»; poi si vedono i nidi galleggianti e i piccoli trasportati sul dorso.'+S(5,19)+'</li>'+
    '<li>Svernano moriglioni, morette, alzavole, fischioni e mestoloni; di passo strolaghe, aironi, falco pescatore e altre specie di Allegato I.'+S(2,5)+'</li>'+
    '<li><b>Anfibi:</b> il sito è particolarmente importante; ci sono tritone crestato italiano, rospo smeraldino, raganella italiana, rana agile e rana di Lessona.'+S(2)+'</li>'+
    '<li><b>Pipistrelli:</b> 12 specie, tra cui il vespertilio di Daubenton (caccia a filo d\'acqua al tramonto) e il barbastello.'+S(2)+'</li>'+
-   '<li>Il raro <b>gambero di fiume</b> vive nei rii che alimentano il Lago Piccolo.'+S(5)+'</li>'+
-   '<li><b>Pesci:</b> il popolamento è alterato da eutrofizzazione e immissioni; oggi ci sono specie come carpa, tinca, scardola e persico, insieme ad alloctone come persico trota, persico sole e siluro.'+S(1,2)+'</li>'+
+   '<li>Il raro <b>gambero di fiume</b> vive in alcuni rii che alimentano il Lago Piccolo.'+S(2,5)+'</li>'+
+   '<li><b>Pesci:</b> nei laghi e nella palude sono state presenti almeno 28 specie; oggi se ne contano 17 e il popolamento è molto alterato da eutrofizzazione e immissioni. Spariti o quasi: trota marmorata, lavarello (introdotto nel 1955 nel Lago Grande), barbo, cobite, gobione, sanguinerola, vairone. Tinca e carpa sono diminuite; anguilla e luccio sono rari; aumentano cavedano, scardola e alborella. Alloctoni comuni: pesce gatto, persico trota, persico sole e qualche siluro. Il CNR giudica comunque buono lo stato ecologico dei due laghi.'+S(1,2)+'</li>'+
    '<li>Apri la <b>checklist</b> qui sotto per spuntare le specie che trovi: le osservazioni del tuo catalogo vengono riconosciute da sole.</li></ul></div></details>';
   h+='<details><summary>Storia</summary><div class="dc"><ul>'+
    '<li><b>Circa 6.000 anni di pesca:</b> negli scavi della torbiera di Trana sono stati trovati ami e pagaie.'+S(11)+'</li>'+
@@ -206,6 +240,14 @@ function renderLakeDossier(){
    '<li><b>Anello del Lago Piccolo</b> da Sada: circa un\'ora a passo normale. Meglio in senso orario, che è il verso più segnalato. Il lato ovest corre nel bosco a filo d\'acqua; il lato est segue la strada provinciale asfaltata. In stagione ci sono 4–5 tratti fangosi brevi.'+S(15)+'</li>'+
    '<li><b>Area attrezzata</b> vicino al parcheggio: prato, spiaggetta (non balneabile), bar chiosco e wifi.'+S(16)+'</li>'+
    '<li>Da qui si sale nei boschi verso San Bernardino di Trana e il Moncuni (anello Lago Piccolo – Pera Luvera – Monte Cuneo).'+S(16)+'</li></ul></div></details>';
+  h+='<details><summary>Regole utili in campo</summary><div class="dc"><p class="mut">Dalle misure di conservazione del Piano di Gestione (adottato nel 2017). Controlla sempre cartelli e ordinanze del Parco: possono essere diversi.'+S(2)+'</p><ul>'+
+   '<li>Vietati i mezzi a motore sui laghi sotto i 70 ettari (il Lago Piccolo è di circa 62 ha), salvo soccorso e sicurezza.</li>'+
+   '<li>Dal <b>1° marzo al 31 luglio</b>, periodo di nidificazione: vietato navigare a remi nei canneti e camminare nella vegetazione palustre delle sponde.</li>'+
+   '<li>Vietato tagliare vegetazione acquatica e di riva entro 10 m dalla riva.</li>'+
+   '<li>Vietato sorvolare le zone umide a meno di 500 m dal suolo: vale anche per i droni, salvo autorizzazione.</li>'+
+   '<li>Pesca vietata nella zona di protezione del Lago Piccolo (sponda nord-ovest, da 100 m dopo il Rio Giacomino a 100 m prima dell\'imbocco del Meana) e nei canali Naviglia, Meana e Naviglia di Trana.</li>'+
+   '<li>Per fotografare vicino ai nidi di specie protette serve il consenso dell\'Ente di gestione.</li>'+
+   '<li>Nelle torbiere e paludi (come i Mareschi) vietato entrare, calpestare, fare picnic o campeggiare.</li></ul></div></details>';
   h+='<details><summary>Calendario delle osservazioni</summary><div class="dc"><table class="tbl">'+
    '<tr><td><b>Dic–feb</b></td><td>Massimo degli uccelli svernanti: anatre tuffatrici, strolaghe, airone bianco maggiore. Rami spogli, buona visibilità sulle sponde.</td></tr>'+
    '<tr><td><b>Feb–apr</b></td><td>«Danza dello specchio» degli svassi; prime deposizioni della rana agile; canti degli anfibi la sera.</td></tr>'+
@@ -218,7 +260,7 @@ function renderLakeDossier(){
   h+='<details><summary>Strumenti gratuiti consigliati</summary><div class="dc"><ul>'+
    '<li><b>Merlin Bird ID</b> (Cornell Lab): riconosce gli uccelli da foto e dal canto, funziona anche offline scaricando il pacchetto Europa.</li>'+
    '<li><b>BirdNET</b>: riconosce i canti dalle registrazioni. Puoi riascoltare gli audio salvati in questa app.</li>'+
-   '<li><b>iNaturalist</b>: pubblica le tue osservazioni migliori. Diventano dati scientifici e compaiono poi nella scheda Esplora.</li>'+
+   '<li><b>iNaturalist</b>: pubblica le tue osservazioni migliori. Diventano dati scientifici e compaiono poi in Luogo → Esplora.</li>'+
    '<li><b>Pl@ntNet</b>: identificazione delle piante. Con una chiave gratuita funziona dentro questa app (Altro → Impostazioni).</li>'+
    '<li><b>Wikimedia Commons</b>: foto storiche e libere del lago e di San Bartolomeo da usare nelle schede, citando l\'autore.</li>'+
    '<li><b>Geoportale Piemonte</b>: carte storiche e attuali; i livelli principali sono già nella mappa.</li>'+

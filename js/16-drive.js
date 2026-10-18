@@ -149,7 +149,7 @@ GD.sync=function(silent){
     });
   }).then(function(){
     SET.gLast=Date.now();saveSet();GD.log('✓ Sincronizzazione completata','ok');if(!silent)toast('☁️ Sincronizzato con Google Drive',3000);
-    if(curPage==='alt')renderAlt();
+    refreshPage();
   }).catch(function(e){
     GD.log('✗ '+e.message,'ko');toast('☁️ '+e.message,5000);
   }).then(function(){GD.busy=false;var b=$('#gdSync');if(b)b.disabled=false});
@@ -162,7 +162,7 @@ GD.touch=function(){
 GD.signOut=function(){
   var t=GD.tok;GD.tok=null;GD.exp=0;try{localStorage.removeItem('atl_gtok')}catch(e){}SET.gOk=0;saveSet();
   if(t&&window.google&&google.accounts&&google.accounts.oauth2)try{google.accounts.oauth2.revoke(t,function(){})}catch(e){}
-  if(curPage==='alt')renderAlt();toast('Scollegato da Google');
+  refreshPage();toast('Scollegato da Google');
 };
 
 /* =================== SCHEDA «GOOGLE DRIVE» (pagina Altro) =================== */

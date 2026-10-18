@@ -1,8 +1,11 @@
 /* Schede iniziali dalla ricerca sul web (flora, fauna, rocce, acqua, storia, folclore, curiosità, sentieri).
    Entrano una sola volta nel Catalogo come punti normali, con il tag «ricerca»: poi le modifichi e le ampli.
    Le posizioni «indicative» vanno spostate sul posto. Per aggiungerne: nuova voce con chiave «k» unica e v+1.
+   «fix»: correzioni di schede già nel Catalogo (applicate solo se non le hai modificate, con v+1).
    by Lollo ®2026 */
-var SCHEDE_RICERCA={v:1,items:[
+var SCHEDE_RICERCA={
+"v": 2,
+"items": [
 {
 "k": "lago-carta",
 "cat": "acqua",
@@ -1376,5 +1379,201 @@ var SCHEDE_RICERCA={v:1,items:[
 "com": "Cervo volante",
 "sci": "Lucanus cervus"
 }
+},
+{
+"k": "rio-bui",
+"cat": "acqua",
+"t": "Rio Bui",
+"ric": "Compare con questo nome nella mappa idrografica del Piano di Gestione (figura 1, pagina 52), sul lato sud del Lago Piccolo. Il Piano non dà altre informazioni su questo rio. Da verificare sul posto: dove arriva nel lago, se ha acqua tutto l'anno, se è un rio o un fosso tra i prati, se ci sono gamberi (il Piano dice che il gambero di fiume vive «in alcuni rii affluenti del Lago Piccolo» senza dire quali).\n\nFonti:\n• Regione Piemonte – Piano di Gestione ZSC/ZPS IT1110007: https://www.regione.piemonte.it/giscartografia/Parchi/Piani/IT1110007_PdG_Relazione_DEF.pdf (par. 3.4)",
+"lat": 45.0512,
+"lon": 7.3918,
+"ps": "indicativa (dalla ricerca): spostala sul posto con il GPS",
+"tags": [
+"ricerca"
+],
+"x": {
+"tipo_acqua": "immissario o rio"
+},
+"m": [
+"rio bui"
+]
+},
+{
+"k": "rio-grosso",
+"cat": "acqua",
+"t": "Rio Grosso (canale Naviglia di Trana)",
+"ric": "Nella mappa idrografica del Piano di Gestione compare sul lato sud-est del Lago Piccolo. Nelle norme del Piano il «canale Naviglia di Trana (o rio Grosso)» è citato insieme ai canali Naviglia e Meana: in tutti e tre la pesca è vietata. Da verificare sul posto: il punto in cui incontra il lago, il verso della corrente, la presenza d'acqua nelle diverse stagioni.\n\nFonti:\n• Regione Piemonte – Piano di Gestione ZSC/ZPS IT1110007: https://www.regione.piemonte.it/giscartografia/Parchi/Piani/IT1110007_PdG_Relazione_DEF.pdf (fig. 1 a p. 52; art. 26 a p. 120)",
+"lat": 45.0522,
+"lon": 7.3952,
+"ps": "indicativa (dalla ricerca): spostala sul posto con il GPS",
+"tags": [
+"ricerca"
+],
+"x": {
+"tipo_acqua": "canale"
+},
+"m": [
+"rio grosso"
+]
+},
+{
+"k": "canale-naviglia",
+"cat": "acqua",
+"t": "Canale della Naviglia",
+"ric": "Esce dal Lago Grande verso nord e raccoglie anche le acque dei canali di drenaggio della palude dei Mareschi. Il Piano di Gestione lo descrive come molto alterato dall'eccesso di nutrienti: nel Lago Grande le acque profonde, cariche di fosforo, finiscono nel canale e d'estate, quando l'acqua ristagna, la concentrazione dei nutrienti aumenta. In pochi tratti di rogge e canali resta, in modo relittuale, la vegetazione dei corsi d'acqua lenti (habitat 3260). Regole: pesca vietata, nessuna nuova derivazione d'acqua; sul Lago Grande una zona di protezione ittica parte dal canale (205 m a sinistra, 110 m a destra).\n\nFonti:\n• Regione Piemonte – Piano di Gestione ZSC/ZPS IT1110007: https://www.regione.piemonte.it/giscartografia/Parchi/Piani/IT1110007_PdG_Relazione_DEF.pdf (pp. 52, 55–57, 76; artt. 3, 21 e 26)",
+"lat": 45.0688,
+"lon": 7.3858,
+"ps": "indicativa (dalla ricerca): spostala sul posto con il GPS",
+"tags": [
+"ricerca"
+],
+"x": {
+"tipo_acqua": "canale"
+},
+"m": [
+"naviglia"
+]
+},
+{
+"k": "risorgive",
+"cat": "acqua",
+"t": "Risorgive del versante di Giaveno",
+"ric": "Il versante che scende da Giaveno verso il Lago Piccolo è ricco di risorgive attive tutto l'anno. Per questo il Rio Freddo e il Rio Giacomino hanno una portata che cala fino a sparire solo per pochi mesi l'anno. Le risorgive alimentano i boschi umidi di ontano nero e frassino (habitat 91E0*) e il pioppeto di pioppo bianco. Sorgenti e ruscelli in bosco sono l'ambiente di insetti rari come la libellula Cordulegaster bidentata (p. 66). Da verificare sul posto: dove sgorga l'acqua, la temperatura, la presenza di carici.\n\nFonti:\n• Regione Piemonte – Piano di Gestione ZSC/ZPS IT1110007: https://www.regione.piemonte.it/giscartografia/Parchi/Piani/IT1110007_PdG_Relazione_DEF.pdf (pp. 61–62)",
+"lat": 45.0556,
+"lon": 7.3868,
+"ps": "indicativa (dalla ricerca): spostala sul posto con il GPS",
+"tags": [
+"ricerca"
+],
+"x": {
+"tipo_acqua": "sorgente"
 }
-]};
+},
+{
+"k": "livello-lago",
+"cat": "curiosita",
+"t": "Il livello del lago cala d'estate",
+"ric": "I prelievi irrigui del Consorzio delle Gerbole abbassano il livello dei laghi in primavera-estate. Secondo il Piano di Gestione, ad agosto il Lago Piccolo scende di quasi due metri, e nell'anno caldo e asciutto 2003 scese ben oltre i due metri. Le piante acquatiche più vicine alla riva rischiano di restare all'asciutto, e anche le ninfee del «Riservino Lago Piccolo» dove il fondale è basso. Il tempo teorico di ricambio dell'acqua è di 0,9 anni (nel Lago Grande 2,3). Il Piano propone di mettere aste idrometriche nei due laghi e di fissare un livello critico sotto cui fermare i prelievi.\n\nIdea per il campo (non è nel Piano): fotografa la riva dallo stesso punto ogni mese, con un riferimento fisso nell'inquadratura, per vedere quanto scende.\n\nFonti:\n• Regione Piemonte – Piano di Gestione ZSC/ZPS IT1110007: https://www.regione.piemonte.it/giscartografia/Parchi/Piani/IT1110007_PdG_Relazione_DEF.pdf (pp. 54–55, 88–89)",
+"lat": 45.0562,
+"lon": 7.3915,
+"ps": "indicativa (dalla ricerca): spostala sul posto con il GPS",
+"tags": [
+"ricerca",
+"lago"
+]
+},
+{
+"k": "fl-ninfee",
+"cat": "flora",
+"t": "Ninfea bianca e nannufaro – il «Riservino Lago Piccolo»",
+"ric": "Le piante a foglie galleggianti (Nymphaea alba e Nuphar luteum) formano nel Lago Piccolo solo tre piccoli nuclei: due di ninfea bianca e uno di nannufaro. Radicano sul fondo a 2–3 m di profondità e non sopportano le oscillazioni del livello. Solo il popolamento della zona detta «Riservino Lago Piccolo» è in buono stato; nelle annate normali il fondale basso lì emerge d'estate, ed è l'area più a rischio. Fioritura: da cercare in piena estate; annota la data.\n\nFonti:\n• Regione Piemonte – Piano di Gestione ZSC/ZPS IT1110007: https://www.regione.piemonte.it/giscartografia/Parchi/Piani/IT1110007_PdG_Relazione_DEF.pdf (pp. 54–55, 88)",
+"lat": 45.0535,
+"lon": 7.3925,
+"ps": "indicativa (dalla ricerca): spostala sul posto con il GPS",
+"tags": [
+"ricerca",
+"lago"
+],
+"x": {
+"ambiente": "acqua aperta"
+},
+"sp": {
+"com": "Ninfea bianca",
+"sci": "Nymphaea alba"
+}
+},
+{
+"k": "fl-najas",
+"cat": "flora",
+"t": "Najas marina – il prato sommerso",
+"ric": "Nel Lago Piccolo forma una fascia sommersa lungo la riva, a 1–3 m di profondità: parte dalla foce del Rio Giacomino, passa davanti all'«Area F.I.P.S.A.», prosegue lungo la sponda della strada statale e finisce poco prima del «Riservino Lago Piccolo». Nel Lago Grande ci sono solo esemplari isolati. Soffre per i prelievi d'acqua d'estate e per l'inquinamento. In entrambi i laghi i Potamogeton veri e propri sono rari, solo esemplari isolati.\n\nFonti:\n• Regione Piemonte – Piano di Gestione ZSC/ZPS IT1110007: https://www.regione.piemonte.it/giscartografia/Parchi/Piani/IT1110007_PdG_Relazione_DEF.pdf (p. 54)",
+"lat": 45.0545,
+"lon": 7.3905,
+"ps": "indicativa (dalla ricerca): spostala sul posto con il GPS",
+"tags": [
+"ricerca",
+"lago"
+],
+"x": {
+"ambiente": "acqua aperta"
+},
+"sp": {
+"com": "Najade maggiore",
+"sci": "Najas marina"
+}
+},
+{
+"k": "al-pioppeti",
+"cat": "albero",
+"t": "Pioppeti tra il Rio Freddo e il Rio Giacomino",
+"ric": "Solo due piccoli lembi di bosco a pioppo bianco e pioppo nero (habitat 92A0) stanno sulle sponde del Lago Piccolo. Sulla sponda nord, sotto il campeggio, lungo la sterrata che porta verso il Rio Freddo, ci sono grandi pioppi neri, separati dal lago da una striscia di salice bianco. Tra Rio Freddo e Rio Giacomino un bosco umido di frassino e ontano nero sta davanti a un pioppeto di pioppo bianco di medie dimensioni. L'acqua arriva dalla falda del lago e dalle risorgive del versante. L'unico pericolo indicato è il taglio da parte dei proprietari.\n\nFonti:\n• Regione Piemonte – Piano di Gestione ZSC/ZPS IT1110007: https://www.regione.piemonte.it/giscartografia/Parchi/Piani/IT1110007_PdG_Relazione_DEF.pdf (pp. 61–62)",
+"lat": 45.0556,
+"lon": 7.3895,
+"ps": "indicativa (dalla ricerca): spostala sul posto con il GPS",
+"tags": [
+"ricerca",
+"lago"
+],
+"sp": {
+"com": "Pioppo nero",
+"sci": "Populus nigra"
+}
+},
+{
+"k": "fa-pesci-scomparsi",
+"cat": "fauna",
+"t": "Pesci scomparsi e pesci arrivati",
+"ric": "Nel tempo nei laghi di Avigliana e nella palude sono state presenti almeno 28 specie di pesci; oggi se ne contano 17 e il popolamento è molto alterato. Sono spariti o quasi: trota marmorata, lavarello (introdotto nel 1955 nel Lago Grande), barbo (arrivava dalla Dora Riparia per collegamenti d'acqua oggi scomparsi), cobite comune, gobione, sanguinerola, vairone. Tinca e carpa sono diminuite; anguilla e luccio sono rari. Aumentano le specie resistenti alla poca ossigenazione: cavedano, scardola, alborella. Arrivati dall'America e ormai comuni: pesce gatto, persico trota, persico sole; è stato rilevato anche qualche siluro. Il CNR-ISE ha comunque giudicato buono lo stato ecologico dei due laghi.\n\nFonti:\n• Regione Piemonte – Piano di Gestione ZSC/ZPS IT1110007: https://www.regione.piemonte.it/giscartografia/Parchi/Piani/IT1110007_PdG_Relazione_DEF.pdf (pp. 70–71)",
+"lat": 45.0566,
+"lon": 7.3935,
+"ps": "indicativa (dalla ricerca): spostala sul posto con il GPS",
+"tags": [
+"ricerca",
+"pesca"
+]
+},
+{
+"k": "regole-parco",
+"cat": "curiosita",
+"t": "Regole utili in campo (Piano di Gestione)",
+"ric": "Le misure di conservazione del Piano (adottato nel 2017) vietano, per laghi e paludi: usare mezzi a motore sui laghi sotto i 70 ettari (il Lago Piccolo è di circa 62 ha); navigare a remi nei canneti dal 1° marzo al 31 luglio; camminare nella vegetazione palustre delle sponde nello stesso periodo; tagliare vegetazione acquatica e di riva entro 10 m dalla riva; volare a meno di 500 m dal suolo sulle zone umide (valgono anche i droni, salvo autorizzazione); pescare nella zona di protezione del Lago Piccolo (sponda nord-ovest, da 100 m dopo il Rio Giacomino a 100 m prima dell'imbocco del Rio Meana) e nei canali Naviglia, Meana e Naviglia di Trana. Fotografare nidi di specie protette richiede il consenso dell'Ente. Controlla sempre cartelli e ordinanze del Parco: possono essere diversi da questo elenco.\n\nFonti:\n• Regione Piemonte – Piano di Gestione ZSC/ZPS IT1110007: https://www.regione.piemonte.it/giscartografia/Parchi/Piani/IT1110007_PdG_Relazione_DEF.pdf (artt. 3, 21 e 26: pp. 99, 115–116, 120)",
+"lat": 45.0571,
+"lon": 7.3922,
+"ps": "indicativa (dalla ricerca): spostala sul posto con il GPS",
+"tags": [
+"ricerca",
+"regole"
+]
+}
+],
+"fix": [
+{
+"k": "lago-carta",
+"t": "Lago Piccolo di Avigliana – carta d'identità",
+"ric": "Detto anche Lago di Trana e, anticamente, Lago di San Bartolomeo. Secondo il Piano di Gestione (2017): bacino imbrifero 8,1 km², superficie 0,62 km², volume 4,5 milioni di m³, profondità media 8 m e massima 12 m, lunghezza massima 1,13 km, perimetro 3,10 km, quota 356 m. Il tempo teorico di ricambio dell'acqua è 0,9 anni (nel Lago Grande, che sta a 352 m, 2,3 anni). Quasi tutti gli inverni gela, almeno in parte. Lago «caldo dimittico»: le acque si rimescolano due volte all'anno. Qui sta la stazione di campionamento ARPA «Centro lago», usata per le analisi mensili.\n\nFonti:\n• Regione Piemonte – Piano di Gestione ZSC/ZPS IT1110007: https://www.regione.piemonte.it/giscartografia/Parchi/Piani/IT1110007_PdG_Relazione_DEF.pdf (pp. 50 e 52)\n• Regione Piemonte – scheda L7 Avigliana Piccolo: https://www.regione.piemonte.it/web/sites/default/files/media/documenti/2018-11/l7_avigliana_piccolo.pdf\n• Wikipedia – Laghi di Avigliana: https://it.wikipedia.org/wiki/Laghi_di_Avigliana"
+},
+{
+"k": "rio-freddo",
+"t": "Rio Freddo – immissario",
+"ric": "È uno dei due piccoli rii che scendono dal versante tra Giaveno e il Lago Piccolo (l'altro è il Rio Giacomino); Wikipedia lo indica come il principale. La portata cala fino a sparire solo per pochi mesi l'anno, perché il versante è ricco di risorgive. A monte, lungo il torrente, il Piano di Gestione segnala grandi ontani neri circondati da frassini molto vecchi (habitat 91E0*). Dalla sponda nord parte la sterrata che porta al Rio Freddo; sotto il campeggio c'è un pioppeto di pioppi neri. Nei rii che alimentano il lago vive il raro gambero di fiume. Da verificare sul posto: punto di ingresso nel lago, portata nelle diverse stagioni, presenza di gamberi e larve di insetti.\n\nFonti:\n• Wikipedia – Laghi di Avigliana: https://it.wikipedia.org/wiki/Laghi_di_Avigliana\n• Regione Piemonte – Piano di Gestione ZSC/ZPS IT1110007: https://www.regione.piemonte.it/giscartografia/Parchi/Piani/IT1110007_PdG_Relazione_DEF.pdf (pp. 61–62)\n• Regione Piemonte – scheda L7 Avigliana Piccolo: https://www.regione.piemonte.it/web/sites/default/files/media/documenti/2018-11/l7_avigliana_piccolo.pdf\n• CAI UGET – depliant Parco naturale dei Laghi di Avigliana: https://tam.caiuget.it/storage/2021/11/DepliantA3_Avigliana.pdf"
+},
+{
+"k": "rio-giacomo",
+"t": "Rio Giacomino (Rio Giacomo) – immissario",
+"m": [
+"rio giacomino",
+"rio giacomo"
+],
+"ric": "Piccolo rio che scende dal versante di Giaveno e arriva sul lato ovest del Lago Piccolo. Il Piano di Gestione lo chiama Rio Giacomino; la scheda regionale L7 lo chiama «Rio Giacomo» e lo indica, con il Rio Freddo, come immissario significativo. Come il Freddo, ha acqua quasi tutto l'anno. Qui inizia la fascia di Najas marina e, a 100 m dalla foce, la zona di protezione ittica (pesca vietata) che prosegue lungo la sponda nord-ovest. Tra Rio Freddo e Rio Giacomino ci sono un bosco umido di frassino e ontano nero, un pioppeto di pioppo bianco e prati da sfalcio con carici (Carex elata). Da individuare sul posto.\n\nFonti:\n• Regione Piemonte – Piano di Gestione ZSC/ZPS IT1110007: https://www.regione.piemonte.it/giscartografia/Parchi/Piani/IT1110007_PdG_Relazione_DEF.pdf (pp. 54, 62; art. 21 a p. 116)\n• Regione Piemonte – scheda L7 Avigliana Piccolo: https://www.regione.piemonte.it/web/sites/default/files/media/documenti/2018-11/l7_avigliana_piccolo.pdf"
+},
+{
+"k": "rio-meana",
+"t": "Canale Meana (Rio Meana) – emissario verso il Lago Grande",
+"ric": "L'acqua del Lago Piccolo, più alto di 4 m (356 contro 352), defluisce nel Lago Grande attraverso un canale che taglia l'istmo tra i due laghi: la Regione lo indica come Rio Meana, il Piano di Gestione come canale Meana. Il Piano ha come obiettivo di ripristinare l'assetto originario: Lago Piccolo che alimenta il Grande, e questo la palude. Regole: pesca vietata nel canale e nessuna nuova derivazione d'acqua. La zona di protezione ittica del Lago Piccolo finisce 100 m prima dell'imbocco del Meana. Il trasferimento d'acqua dal Lago Grande al Piccolo è vietato.\n\nFonti:\n• Wikipedia – Laghi di Avigliana: https://it.wikipedia.org/wiki/Laghi_di_Avigliana\n• Regione Piemonte – Piano di Gestione ZSC/ZPS IT1110007: https://www.regione.piemonte.it/giscartografia/Parchi/Piani/IT1110007_PdG_Relazione_DEF.pdf (pp. 52, 86, 120; artt. 3 e 26)\n• Regione Piemonte – scheda L7 Avigliana Piccolo: https://www.regione.piemonte.it/web/sites/default/files/media/documenti/2018-11/l7_avigliana_piccolo.pdf"
+},
+{
+"k": "fa-gambero",
+"ric": "Gambero autoctono raro (Allegato II della Direttiva Habitat, «vulnerabile» per la Lista Rossa IUCN), unico crostaceo italiano di quell'allegato. Il Piano lo segnala in alcuni rii affluenti del Lago Piccolo, senza dire quali, e non conosce la consistenza della popolazione. Vive in torrentelli, canali e fossati tra i prati, meglio se ombreggiati. Lo danneggiano l'alterazione dei rii, l'uso irriguo dell'acqua, il dilavamento dei concimi e l'interramento causato dai mezzi meccanici; lo minacciano anche i gamberi americani e una malattia che diffondono. Non spostare mai acqua o animali da un corso d'acqua all'altro.\n\nFonti:\n• CAI UGET – depliant Parco naturale dei Laghi di Avigliana: https://tam.caiuget.it/storage/2021/11/DepliantA3_Avigliana.pdf\n• Regione Piemonte – Piano di Gestione ZSC/ZPS IT1110007: https://www.regione.piemonte.it/giscartografia/Parchi/Piani/IT1110007_PdG_Relazione_DEF.pdf (p. 69)"
+}
+]
+};

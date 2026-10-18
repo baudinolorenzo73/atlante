@@ -41,17 +41,11 @@ FON.seed=function(){
 function safeUrl(u){return /^https?:\/\//i.test(u||'')?u:''}
 function aLink(u,t){u=safeUrl(u);return u?'<a href="'+esc(u)+'" target="_blank" rel="noopener">'+esc(t)+'</a>':''}
 function plain(s){try{return new DOMParser().parseFromString(String(s||''),'text/html').body.textContent.replace(/\s+/g,' ').trim()}catch(e){return String(s||'')}}
-function fj(url,ms){
-  var ctl=window.AbortController?new AbortController():null,t=ctl&&setTimeout(function(){ctl.abort()},ms||15000);
-  return fetch(url,ctl?{signal:ctl.signal}:{}).then(function(r){clearTimeout(t);if(!r.ok)throw new Error('HTTP '+r.status);return r.json()}).catch(function(e){clearTimeout(t);throw (e&&e.name==='AbortError')?new Error('nessuna risposta (rete assente o lenta)'):e});
-}
-function ptTitle(id){var p=POINTS.filter(function(x){return x.id===id})[0];return p?p.title:''}
-function csvCell(v){v=String(v==null?'':v);return /[",\n;]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
-function csvText(rows){return '\ufeff'+rows.map(function(r){return r.map(csvCell).join(';')}).join('\r\n')}
+function ptTitle(id){var p=byId(POINTS,id);return p?p.title:''}
 function saveCSV(rows,name){shareOrDownload(new Blob([csvText(rows)],{type:'text/csv'}),name)}
 
 /* =================== CHECKLIST: specie del sito Natura 2000 =================== */
-// le specie del formulario Natura 2000 entrano nella checklist del Dossier (senza doppioni, con gruppi raggruppati)
+// le specie del formulario Natura 2000 entrano nella checklist del capitolo del lago (senza doppioni, con gruppi raggruppati)
 (function(){
   if(typeof N2000_SP==='undefined'||typeof CHK_SPECIES==='undefined')return;
   var have={},ord=[];
@@ -365,13 +359,13 @@ HUBR.n2k=function(){
   var seen=seenSci(),tot={A:0,B:0},got={A:0,B:0},miss=[];
   N2000_SP.forEach(function(r){var k=r[1].toLowerCase().split(' ').slice(0,2).join(' '),ok=seen[k]||CHECK[r[1]];tot[r[4]]++;if(ok)got[r[4]]++;else if(r[4]==='A')miss.push(r)});
   var h='<p class="mut">Confronto con il formulario ufficiale Natura 2000 del sito IT1110007 «Laghi di Avigliana» (Regione Piemonte). I nomi italiani sono indicativi.</p>'
-   +'<div class="card"><b>Specie principali del sito: '+got.A+' / '+tot.A+' osservate da te</b><div class="prog"><i style="width:'+Math.round(got.A/tot.A*100)+'%"></i></div><div class="mut">Altre specie importanti: '+got.B+' / '+tot.B+'. Tutte sono nella checklist del Dossier (spunta automatica quando le catalogli con il nome scientifico).</div><div class="row" style="margin-top:8px"><button class="btn s" id="nkD">📚 Apri la checklist</button><button class="btn s" id="nkL">🗺 Mostra habitat sulla mappa</button></div></div>'
+   +'<div class="card"><b>Specie principali del sito: '+got.A+' / '+tot.A+' osservate da te</b><div class="prog"><i style="width:'+Math.round(got.A/tot.A*100)+'%"></i></div><div class="mut">Altre specie importanti: '+got.B+' / '+tot.B+'. Tutte sono nella checklist del capitolo del lago (spunta automatica quando le catalogli con il nome scientifico).</div><div class="row" style="margin-top:8px"><button class="btn s" id="nkD">📚 Apri la checklist</button><button class="btn s" id="nkL">🗺 Mostra habitat sulla mappa</button></div></div>'
    +'<h3>Ancora da trovare ('+miss.length+')</h3>'+miss.map(function(r,i){return '<div class="card"><div class="row"><div style="flex:1"><b>'+esc(r[2])+'</b> <i>'+esc(r[1])+'</i><div class="mut">'+esc(r[0])+' · '+esc(r[3])+'</div></div><button class="btn s" data-ns="'+i+'">📖</button>'+(/^Uccelli|^Aironi|^Rapaci|^Canneto|^Altri uccelli/.test(r[0])?'<button class="btn s" data-nc="'+i+'">🎵</button>':'')+'</div></div>'}).join('')
    +'<h3>Habitat dichiarati ('+N2000_HAB.length+')</h3>'+N2000_HAB.map(function(x){return '<div class="card"><b>'+esc(x[0])+'</b> <span class="mut">'+esc(x[1])+'</span></div>'}).join('')
    +'<p class="mut">Fonte: '+aLink('https://www.regione.piemonte.it/giscartografia/Parchi/schede/IT1110007.pdf','Formulario Natura 2000 IT1110007')+'</p>';
   $('#hubC').innerHTML=h;
   $('#nkD').onclick=function(){closeModal();go('dos')};
-  $('#nkL').onclick=function(){var o=OVERS.filter(function(x){return x.id==='hab'})[0];if(o)setOver(o,true);closeModal();go('map');map.setView(HOME,15)};
+  $('#nkL').onclick=function(){var o=byId(OVERS,'hab');if(o)setOver(o,true);closeModal();go('map');map.setView(HOME,15)};
   $$('[data-ns]').forEach(function(b){b.onclick=function(){HUB.ctx={q:miss[+b.getAttribute('data-ns')][1]};hubGo('studi')}});
   $$('[data-nc]').forEach(function(b){b.onclick=function(){HUB.ctx={q:miss[+b.getAttribute('data-nc')][1]};hubGo('canti')}});
 };

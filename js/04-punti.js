@@ -2,10 +2,11 @@
    by Lollo ®2026 · i moduli si caricano nell'ordine dei numeri (vedi index.html) */
 'use strict';
 /* =================== PUNTI: CARICAMENTO, MAPPA, LISTA =================== */
-function loadPoints(){return DB.all('points').then(function(a){POINTS=a;drawPoints();renderCat();if(curPage==='dos')renderDossier()})}
+function loadPoints(){return DB.all('points').then(function(a){POINTS=a;drawPoints();renderCat();if(curPage==='luo'&&LUO.tab==='cap')renderDossier()})}
 function pinIcon(c,ind){return L.divIcon({className:'',html:'<div class="pin'+(ind?' ind':'')+'" style="background:'+c.c+'"><span>'+c.e+'</span></div>',iconSize:[30,30],iconAnchor:[15,30],popupAnchor:[0,-28]})}
 function passFilter(p){
   if(typeof PC!=='undefined'&&!PC.show(p))return false;
+  if(typeof kindOk!=='undefined'&&!kindOk(p))return false;
   var any=Object.keys(filterCats).some(function(k){return filterCats[k]});
   if(any&&!filterCats[p.cat])return false;
   if(query){var q=query.toLowerCase();var hay=[p.title,p.note,p.ric,(p.sp&&p.sp.sci),(p.sp&&p.sp.com),(p.tags||[]).join(' '),CAT(p.cat).n].join(' ').toLowerCase();if(hay.indexOf(q)<0)return false}
@@ -34,7 +35,7 @@ function firstPhoto(p){var m=(p.media||[]).filter(function(x){return x.type==='p
 function thumbURL(mid){if(thumbCache[mid])return Promise.resolve(thumbCache[mid]);return DB.get('media',mid).then(function(r){if(!r||!r.blob)return null;thumbCache[mid]=URL.createObjectURL(r.blob);return thumbCache[mid]})}
 function renderCatFilter(){var h='';CATS.forEach(function(c){var n=POINTS.filter(function(p){return p.cat===c.id}).length;h+='<span class="cat'+(filterCats[c.id]?' on':'')+'" data-c="'+c.id+'">'+c.e+' '+esc(c.n)+(n?' <b>'+n+'</b>':'')+'</span>'});$('#catFilter').innerHTML=h}
 function renderCat(){
-  renderCatFilter();
+  renderCatFilter();if(typeof renderCatTools!=='undefined')renderCatTools();
   var list=POINTS.filter(passFilter);
   list.sort(function(a,b){
     if(sortBy==='near'&&here)return dist(here.lat,here.lon,a.lat,a.lon)-dist(here.lat,here.lon,b.lat,b.lon);
@@ -44,9 +45,9 @@ function renderCat(){
     return (b.when||'').localeCompare(a.when||'');
   });
   var nf=0,na=0;POINTS.forEach(function(p){(p.media||[]).forEach(function(m){if(m.type==='photo')nf++;else na++})});
-  $('#catCount').textContent=POINTS.length+' punti · '+nf+' foto · '+na+' audio'+(list.length!==POINTS.length?' · '+list.length+' filtrati':'');
+  $('#catCount').textContent=POINTS.length+' punti · '+nf+' foto · '+na+' audio'+(list.length!==POINTS.length?' · '+list.length+' in elenco':'');
   var box=$('#catList');
-  if(!POINTS.length){box.innerHTML='<div class="card"><b>Nessun punto ancora.</b><p class="mut">Torna sulla mappa e premi <b>+</b> per catalogare un punto con la tua posizione GPS, oppure tieni premuto sulla mappa nel punto che ti interessa.</p></div>';return}
+  if(!POINTS.length){box.innerHTML='<div class="card"><b>Nessun punto ancora.</b><p class="mut">Torna sulla mappa e premi <b>+</b>: puoi partire da una foto, dalla tua posizione GPS o da un punto della mappa. Puoi anche tenere premuto sulla mappa nel punto che ti interessa.</p></div>';return}
   box.innerHTML=list.map(function(p){var c=CAT(p.cat);var f=firstPhoto(p);var d=here?' · '+fmtDist(dist(here.lat,here.lon,p.lat,p.lon)):'';
     var sp=p.sp&&(p.sp.com||p.sp.sci)?esc(p.sp.com||'')+(p.sp.sci?' <i>'+esc(p.sp.sci)+'</i>':''):'';
     var nm=(p.media||[]).length;
@@ -83,7 +84,7 @@ document.addEventListener('keydown',function(e){if(!$('#viewer').classList.conta
 var detailURLs=[];
 function freeDetail(){detailURLs.forEach(function(u){URL.revokeObjectURL(u)});detailURLs=[]}
 function openDetail(id){
-  var p=POINTS.filter(function(x){return x.id===id})[0];if(!p)return;
+  var p=byId(POINTS,id);if(!p)return;
   var c=CAT(p.cat);
   var h='<div class="row" style="margin:8px 0"><span class="cat on" style="border-color:'+c.c+'">'+c.e+' '+esc(c.n)+'</span><span class="mut">'+fmtDate(p.when)+'</span></div>';
   if(p.sp&&(p.sp.sci||p.sp.com))h+='<div class="card"><b>'+esc(p.sp.com||'')+'</b> <i>'+esc(p.sp.sci||'')+'</i>'+(p.sp.src?'<br><small class="mut">fonte nome: '+esc(p.sp.src)+'</small>':'')+(p.sp.tratti?'<p class="mut" style="margin:6px 0 0">'+esc(p.sp.tratti)+'</p>':'')+'</div>';
@@ -102,8 +103,10 @@ function openDetail(id){
   if(photos.length)h+='<h3>Foto ('+photos.length+')</h3><div class="gal">'+photos.map(function(m){return '<figure><img data-mid="'+m.id+'" alt=""><figcaption>'+esc(m.cap||'')+'</figcaption></figure>'}).join('')+'</div>';
   if(auds.length)h+='<h3>Registrazioni ('+auds.length+')</h3>'+auds.map(function(m){return '<div class="au"><audio controls data-mid="'+m.id+'"></audio></div><div class="mut" style="margin:-2px 0 6px">'+esc(m.cap||'')+'</div>'}).join('');
   h+='<p class="mut" style="margin-top:14px">Compilatore: '+esc(p.comp||'')+' · creato '+fmtDate(p.created)+(p.updated&&p.updated!==p.created?' · modificato '+fmtDate(p.updated):'')+'</p>';
-  var foot=[mkBtn('Modifica','f',function(){closeModal();openForm(p)}),mkBtn('Sulla mappa','',function(){closeModal();flashPoint(p.lat,p.lon,p.title,p.id)}),mkBtn('Scheda stampabile','',function(){printReport([p])}),mkBtn('Condividi','',function(){shareOne(p)}),mkBtn('Elimina','r',function(){if(confirm('Eliminare definitivamente questo punto con foto e audio?'))deletePoint(p).then(closeModal)})];
+  h+='<div class="row" style="margin-top:18px;justify-content:flex-end"><button class="btn s r" id="dDel">🗑 Elimina il punto</button></div>';
+  var foot=[mkBtn('✏️ Modifica','f',function(){closeModal();openForm(p)}),mkBtn('🗺 Sulla mappa','',function(){closeModal();flashPoint(p.lat,p.lon,p.title,p.id)}),mkBtn('📤 Esporta','',function(){openExport('one',p)})];
   openModal(p.title||'(senza titolo)',h,foot,freeDetail);FON.bindDetail(p);PC.bindDetail(p);
+  $('#dDel').onclick=function(){if(confirm('Eliminare definitivamente questo punto con foto e audio?'))deletePoint(p).then(closeModal)};
   $$('[data-mid]',$('#mbody')).forEach(function(n){DB.get('media',n.getAttribute('data-mid')).then(function(r){if(!r||!r.blob)return;var u=URL.createObjectURL(r.blob);detailURLs.push(u);n.src=u;if(n.tagName==='IMG')n.onclick=function(){view(u)}})});
 }
 function deletePoint(p){var ps=(p.media||[]).map(function(m){delete thumbCache[m.id];return DB.del('media',m.id)});ps.push(DB.del('points',p.id));tomb(p.id);return Promise.all(ps).then(function(){markChange();toast('Punto eliminato');return loadPoints()})}

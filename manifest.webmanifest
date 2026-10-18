@@ -7,8 +7,8 @@
  "scope": "./",
  "display": "standalone",
  "orientation": "any",
- "background_color": "#161a1f",
- "theme_color": "#161a1f",
+ "background_color": "#f3f5f1",
+ "theme_color": "#2f6b3f",
  "lang": "it",
  "categories": [
   "education",
@@ -34,5 +34,32 @@
    "type": "image/png",
    "purpose": "maskable"
   }
- ]
+ ],
+ "share_target": {
+  "action": "./?share-target",
+  "method": "POST",
+  "enctype": "multipart/form-data",
+  "params": {
+   "title": "title",
+   "text": "text",
+   "files": [
+    {
+     "name": "file",
+     "accept": [
+      "application/gpx+xml",
+      ".gpx",
+      "application/vnd.google-earth.kml+xml",
+      ".kml",
+      "application/geo+json",
+      ".geojson",
+      "application/zip",
+      ".zip",
+      "application/octet-stream",
+      "text/xml",
+      "application/xml"
+     ]
+    }
+   ]
+  }
+ }
 }

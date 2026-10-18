@@ -9,7 +9,7 @@
 var PC={list:[],cur:null,all:false};
 PC.load=function(r){if(r&&r.v){PC.list=r.v.list||[];PC.cur=r.v.cur||null;PC.all=!!r.v.all}if(PC.cur&&!PC.get(PC.cur))PC.cur=null};
 PC.save=function(ch){if(ch!==false)markChange();return DB.put('kv',{id:'percorsi',v:{list:PC.list,cur:PC.cur,all:PC.all}})};
-PC.get=function(id){return PC.list.filter(function(x){return x.id===id})[0]||null};
+PC.get=function(id){return byId(PC.list,id)||null};
 PC.active=function(){return PC.cur?PC.get(PC.cur):null};
 PC.filtering=function(){return !!(PC.cur&&!PC.all)};
 PC.show=function(p){return !PC.filtering()||p.perc===PC.cur};
@@ -28,7 +28,7 @@ PC.stats=function(id){
   return s;
 };
 PC.touch=function(x){x.updated=new Date().toISOString();return x};
-PC.refresh=function(){drawPoints();drawTracks();renderCat();PC.badge();if(curPage==='alt')renderAlt()};
+PC.refresh=function(){drawPoints();drawTracks();renderCat();PC.badge();refreshPage()};
 PC.badge=function(){
   var e=$('#pcBadge');if(!e)return;var p=PC.active();
   if(!p){e.style.display='none';return}

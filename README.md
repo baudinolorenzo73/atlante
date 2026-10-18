@@ -17,7 +17,7 @@ L'app è divisa in moduli: ogni parte sta in un file separato, così una modific
 | `js/version.js` | Numero di versione, codice build ed elenco dei file. **Lo genera `tools/build.py`** | — (non serve toccarlo) |
 | `js/01-base.js` | Configurazione (marchio, centro del lago), utilità, database del telefono, impostazioni, **categorie** e campi delle schede | aggiungere una categoria o un campo |
 | `js/02-mappa.js` | Mappa, **mappe di base e livelli**, **legenda** | aggiungere una mappa o un livello WMS |
-| `js/03-gps-tracce.js` | GPS dal vivo, fix mediato, registrazione tracce | |
+| `js/03-gps-tracce.js` | GPS dal vivo, fix mediato, registrazione tracce; statistiche (v4.4: distanza senza tremolii, dislivello a soglia 5 m, tempo in movimento, velocità, tipo stimato) e profilo altimetrico | |
 | `js/04-punti.js` | Punti sulla mappa e nel Catalogo, dettaglio del punto | |
 | `js/05-scheda.js` | Scheda nuovo/modifica punto (foto, audio, specie, «Scheda sito») | |
 | `js/06-esporta.js` | Esportazioni GPX, KML, GeoJSON, CSV, schede stampabili, ZIP, importazione | |
@@ -30,6 +30,12 @@ L'app è divisa in moduli: ogni parte sta in un file separato, così una modific
 | `js/14-fonti.js` | **Ricerca e fonti**: studi (OpenAlex), foto storiche (Wikimedia Commons, Panoramax), canti (Xeno-canto), diario delle stagioni, biblioteca delle fonti, macchina del tempo (Esri Wayback), livelli WMS/XYZ tuoi, confronto con Natura 2000 | aggiungere una fonte o una scheda di ricerca |
 | `data/n2000.js` | Habitat e specie del formulario Natura 2000 IT1110007 (con codici); le specie entrano nella checklist del Dossier | correggere i nomi comuni |
 | `js/19-novita.js` | **Aggiornamento automatico** (all'avvio controlla se sul sito c'è una versione nuova e propone «Aggiorna ora») e finestra **Novità** dopo ogni aggiornamento |
+| `css/app.css` | Stile **chiaro e scuro** (v4.1): colori come variabili in cima al file, il tema scuro vale con il telefono in modalità scura o con Altro → Impostazioni → Aspetto |
+| `js/21-gpslogger.js` + `gpslogger/atlante.properties` | **GPSLogger** di mendhak (v4.2; dalla v4.4 l'unica app esterna, perché si comanda dall'Atlante): profilo «atlante» caricato con il link `gpslogger://properties/…`, registrazione a schermo spento, ritorno dei GPX con «Condividi → Atlante di campo» (share target in `manifest.webmanifest` e `sw.js`) |
+| `js/22-astro.js` + `data/wmm.js` | **Calcoli senza rete (v4.5)**: alba, tramonto, crepuscolo, ora d'oro, luna (formule di Meeus) e declinazione magnetica con il modello WMM2025 (valido fino al 2030). Funzioni pure, provate contro `ephem` e `pygeomag` |
+| `js/23-campo.js` | **Strumenti da campo (v4.5)**: scheda in Uscita, Sole e luna, Declinazione (corregge la bussola della mappa), Rientro prima del buio (`RIE`), Clinometro (`CLINO`: altezza alberi e pendenza, scrive nel campo `alt_alb` della scheda Albero) |
+| `js/24-soste.js` | **Dividi alle soste (v4.5)**: trova le soste (entro 30 m per N minuti, anche come «buco» senza punti) e divide la traccia in tratti |
+| `js/20-interfaccia.js` | **Organizzazione delle schede (v4.0)**: Uscita (registrazione, percorso, tracce, diario), Luogo (Capitolo · Esplora · Ricerca e fonti), Esporta unico, filtri del Catalogo |
 | `js/18-capitoli.js` | **Capitoli del Dossier**: il Lago Piccolo ha il suo capitolo scritto a mano; per ogni altro luogo l'app scarica e salva un capitolo automatico (Wikipedia, Wikidata, clima Open-Meteo, specie iNaturalist, OpenStreetMap, geologia Macrostrat) che funziona anche senza rete |
 | `js/17-percorsi.js` | **Percorsi** (uscite con le loro schede, foto e tracce: nuovo, apri, chiudi, aggiungi punti per giorno) ed esportazioni del percorso in ZIP, PDF con schema ed **Excel .xlsx con le foto** (scrittore XLSX interno, senza librerie) |
 | `js/16-drive.js` | **Sincronizzazione con Google Drive** (cartella «Atlante di campo»; quella vecchia «Atlante Lago Piccolo» viene rinominata da sola: dati.json, foto, audio, esporta/), unione per elemento e «lapidi» per le eliminazioni |

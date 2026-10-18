@@ -18,7 +18,7 @@ function injectManifest(){
   if(!isWeb()||document.querySelector('link[rel=manifest]'))return;
   try{
     var base=pageUrl().split('?')[0];
-    var m={name:'Atlante di campo',short_name:'Atlante',description:'Atlante di campo: punti con foto, audio e GPS, percorsi, mappe e capitoli dei luoghi - '+BRAND,start_url:base,scope:new URL('./',base).href,display:'standalone',orientation:'any',background_color:'#161a1f',theme_color:'#161a1f',lang:'it',icons:[{src:mkIcon(192),sizes:'192x192',type:'image/png',purpose:'any'},{src:mkIcon(512),sizes:'512x512',type:'image/png',purpose:'any'}]};
+    var m={name:'Atlante di campo',short_name:'Atlante',description:'Atlante di campo: punti con foto, audio e GPS, percorsi, mappe e capitoli dei luoghi - '+BRAND,start_url:base,scope:new URL('./',base).href,display:'standalone',orientation:'any',background_color:'#f3f5f1',theme_color:'#2f6b3f',lang:'it',icons:[{src:mkIcon(192),sizes:'192x192',type:'image/png',purpose:'any'},{src:mkIcon(512),sizes:'512x512',type:'image/png',purpose:'any'}]};
     var l=document.createElement('link');l.rel='manifest';l.href=URL.createObjectURL(new Blob([JSON.stringify(m)],{type:'application/manifest+json'}));document.head.appendChild(l);
   }catch(e){}
 }

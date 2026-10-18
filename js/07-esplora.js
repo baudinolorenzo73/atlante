@@ -19,10 +19,8 @@ function loadWiki(){
 }
 function loadWD(){
   var v=vb();setStatus('wd','carico…');XL.wd.clearLayers();
-  var q='SELECT ?item ?itemLabel ?coord ?typeLabel ?image ?art WHERE { SERVICE wikibase:around { ?item wdt:P625 ?coord. bd:serviceParam wikibase:center "Point('+v.c.lng.toFixed(5)+' '+v.c.lat.toFixed(5)+')"^^geo:wktLiteral; wikibase:radius "'+(v.r/1000).toFixed(2)+'". } OPTIONAL{?item wdt:P31 ?type} OPTIONAL{?item wdt:P18 ?image} OPTIONAL{?art schema:about ?item; schema:isPartOf <https://it.wikipedia.org/>} SERVICE wikibase:label { bd:serviceParam wikibase:language "it,en". } } LIMIT 400';
-  fetchJSON('https://query.wikidata.org/sparql?format=json&query='+encodeURIComponent(q),{headers:{Accept:'application/sparql-results+json'}}).then(function(j){var by={};
-    (j.results.bindings||[]).forEach(function(b){var id=b.item.value;var m=/Point\(([-\d.]+) ([-\d.]+)\)/.exec(b.coord.value);if(!m)return;var o=by[id]||(by[id]={t:b.itemLabel?b.itemLabel.value:id,lat:+m[2],lon:+m[1],types:[],img:null,url:id,art:null});if(b.typeLabel&&o.types.indexOf(b.typeLabel.value)<0)o.types.push(b.typeLabel.value);if(b.image)o.img=b.image.value.replace('http://','https://')+'?width=240';if(b.art)o.art=b.art.value});
-    EXP.wd=Object.keys(by).map(function(k){var o=by[k];o.save={lat:o.lat,lon:o.lon,cat:'storia',title:o.t,s:{sitografia:[o.url,o.art].filter(Boolean).join('\n')}};return o});
+  NET.wdAround(v.c.lat,v.c.lng,v.r/1000,400,240).then(function(list){
+    EXP.wd=list.map(function(o){o.save={lat:o.lat,lon:o.lon,cat:'storia',title:o.t,s:{sitografia:[o.url,o.art].filter(Boolean).join('\n')}};return o});
     EXP.wd.forEach(function(o,i){xmarker(o.lat,o.lon,'#80cbc4','D','<b>'+esc(o.t)+'</b><div class="mut">'+esc(o.types.join(', '))+'</div>'+(o.img?'<img src="'+esc(o.img)+'">':'')+'<a href="'+esc(o.url)+'" target="_blank" rel="noopener">Wikidata</a>'+(o.art?' · <a href="'+esc(o.art)+'" target="_blank" rel="noopener">Wikipedia</a>':'')+' · <a href="#" onclick="_atl.save(\'wd\','+i+');return false">Salva come punto</a>','wd')});
     setStatus('wd',EXP.wd.length+' elementi');renderExpList('wd');
   }).catch(function(e){setStatus('wd','errore: '+e.message)});

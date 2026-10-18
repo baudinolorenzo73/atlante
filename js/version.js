@@ -1,6 +1,6 @@
 /* Generato da tools/build.py: non modificare a mano (tranne VERSION, se vuoi). */
-var VERSION='3.7';
-var BUILD='a98fe0d0';
+var VERSION='4.5';
+var BUILD='ddf89cdf';
 var ASSETS=[
   './',
   'index.html',
@@ -9,6 +9,8 @@ var ASSETS=[
   'data/alberi.js',
   'data/n2000.js',
   'data/schede_ricerca.js',
+  'data/wmm.js',
+  'gpslogger/atlante.properties',
   'icons/icon-192.png',
   'icons/icon-512.png',
   'icons/icon-maskable-512.png',
@@ -31,6 +33,11 @@ var ASSETS=[
   'js/17-percorsi.js',
   'js/18-capitoli.js',
   'js/19-novita.js',
+  'js/20-interfaccia.js',
+  'js/21-gpslogger.js',
+  'js/22-astro.js',
+  'js/23-campo.js',
+  'js/24-soste.js',
   'lib/leaflet/leaflet-rotate.js',
   'lib/leaflet/leaflet.css',
   'lib/leaflet/leaflet.js',

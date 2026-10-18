@@ -32,8 +32,18 @@ function netFirst(req){
   });
 }
 function trim(ca){return ca.keys().then(function(k){if(k.length>MAXT)return Promise.all(k.slice(0,k.length-MAXT).map(function(r){return ca.delete(r)}))})}
+// v4.2: file ricevuti con «Condividi» da altre app (per esempio le tracce GPX di GPSLogger)
 self.addEventListener('fetch',function(e){
-  var r=e.request;if(r.method!=='GET')return;
+  var r=e.request;
+  if(r.method==='POST'&&new URL(r.url).searchParams.has('share-target')){
+    e.respondWith(r.formData().then(function(fd){
+      var fs=fd.getAll('file').filter(function(f){return f&&f.size});
+      return caches.open('atl-share').then(function(c){return Promise.all(fs.map(function(f,i){
+        return c.put(new URL('shared/'+Date.now()+'-'+i,self.registration.scope).href,new Response(f,{headers:{'Content-Type':f.type||'application/octet-stream','x-name':encodeURIComponent(f.name||('file'+i+'.gpx'))}}))}))});
+    }).catch(function(){}).then(function(){return Response.redirect(new URL('./?shared=1',self.registration.scope).href,303)}));
+    return;
+  }
+  if(r.method!=='GET')return;
   var u=new URL(r.url);
   if(u.origin===self.location.origin){e.respondWith(netFirst(r));return}
   if(r.destination==='image'){

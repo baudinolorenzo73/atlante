@@ -78,11 +78,11 @@ function askRec(title,msg,opts){return new Promise(function(res){
   opts.forEach(function(o,i){var e=el('<button class="btn'+(i===0?' f':'')+'">'+esc(o[1])+(o[2]?'<small>'+esc(o[2])+'</small>':'')+'</button>');e.onclick=function(){w.style.display='none';res(o[0])};b.appendChild(e)});
   w.style.display='flex';
 })}
-function recUI(on){$('#bRec').classList.toggle('recon',on);$('#bRec').textContent=on?'⏹':'⏺';if(on&&navigator.wakeLock&&navigator.wakeLock.request&&!REC.wake){navigator.wakeLock.request('screen').then(function(w){REC.wake=w}).catch(function(){})}updRecChip()}
+function recUI(on){$('#bRec').classList.toggle('recon',on);$('#bRec').innerHTML=ICO(on?'stop':'rec');if(on&&navigator.wakeLock&&navigator.wakeLock.request&&!REC.wake){navigator.wakeLock.request('screen').then(function(w){REC.wake=w}).catch(function(){})}updRecChip()}
 /* divide la traccia in corso: fino a «split» resta la vecchia, il resto diventa una traccia nuova */
 function recSplit(split,lastT){
   var old=REC.trk,rest=old.pts.slice(split),now=Date.now();
-  old.pts=old.pts.slice(0,split);old.end=lastT||now;old.brk=(old.brk||[]).filter(function(i){return i<split});
+  old.pts=old.pts.slice(0,split);old.end=lastT||now;old.u=new Date().toISOString();old.brk=(old.brk||[]).filter(function(i){return i<split});
   var pOld=old.pts.length>1?DB.put('tracks',old):DB.del('tracks',old.id);
   REC.trk={id:uid(),name:'Traccia '+fmtDate(new Date(now).toISOString()),start:now,end:null,pts:rest,brk:[],perc:old.perc||null};
   REC.last=rest.length?rest[rest.length-1]:null;REC.line.setLatLngs(rest.map(function(p){return [p[0],p[1]]}));
@@ -98,7 +98,7 @@ function recResume(t){
 }
 function checkOpenTracks(){
   var open=TRACKS.filter(function(t){return !t.end}).sort(function(a,b){return b.start-a.start});if(!open.length)return Promise.resolve();
-  var close=function(t){t.end=t.pts.length?t.pts[t.pts.length-1][3]:t.start;return DB.put('tracks',t)};
+  var close=function(t){t.end=t.pts.length?t.pts[t.pts.length-1][3]:t.start;t.u=new Date().toISOString();return DB.put('tracks',t)};
   var last=open[0],lt=last.pts.length?last.pts[last.pts.length-1][3]:last.start;
   return Promise.all(open.slice(1).map(close)).then(function(){
     if(Date.now()-lt>12*3600000||REC.on)return close(last);
@@ -115,7 +115,7 @@ function recStart(){
   if(!navigator.geolocation)return toast('GPS non disponibile');
   REC.trk={id:uid(),name:'Traccia '+fmtDate(new Date().toISOString()),start:Date.now(),end:null,pts:[],perc:PC.newId()};
   REC.on=true;REC.last=null;REC.lastFix=Date.now();REC.warned=false;sndRecStart();REC.line=L.polyline([],{color:'#ff5252',weight:4}).addTo(gTracks);
-  startLive();$('#bRec').classList.add('recon');$('#bRec').textContent='⏹';
+  startLive();$('#bRec').classList.add('recon');$('#bRec').innerHTML=ICO('stop');
   if(navigator.wakeLock&&navigator.wakeLock.request){navigator.wakeLock.request('screen').then(function(w){REC.wake=w}).catch(function(){})}
   updRecChip();toast('⏺ Registrazione avviata. Tieni l\'app aperta: per metterti il telefono in tasca tocca il riquadro rosso in alto (modalità tasca).',6000);
 }
@@ -127,15 +127,65 @@ function recPoint(p){
   if(++REC.saveN%5===0)DB.put('tracks',REC.trk);
   updRecChip();
 }
-function trkStats(t){var d=0,up=0,dn=0,pa=null,br=t.brk||[];for(var i=1;i<t.pts.length;i++){if(t.merged&&br.indexOf(i)>=0)continue;var a=t.pts[i-1],b=t.pts[i];d+=dist(a[0],a[1],b[0],b[1]);if(a[2]!=null&&b[2]!=null){var h=b[2]-a[2];if(Math.abs(h)>=2){if(h>0)up+=h;else dn-=h}}}return {d:d,up:Math.round(up),dn:Math.round(dn),t:(t.dur!=null?t.dur:((t.end||Date.now())-t.start))}}
+/* Statistiche della traccia (v4.4, idee prese da GPS Logger di BasicAirData, codice scritto da capo):
+   - distanza: si somma solo quando ti sei allontanato dall'ultimo punto «fermo» più dell'incertezza del GPS (niente metri finti da fermo)
+   - dislivello: si conta quando la quota cambia di almeno 5 m dall'ultimo riferimento (niente rumore, ma le salite lente si contano)
+   - tempo in movimento, velocità media in movimento e massima, quota minima e massima, tipo di uscita stimato */
+var TRK_MIN_H=5,TRK_MOVE=0.5;
+function trkStats(t){
+  var P=t.pts||[],br=t.brk||[],d=0,up=0,dn=0,mv=0,vmax=0,amin=null,amax=null,anc=null,aAnc=null;
+  for(var i=0;i<P.length;i++){var p=P[i];
+    if(i>0&&t.merged&&br.indexOf(i)>=0){anc=p;aAnc=p[2]!=null?p[2]:null;continue}   // salto tra due tracce unite: non è percorso
+    if(p[2]!=null){if(amin==null||p[2]<amin)amin=p[2];if(amax==null||p[2]>amax)amax=p[2];
+      if(aAnc==null)aAnc=p[2];else{var h=p[2]-aAnc;if(Math.abs(h)>=TRK_MIN_H){if(h>0)up+=h;else dn-=h;aAnc=p[2]}}}
+    if(!anc){anc=p;continue}
+    var s=dist(anc[0],anc[1],p[0],p[1]),acc=(anc[4]||6)+(p[4]||6),th=Math.min(25,Math.max(3,acc*0.8));
+    if(s>=th){var dt=(p[3]-anc[3])/1000;d+=s;
+      if(dt>0&&dt<300){var v=s/dt;if(v>=TRK_MOVE)mv+=dt;if(dt>=3&&v>vmax&&v<70)vmax=v}
+      anc=p}
+  }
+  var tt=(t.dur!=null?t.dur:((t.end||Date.now())-t.start));
+  var r={d:d,up:Math.round(up),dn:Math.round(dn),t:tt,mv:Math.round(mv*1000),vmax:vmax,vavg:mv>0?d/mv:0,amin:amin,amax:amax};
+  r.type=trkType(r);return r;
+}
+function trkType(r){var km=r.d/1000,vm=r.vmax*3.6,va=r.vavg*3.6,mont=(r.up+r.dn)>0.08*r.d&&r.d>500;
+  if(r.d<50||r.mv<60000)return ['🧍','Sosta'];
+  if(vm<9)return mont?['🥾','Escursione in montagna']:['🚶','A piedi'];
+  if(vm<20)return va>8.5?['🏃','Corsa']:mont?['🥾','Escursione in montagna']:['🚶','A piedi'];
+  if(vm<55)return va>=20?['🚗','In auto']:va>=11?['🚴','In bici']:va>8.5?['🏃','Corsa']:mont?['🥾','Escursione in montagna']:['🚶','A piedi'];
+  return ['🚗','In auto o con un mezzo'];
+}
+function fmtSpeed(v){return (v*3.6).toFixed(1).replace('.',',')+' km/h'}
+/* profilo altimetrico: quota rispetto alla distanza percorsa, come piccolo grafico SVG */
+function trkProfileSVG(t){
+  var P=t.pts||[],xs=[],ys=[],c=0;for(var i=0;i<P.length;i++){if(i>0&&!(t.merged&&(t.brk||[]).indexOf(i)>=0))c+=dist(P[i-1][0],P[i-1][1],P[i][0],P[i][1]);if(P[i][2]!=null){xs.push(c);ys.push(P[i][2])}}
+  if(ys.length<3||c<50)return '<p class="mut">Profilo non disponibile: la traccia non ha abbastanza quote.</p>';
+  var W=340,H=130,L=38,B=20,lo=Math.min.apply(null,ys),hi=Math.max.apply(null,ys);if(hi-lo<20){var m=(hi+lo)/2;lo=m-10;hi=m+10}
+  var X=function(v){return L+(W-L-6)*v/c},Y=function(v){return 6+(H-B-6)*(1-(v-lo)/(hi-lo))};
+  var step=Math.max(1,Math.floor(xs.length/400)),pts=[];for(var k=0;k<xs.length;k+=step)pts.push(X(xs[k]).toFixed(1)+','+Y(ys[k]).toFixed(1));pts.push(X(xs[xs.length-1]).toFixed(1)+','+Y(ys[ys.length-1]).toFixed(1));
+  var area='M'+L+','+(H-B)+' L'+pts.join(' L')+' L'+X(c).toFixed(1)+','+(H-B)+' Z';
+  return '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto" role="img" aria-label="Profilo altimetrico">'
+   +'<path d="'+area+'" fill="var(--accsoft)"/><polyline points="'+pts.join(' ')+'" fill="none" stroke="var(--acc)" stroke-width="2"/>'
+   +'<line x1="'+L+'" y1="'+(H-B)+'" x2="'+(W-6)+'" y2="'+(H-B)+'" stroke="var(--line)"/>'
+   +'<text x="'+(L-4)+'" y="'+(Y(hi)+4)+'" text-anchor="end" font-size="10" fill="var(--mut)">'+Math.round(hi)+' m</text><text x="'+(L-4)+'" y="'+(Y(lo)+4)+'" text-anchor="end" font-size="10" fill="var(--mut)">'+Math.round(lo)+' m</text>'
+   +'<text x="'+L+'" y="'+(H-5)+'" font-size="10" fill="var(--mut)">0</text><text x="'+(W-6)+'" y="'+(H-5)+'" text-anchor="end" font-size="10" fill="var(--mut)">'+fmtDist(c)+'</text></svg>';
+}
+function openTrkStats(t){var s=trkStats(t),T=s.type;
+  var kv=[['Tipo stimato',T[0]+' '+T[1]],['Distanza',fmtDist(s.d)],['Tempo totale',fmtDur(s.t)],['Tempo in movimento',fmtDur(s.mv)],['Velocità media in movimento',s.vavg?fmtSpeed(s.vavg):'—'],['Velocità massima',s.vmax?fmtSpeed(s.vmax):'—'],['Dislivello in salita','+'+s.up+' m'],['Dislivello in discesa','−'+s.dn+' m'],['Quota minima e massima',s.amin!=null?Math.round(s.amin)+' – '+Math.round(s.amax)+' m':'—'],['Punti GPS',t.pts.length],['Inizio',fmtDate(new Date(t.start).toISOString())],['Fine',t.end?fmtDate(new Date(t.end).toISOString()):'—']];
+  var sm=(typeof SOS!=='undefined')?SOS.summary(t):null;if(sm)kv.push(['Soste (da 10 min)',sm.n?sm.n+' · '+fmtDur(sm.min*60000)+' in tutto':'nessuna']);
+  if(t.src)kv.push(['Registrata con',t.src==='gpslogger'?'GPSLogger':t.src==='basicairdata'?'GPS Logger (BasicAirData)':t.src]);
+  var h='<h3>Profilo altimetrico</h3>'+trkProfileSVG(t)+'<h3>Dati</h3><div class="kv">'+kv.map(function(r){return '<div>'+esc(r[0])+'</div><div>'+esc(String(r[1]))+'</div>'}).join('')+'</div>'
+   +'<p class="mut" style="margin-top:10px">La distanza ignora i piccoli spostamenti del GPS da fermo; il dislivello conta i cambi di quota di almeno '+TRK_MIN_H+' m. Il tipo è una stima dalla velocità e dal dislivello.</p>';
+  openModal(t.name||'Traccia',h,[mkBtn('🗺 Sulla mappa','',function(){closeModal();flashTrack(t)}),mkBtn('✂️ Dividi alle soste','',function(){SOS.open(t)})]);
+}
 function updRecChip(){var c=$('#chipRec');if(!REC.on){c.style.display='none';return}var s=trkStats(REC.trk);c.style.display='';c.innerHTML='<span class="rec">●</span> '+fmtDist(s.d)+' · '+fmtDur(s.t)+' · 🌙';updPocket()}
 setInterval(function(){if(REC.on)updRecChip()},15000);
 function recStop(){
-  REC.on=false;REC.trk.end=Date.now();sndRecStop();pocketOff();
+  REC.on=false;REC.trk.end=Date.now();REC.trk.u=new Date().toISOString();sndRecStop();pocketOff();
   if(REC.wake){try{REC.wake.release()}catch(e){}REC.wake=null}
-  $('#bRec').classList.remove('recon');$('#bRec').textContent='⏺';$('#chipRec').style.display='none';
+  $('#bRec').classList.remove('recon');$('#bRec').innerHTML=ICO('rec');$('#chipRec').style.display='none';
   if(REC.trk.pts.length<2){toast('Traccia troppo corta: non salvata');DB.del('tracks',REC.trk.id);loadTracks();return}
   DB.put('tracks',REC.trk).then(function(){markChange();toast('Traccia salvata ('+REC.trk.pts.length+' punti)');loadTracks()});
 }
-function loadTracks(){return DB.all('tracks').then(function(a){TRACKS=a.sort(function(x,y){return y.start-x.start});drawTracks();if(curPage==='alt')renderAlt()})}
+function loadTracks(){return DB.all('tracks').then(function(a){TRACKS=a.sort(function(x,y){return y.start-x.start});drawTracks();refreshPage()})}
 function drawTracks(){gTracks.clearLayers();if(REC.on&&REC.line)gTracks.addLayer(REC.line);if(!showTracks)return;TRACKS.forEach(function(t){if(REC.on&&REC.trk&&t.id===REC.trk.id)return;if(!PC.showT(t))return;if(t.pts.length>1)L.polyline(t.pts.map(function(p){return [p[0],p[1]]}),{color:'#ffb74d',weight:3,opacity:.85}).bindPopup(esc(t.name)+'<br>'+fmtDist(trkStats(t).d)).addTo(gTracks)})}

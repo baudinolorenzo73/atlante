@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#161a1f">
+<meta name="theme-color" content="#f3f5f1">
 <meta name="description" content="Atlante di campo - punti, percorsi e capitoli dei luoghi - by Lollo ®2026">
 <title>Atlante di campo</title>
 <link rel="manifest" href="manifest.webmanifest">
@@ -15,21 +15,22 @@
 <body>
 <div id="map"></div>
 <div id="top">
-  <div class="t"><b id="topT">Lago Piccolo di Avigliana</b><small>Atlante di campo · by Lollo ®2026</small><span id="pcBadge" style="display:none" onclick="go('alt')"></span></div>
+  <div class="t"><b id="topT">Lago Piccolo di Avigliana</b><small>Atlante di campo · by Lollo ®2026</small><span id="pcBadge" style="display:none" onclick="go('usc')"></span></div>
   <span class="chip" id="chipGps" style="display:none"></span>
   <span class="chip rec" id="chipRec" style="display:none"></span>
+  <span class="chip" id="chipRie" style="display:none"></span>
 </div>
 <div id="mapbtns">
-  <div class="mb" id="bSearch" title="Cerca un luogo o qualsiasi cosa">🔍</div>
-  <div class="mb" id="bLayers" title="Livelli">☰</div>
-  <div class="mb" id="bLeg" title="Legenda delle mappe">ⓘ</div>
-  <div class="mb" id="bTime" title="Macchina del tempo">🕰</div>
-  <div class="mb" id="bNear" title="Vicino a te: avvisi">🔔</div>
-  <div class="mb" id="bGps" title="La mia posizione">⌖</div>
-  <div class="mb" id="bRec" title="Registra traccia">⏺</div>
-  <div class="mb" id="bHome" title="Centra sul lago">◎</div>
+  <div class="mb" id="bSearch" title="Cerca un luogo o qualsiasi cosa"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6"/><path d="m20 20-5.2-5.2"/></svg></div>
+  <div class="mb" id="bLayers" title="Livelli, legenda, macchina del tempo, avvisi"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3.5 9 5-9 5-9-5z"/><path d="m3 13.5 9 5 9-5"/></svg></div>
+  <div class="mb hid" id="bLeg" title="Legenda delle mappe"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.5v.5"/></svg></div>
+  <div class="mb hid" id="bTime" title="Macchina del tempo"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg></div>
+  <div class="mb hid" id="bNear" title="Vicino a te: avvisi"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 1.5h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg></div>
+  <div class="mb" id="bGps" title="La mia posizione"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3"/></svg></div>
+  <div class="mb" id="bRec" title="Registra traccia"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6" fill="currentColor" stroke="none"/></svg></div>
+  <div class="mb hid" id="bHome" title="Centra sul luogo"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3"/></svg></div>
 </div>
-<button id="fabAdd" title="Nuovo punto">+</button>
+<button id="fabAdd" title="Nuovo punto (tieni premuto: foto veloce)" aria-label="Nuovo punto"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
 <div id="coord" class="chip">tieni premuto sulla mappa per un nuovo punto</div>
 <div id="cross"></div>
 <div id="nearBar"></div>
@@ -40,35 +41,41 @@
 <div id="pocket"><div class="pk"><div class="pkr">● REC</div><div id="pkS">—</div><div class="pkh">Modalità tasca: schermo nero per risparmiare batteria, tocchi bloccati.<br>Tieni premuto 2 secondi per sbloccare.</div><div class="pkbar"><i id="pkBar"></i></div></div></div>
 <div id="pickbar"><span>Sposta la mappa: il punto è al centro del mirino</span><button class="btn" id="pickNo">Annulla</button><button class="btn f" id="pickOk">Conferma</button></div>
 
+<section class="page" id="pg-usc">
+  <div class="ph"><h2>Uscita</h2><small id="uscS"></small></div>
+  <div class="pb" id="uscBody"></div>
+</section>
+
 <section class="page" id="pg-cat">
   <div class="ph"><h2>Catalogo</h2><small id="catCount"></small>
     <div class="row" style="margin-top:8px"><input type="search" id="q" placeholder="Cerca titolo, specie, note, tag…" style="flex:1"><select id="sort" style="width:auto"><option value="new">recenti</option><option value="old">meno recenti</option><option value="near">più vicini</option><option value="az">A-Z</option><option value="cat">categoria</option></select></div>
-    <div class="cats" id="catFilter" style="margin-top:8px"></div>
+    <div class="seg" id="catKind"></div>
+    <div class="row" style="margin-top:6px"><button class="btn s" id="catTog">Categorie ▾</button><span id="catPc" class="mut" style="flex:1;min-width:0"></span><button class="btn s" id="catExp">📤 Esporta</button></div>
+    <div class="cats" id="catFilter" style="margin-top:8px;display:none"></div>
   </div>
   <div class="pb" id="catList"></div>
 </section>
 
-<section class="page" id="pg-exp">
-  <div class="ph"><h2>Esplora</h2><small>Dati liberi online sull'area inquadrata nella mappa</small></div>
-  <div class="pb" id="expBody"></div>
-</section>
-
-<section class="page" id="pg-dos">
-  <div class="ph"><h2 id="dosT">Dossier</h2><small id="dosS">Capitoli dei luoghi · fonti · checklist</small></div>
+<section class="page" id="pg-luo">
+  <div class="ph"><div class="row" style="flex-wrap:nowrap"><div style="flex:1;min-width:0"><h2 id="dosT">Luogo</h2><small id="dosS"></small></div></div>
+    <div class="row" style="margin-top:8px;flex-wrap:nowrap"><select id="luoSel" style="flex:1"></select><button class="btn s" id="luoSet" title="Luogo di lavoro: cerca, aggiungi, archivio della zona">⚙ Luogo</button></div>
+    <div class="subtabs" id="luoTabs"></div></div>
   <div class="pb" id="dosBody"></div>
+  <div class="pb" id="expBody" style="display:none"></div>
+  <div class="pb" id="fonBody" style="display:none"></div>
 </section>
 
 <section class="page" id="pg-alt">
-  <div class="ph"><h2>Esporta, tracce, impostazioni</h2></div>
+  <div class="ph"><h2>Altro</h2><small>Esporta e importa · Google Drive · impostazioni · app</small></div>
   <div class="pb" id="altBody"></div>
 </section>
 
 <nav id="nav">
-  <button data-p="map" class="on"><i>🗺️</i>Mappa</button>
-  <button data-p="cat"><i>📒</i>Catalogo</button>
-  <button data-p="exp"><i>🔭</i>Esplora</button>
-  <button data-p="dos"><i>📚</i>Dossier</button>
-  <button data-p="alt" id="navAlt"><i>⚙️</i>Altro</button>
+  <button data-p="map" class="on"><i><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4 3 6.5v13.5l6-2.5 6 2.5 6-2.5V4l-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></svg></i>Mappa</button>
+  <button data-p="usc"><i><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="18.5" r="2"/><circle cx="18" cy="5.5" r="2"/><path d="M8 18.5h7.5a3 3 0 0 0 0-6h-7a3 3 0 0 1 0-6H16"/></svg></i>Uscita</button>
+  <button data-p="cat"><i><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 7.5h6M9 11.5h6M9 15.5h3.5"/></svg></i>Catalogo</button>
+  <button data-p="luo"><i><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m2.5 19 6.5-10 4 6 2.5-3.5 6 7.5z"/><circle cx="16.5" cy="6" r="1.8"/></svg></i>Luogo</button>
+  <button data-p="alt" id="navAlt"><i><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg></i>Altro</button>
 </nav>
 
 <div id="modal"><div id="mbox"><div id="mhead"><b id="mtitle"></b><button class="x" id="mclose">✕</button></div><div id="mbody"></div><div id="mfoot"></div></div></div>
@@ -85,6 +92,7 @@
 <script src="data/alberi.js"></script>
 <script src="data/schede_ricerca.js"></script>
 <script src="data/n2000.js"></script>
+<script src="data/wmm.js"></script>
 <script src="js/version.js"></script>
 <script src="js/01-base.js"></script>
 <script src="js/02-mappa.js"></script>
@@ -104,6 +112,11 @@
 <script src="js/17-percorsi.js"></script>
 <script src="js/18-capitoli.js"></script>
 <script src="js/19-novita.js"></script>
+<script src="js/20-interfaccia.js"></script>
+<script src="js/21-gpslogger.js"></script>
+<script src="js/22-astro.js"></script>
+<script src="js/23-campo.js"></script>
+<script src="js/24-soste.js"></script>
 <script src="js/13-avvio.js"></script>
 </body>
 </html>

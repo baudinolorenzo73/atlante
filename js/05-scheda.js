@@ -21,20 +21,23 @@ function renderForm(){
     h+='<div id="fSpInfo" class="mut">'+(draft.sp&&draft.sp.tratti?esc(draft.sp.tratti):'')+'</div>';
     if(draft.cat==='flora'||draft.cat==='albero'||draft.cat==='fungo')h+='<div class="row" style="margin-top:6px"><button class="btn s" id="fPlant">🔍 Identifica con Pl@ntNet (fino a 5 foto)</button></div><div id="fPlantBox"></div>';}
   h+='<label class="l">Titolo</label><input type="text" id="fTitle" value="'+esc(draft.title)+'" placeholder="es. Svassi in parata davanti al canneto">';
-  (EXTRA[draft.cat]||[]).forEach(function(f){var v=draft.x[f.k]==null?'':draft.x[f.k];
-    h+='<label class="l">'+esc(f.l)+'</label>';
-    if(f.t==='select')h+='<select data-x="'+f.k+'"><option value=""></option>'+f.o.map(function(o){return '<option'+(o===v?' selected':'')+'>'+esc(o)+'</option>'}).join('')+'</select>';
-    else h+='<input type="'+(f.t==='number'?'number':'text')+'" inputmode="'+(f.t==='number'?'decimal':'text')+'" data-x="'+f.k+'" value="'+esc(v)+'">';});
-  h+='<label class="l">Dalla ricerca (testi da libri, siti, dispense, con le fonti) – modificabile</label><textarea id="fRic" style="min-height:'+(draft.ric?'160':'60')+'px" placeholder="Informazioni raccolte da fonti esterne, con la fonte">'+esc(draft.ric||'')+'</textarea>';
+  h+='<h3>Foto e audio</h3><div class="row"><button class="btn" id="fCamB">📷 Scatta</button><button class="btn" id="fGalB">🖼️ Galleria</button><button class="btn" id="fRecB">🎙️ Registra</button><button class="btn s" id="fAudB">📁 File audio</button><span id="fRecT" class="mut"></span></div><div class="media" id="fPhotos"></div><div id="fAuds"></div>';
   h+='<label class="l">Descrizione e note (solo testo tuo)</label><textarea id="fNote" placeholder="Cosa vedi, cosa senti, dettagli, comportamento, ipotesi…">'+esc(draft.note)+'</textarea>';
-  if(c.sch){h+='<h3>Scheda sito (modello del corso)</h3>';SCHEDA.forEach(function(s){var v=draft.s[s.k]||'';h+='<label class="l">'+esc(s.l)+'</label>'+(s.ta?'<textarea data-s="'+s.k+'" style="min-height:60px">'+esc(v)+'</textarea>':'<input type="text" data-s="'+s.k+'" value="'+esc(v)+'">')})}
-  h+='<h3>Foto</h3><div class="row"><button class="btn" id="fCamB">📷 Scatta</button><button class="btn" id="fGalB">🖼️ Dalla galleria</button></div><div class="media" id="fPhotos"></div>';
-  h+='<h3>Audio</h3><div class="row"><button class="btn" id="fRecB">🎙️ Registra</button><button class="btn" id="fAudB">📁 File audio</button><span id="fRecT" class="mut"></span></div><div id="fAuds"></div>';
-  h+='<h3>Posizione</h3><div id="fPos" class="card"></div><div class="row"><button class="btn s" id="fGpsB">📡 Aggiorna dal GPS ('+SET.gpsAvg+' s)</button><button class="btn s" id="fPickB">🎯 Scegli sulla mappa</button><button class="btn s" id="fExifB" style="display:none">🖼️ Usa posizione della foto</button><button class="btn s" id="fEleB">⛰️ Quota dal modello del terreno</button></div><div id="fGpsP" class="prog" style="display:none;margin-top:6px"><i></i></div>';
+  var ex=EXTRA[draft.cat]||[];
+  if(ex.length){h+='<details open><summary>Dati di «'+esc(c.n)+'»</summary><div class="dc">';
+    ex.forEach(function(f){var v=draft.x[f.k]==null?'':draft.x[f.k];
+      h+='<label class="l">'+esc(f.l)+'</label>';
+      if(f.t==='select')h+='<select data-x="'+f.k+'"><option value=""></option>'+f.o.map(function(o){return '<option'+(o===v?' selected':'')+'>'+esc(o)+'</option>'}).join('')+'</select>';
+      else h+='<input type="'+(f.t==='number'?'number':'text')+'" inputmode="'+(f.t==='number'?'decimal':'text')+'" data-x="'+f.k+'" value="'+esc(v)+'">'+(f.k==='alt_alb'?'<div class="row" style="margin-top:6px"><button class="btn s" type="button" data-clino="alt_alb">📐 Misura con il telefono</button></div>':'');});
+    h+='</div></details>'}
+  h+='<h3>Posizione</h3><div id="fPos" class="card"></div><div class="row"><button class="btn s" id="fGpsB">📡 Aggiorna dal GPS ('+SET.gpsAvg+' s)</button><button class="btn s" id="fPickB">🎯 Scegli sulla mappa</button><button class="btn s" id="fExifB" style="display:none">🖼️ Usa posizione della foto</button><button class="btn s" id="fEleB">⛰️ Quota dal terreno</button></div><div id="fGpsP" class="prog" style="display:none;margin-top:6px"><i></i></div>';
+  h+='<details><summary>Dalla ricerca'+(draft.ric?' ✓':'')+'</summary><div class="dc"><label class="l">Testi da libri, siti, dispense, con le fonti – modificabile</label><textarea id="fRic" style="min-height:'+(draft.ric?'160':'60')+'px" placeholder="Informazioni raccolte da fonti esterne, con la fonte">'+esc(draft.ric||'')+'</textarea></div></details>';
+  if(c.sch){var sf=SCHEDA.some(function(s){return draft.s[s.k]});h+='<details><summary>Scheda sito (modello del corso)'+(sf?' ✓':'')+'</summary><div class="dc">';SCHEDA.forEach(function(s){var v=draft.s[s.k]||'';h+='<label class="l">'+esc(s.l)+'</label>'+(s.ta?'<textarea data-s="'+s.k+'" style="min-height:60px">'+esc(v)+'</textarea>':'<input type="text" data-s="'+s.k+'" value="'+esc(v)+'">')});h+='</div></details>'}
+  h+='<details><summary>Data, tag, meteo, compilatore</summary><div class="dc">';
   h+='<label class="l">Data e ora</label><input type="datetime-local" id="fWhen" value="'+localInput(draft.when)+'">';
   h+='<label class="l">Tag (separati da virgola)</label><input type="text" id="fTags" value="'+esc((draft.tags||[]).join(', '))+'" placeholder="es. esame GEA, da verificare, foto belle">';
   h+='<label class="l">Meteo (automatico se online, modificabile)</label><input type="text" id="fMeteo" value="'+esc(draft.meteo)+'">';
-  h+='<label class="l">Compilatore</label><input type="text" id="fComp" value="'+esc(draft.comp)+'">';
+  h+='<label class="l">Compilatore</label><input type="text" id="fComp" value="'+esc(draft.comp)+'"></div></details>';
   var foot=[mkBtn(draft.isNew?'Salva punto':'Salva modifiche','f',saveDraft),mkBtn('Annulla','',function(){if(confirm('Uscire senza salvare?'))closeModal()})];
   openModal(draft.isNew?'Nuovo punto':'Modifica punto',h,foot,function(){stopRec(true);freeDraft()});
   bindForm();renderMediaEdit();renderPos();
@@ -48,11 +51,12 @@ function readForm(){
   draft.meteo=g('fMeteo');draft.comp=g('fComp');
   $$('[data-x]',$('#mbody')).forEach(function(e){draft.x[e.getAttribute('data-x')]=e.value});
   $$('[data-s]',$('#mbody')).forEach(function(e){draft.s[e.getAttribute('data-s')]=e.value});
-  $$('[data-cap]',$('#mbody')).forEach(function(e){var m=draft.media.filter(function(x){return x.id===e.getAttribute('data-cap')})[0];if(m)m.cap=e.value});
+  $$('[data-cap]',$('#mbody')).forEach(function(e){var m=byId(draft.media,e.getAttribute('data-cap'));if(m)m.cap=e.value});
   var sp=$('#fSp');if(sp){var v=sp.value.trim();if(!v)draft.sp=null;else if(!draft.sp||v!==spLabel(draft.sp))draft.sp={com:'',sci:v,src:'inserito a mano'}}
 }
 function spLabel(s){return (s.com||'')+(s.sci&&s.com?' – ':'')+(s.sci||'')}
 function bindForm(){
+  $$('[data-clino]').forEach(function(b){b.onclick=function(){CLINO.open({field:b.getAttribute('data-clino')})}});
   $$('#fCats .cat').forEach(function(e){e.onclick=function(){readForm();draft.cat=e.getAttribute('data-c');var keep={};(EXTRA[draft.cat]||[]).forEach(function(f){if(draft.x[f.k]!=null)keep[f.k]=draft.x[f.k]});draft.x=keep;var y=$('#mbody').scrollTop;renderForm();$('#mbody').scrollTop=y}});
   $('#fCamB').onclick=function(){$('#fCam').value='';$('#fCam').click()};
   $('#fGalB').onclick=function(){$('#fGal').value='';$('#fGal').click()};
@@ -131,8 +135,8 @@ function renderMediaEdit(){
   var photos=draft.media.filter(function(m){return m.type==='photo'}),auds=draft.media.filter(function(m){return m.type==='audio'});
   ph.innerHTML=photos.map(function(m){return '<div class="mi"><img data-pm="'+m.id+'" alt=""><button class="del" data-del="'+m.id+'">✕</button><input type="text" data-cap="'+m.id+'" value="'+esc(m.cap||'')+'" placeholder="didascalia"></div>'}).join('');
   au.innerHTML=auds.map(function(m){return '<div class="au"><audio controls data-pm="'+m.id+'"></audio><button class="btn s r" data-del="'+m.id+'">✕</button></div><input type="text" data-cap="'+m.id+'" value="'+esc(m.cap||'')+'" placeholder="descrizione della registrazione (es. canto di raganella)">'}).join('');
-  $$('[data-pm]',$('#mbody')).forEach(function(n){var m=draft.media.filter(function(x){return x.id===n.getAttribute('data-pm')})[0];getBlob(m).then(function(b){if(!b)return;var u=URL.createObjectURL(b);draftURLs.push(u);n.src=u;if(n.tagName==='IMG')n.onclick=function(){view(u)}})});
-  $$('[data-del]',$('#mbody')).forEach(function(b){b.onclick=function(){readForm();var id=b.getAttribute('data-del');var m=draft.media.filter(function(x){return x.id===id})[0];if(m&&!m.blob)draft.removed.push(id);draft.media=draft.media.filter(function(x){return x.id!==id});renderMediaEdit()}});
+  $$('[data-pm]',$('#mbody')).forEach(function(n){var m=byId(draft.media,n.getAttribute('data-pm'));getBlob(m).then(function(b){if(!b)return;var u=URL.createObjectURL(b);draftURLs.push(u);n.src=u;if(n.tagName==='IMG')n.onclick=function(){view(u)}})});
+  $$('[data-del]',$('#mbody')).forEach(function(b){b.onclick=function(){readForm();var id=b.getAttribute('data-del');var m=byId(draft.media,id);if(m&&!m.blob)draft.removed.push(id);draft.media=draft.media.filter(function(x){return x.id!==id});renderMediaEdit()}});
 }
 function compress(file,max){return new Promise(function(res){
   function draw(src,w,h,done){var s=Math.min(1,max/Math.max(w,h));var c=document.createElement('canvas');c.width=Math.round(w*s);c.height=Math.round(h*s);c.getContext('2d').drawImage(src,0,0,c.width,c.height);c.toBlob(function(b){done&&done();res(b||file)},'image/jpeg',0.86)}
@@ -240,16 +244,24 @@ $('#pickOk').onclick=function(){pickEnd(true)};$('#pickNo').onclick=function(){p
 
 /* ---- nuovo punto ---- */
 function newPointMenu(){
-  var h='<p class="mut">Dove si trova il punto?</p>';
-  var foot=[mkBtn('📷 Foto e posizione, poi il resto','f',function(){closeModal();quickCapture()}),mkBtn('📡 Qui, dal GPS','',function(){closeModal();newFromGps()}),mkBtn('🎯 Al centro della mappa','',function(){closeModal();pickStart(function(la,lo){openForm(null,{draft:newDraft(la,lo)})})}),mkBtn('🖼️ Da una foto con GPS','',function(){closeModal();newFromPhoto()})];
-  openModal('Nuovo punto',h+'<p class="mut">Un tocco su <b>+</b> apre subito la fotocamera (foto e posizione, poi il resto). Tenendo premuto <b>+</b> apri questo menu. Puoi anche <b>tenere premuto</b> sulla mappa nel punto esatto.</p>',foot);
+  var O=[['ph','📷','Foto e posizione','Scatta: posizione e ora si salvano subito, il resto lo completi dopo. (Scorciatoia: tieni premuto +)'],
+         ['gps','📍','Qui, dal GPS','Legge la tua posizione per '+SET.gpsAvg+' secondi e apre la scheda'],
+         ['pick','🎯','Scegli sulla mappa','Sposta la mappa sotto il mirino e conferma'],
+         ['exif','🖼','Da una foto della galleria','Usa la posizione GPS salvata nella foto']];
+  var h=O.map(function(o){return '<div class="item big" data-np="'+o[0]+'"><div class="th">'+o[1]+'</div><div class="tx"><b>'+o[2]+'</b><small>'+esc(o[3])+'</small></div><span class="chev">›</span></div>'}).join('')
+   +'<p class="mut" style="margin-top:10px">Puoi anche <b>tenere premuto sulla mappa</b> nel punto esatto.'+(PC.active()?' Il punto entra nel percorso aperto «'+esc(PC.active().name)+'».':'')+'</p>';
+  openModal('Nuovo punto',h,[]);
+  $$('[data-np]').forEach(function(b){b.onclick=function(){var k=b.getAttribute('data-np');closeModal();
+    if(k==='ph')quickCapture();else if(k==='gps')newFromGps();else if(k==='pick')pickStart(function(la,lo){openForm(null,{draft:newDraft(la,lo)})});else newFromPhoto()}});
 }
 function newFromGps(){toast('Leggo il GPS per '+SET.gpsAvg+' secondi…',SET.gpsAvg*1000+1500);getFix(SET.gpsAvg).then(function(f){here={lat:f.lat,lon:f.lon,acc:f.acc,alt:f.alt};var d=newDraft(f.lat,f.lon,{acc:f.acc,gpsN:f.n,alt:f.alt,altSrc:f.alt!=null?'GPS':''});openForm(null,{draft:d})}).catch(function(e){toast('GPS non disponibile ('+e.message+'): scegli il punto sulla mappa',4000);var c=map.getCenter();openForm(null,{draft:newDraft(c.lat,c.lng)})})}
 function newFromPhoto(){var c=map.getCenter();openForm(null,{draft:newDraft(c.lat,c.lng)});setTimeout(function(){$('#fGal').value='';$('#fGal').click()},200)}
 (function(){var fab=$('#fabAdd'),lt=null,long=false;
-  fab.addEventListener('pointerdown',function(){long=false;clearTimeout(lt);lt=setTimeout(function(){long=true;if(navigator.vibrate)navigator.vibrate(30);newPointMenu()},550)});
-  ['pointerup','pointercancel','pointerleave'].forEach(function(ev){fab.addEventListener(ev,function(){clearTimeout(lt)})});
+  // tocco = menu «Nuovo punto»; tenere premuto = foto veloce (parte al rilascio, così il telefono permette di aprire la fotocamera)
+  fab.addEventListener('pointerdown',function(){long=false;clearTimeout(lt);lt=setTimeout(function(){long=true;if(navigator.vibrate)navigator.vibrate(30);fab.classList.add('armed')},500)});
+  fab.addEventListener('pointerup',function(){clearTimeout(lt);fab.classList.remove('armed');if(long)quickCapture()});
+  ['pointercancel','pointerleave'].forEach(function(ev){fab.addEventListener(ev,function(){clearTimeout(lt);fab.classList.remove('armed')})});
   fab.addEventListener('contextmenu',function(e){e.preventDefault()});
-  fab.onclick=function(e){if(long){long=false;return}quickCapture()};})();
+  fab.onclick=function(e){if(long){long=false;return}newPointMenu()};})();
 map.on('contextmenu',function(e){if(picking)return;openForm(null,{draft:newDraft(e.latlng.lat,e.latlng.lng)});demForDraft()});
 map.on('click',function(e){if(picking)return;$('#coord').textContent=e.latlng.lat.toFixed(6)+', '+e.latlng.lng.toFixed(6)});

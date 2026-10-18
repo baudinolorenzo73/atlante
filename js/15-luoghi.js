@@ -42,7 +42,7 @@ PL.apply=function(opt){
 };
 PL.switchTo=function(){if(typeof CAP!=='undefined')CAP.sel=null;return PL._switchTo.apply(null,arguments)};
 PL._switchTo=function(id,view){
-  PL.cur=id;return PL.save().then(function(){return PL.apply({view:view!==false})}).then(function(){markChange();if(curPage==='alt')renderAlt()});
+  PL.cur=id;return PL.save().then(function(){return PL.apply({view:view!==false})}).then(function(){markChange();refreshPage();if(curPage==='luo')renderLuo()});
 };
 PL.add=function(o){
   var dup=PL.list.filter(function(p){return Math.abs(p.lat-o.lat)<0.005&&Math.abs(p.lon-o.lon)<0.005&&p.name===o.name})[0];
@@ -51,7 +51,7 @@ PL.add=function(o){
 };
 PL.askPack=function(){openNear();setTimeout(function(){downloadPack()},150)};
 PL.dossNote=function(){
-  return PL.isLake()?'':'<div class="card" style="border-color:var(--warn)"><b>Luogo di lavoro: '+esc(PL.name())+'</b><div class="mut">Il Dossier, la checklist e le schede della ricerca qui sotto riguardano il <b>Lago Piccolo di Avigliana</b>. Per questo luogo usa Esplora, la ricerca (🔍) e il Catalogo.</div></div>';
+  return PL.isLake()?'':'<div class="card" style="border-color:var(--warn)"><b>Luogo di lavoro: '+esc(PL.name())+'</b><div class="mut">Il capitolo scritto a mano, la checklist e le schede della ricerca qui sotto riguardano il <b>Lago Piccolo di Avigliana</b>. Per questo luogo usa Luogo → Esplora, la ricerca (🔍) e il Catalogo.</div></div>';
 };
 
 /* =================== SCHEDA «LUOGO DI LAVORO» (pagina Altro) =================== */
@@ -73,11 +73,11 @@ PL.bindAlt=function(){
     var p=PL.add({name:n.trim(),lat:+c.lat.toFixed(5),lon:+c.lng.toFixed(5),r:3});
     PL.switchTo(p.id,true).then(function(){go('map');PL.askPack()});
   };
-  if($('#plR'))$('#plR').onclick=function(){var p=PL.active(),v=prompt('Raggio dell\'area in km (da 1 a 10)',p.r);var n=parseFloat(String(v).replace(',','.'));if(!(n>=1&&n<=10))return;p.r=n;PL.save().then(function(){return PL.apply({})}).then(function(){renderAlt();toast('Raggio: '+n+' km (riscarica l\'archivio per coprire la nuova area)',4500)})};
+  if($('#plR'))$('#plR').onclick=function(){var p=PL.active(),v=prompt('Raggio dell\'area in km (da 1 a 10)',p.r);var n=parseFloat(String(v).replace(',','.'));if(!(n>=1&&n<=10))return;p.r=n;PL.save().then(function(){return PL.apply({})}).then(function(){refreshPage();if(curPage==='luo')renderLuo();if($('#modal').classList.contains('on'))openPlace();toast('Raggio: '+n+' km (riscarica l\'archivio per coprire la nuova area)',4500)})};
   if($('#plDel'))$('#plDel').onclick=function(){
     var p=PL.active();if(!confirm('Eliminare il luogo «'+p.name+'» e il suo archivio? I punti, le tracce e il diario NON vengono toccati.'))return;
     tomb(p.id);DB.del('kv',PL.packKey(p.id));PL.list=PL.list.filter(function(x){return x.id!==p.id});PL.cur='lago';
-    PL.save().then(function(){return PL.apply({view:true,zoom:16})}).then(function(){markChange();renderAlt()});
+    PL.save().then(function(){return PL.apply({view:true,zoom:16})}).then(function(){markChange();closeModal();refreshPage();if(curPage==='luo')renderLuo()});
   };
 };
 

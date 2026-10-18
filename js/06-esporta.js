@@ -45,12 +45,11 @@ function toGeoJSON(points,tracks,mediaName){
 function toCSV(points){
   var xk=[];Object.keys(EXTRA).forEach(function(c){EXTRA[c].forEach(function(f){if(xk.indexOf(f.k)<0)xk.push(f.k)})});
   var head=['id','data','categoria','titolo','nome_comune','specie_scientifica','lat','lon','precisione_m','quota_m','note','ricerca','origine_posizione','tag','n_foto','n_audio','meteo','compilatore'].concat(xk).concat(SCHEDA.map(function(s){return s.k}));
-  function q(v){v=v==null?'':String(v);return /[;"\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
-  var rows=[head.join(';')];
+  var rows=[head];
   points.forEach(function(p){var ph=(p.media||[]).filter(function(m){return m.type==='photo'}).length;
     var r=[p.id,fmtDate(p.when),CAT(p.cat).n,p.title,p.sp&&p.sp.com,p.sp&&p.sp.sci,p.lat.toFixed(7).replace('.',','),p.lon.toFixed(7).replace('.',','),p.acc,p.alt,p.note,p.ric||'',p.posSrc||'',(p.tags||[]).join(', '),ph,(p.media||[]).length-ph,p.meteo,p.comp].concat(xk.map(function(k){return p.x&&p.x[k]})).concat(SCHEDA.map(function(s){return p.s&&p.s[s.k]}));
-    rows.push(r.map(q).join(';'))});
-  return '﻿'+rows.join('\r\n');
+    rows.push(r)});
+  return csvText(rows);
 }
 /* ---- report HTML (stampabile / PDF) ---- */
 function reportHTML(points,imgSrc,audSrc,opts){opts=opts||{};
@@ -108,7 +107,7 @@ function unzip(buf){
 function ext(m){var t=(m.mime||'').toLowerCase();if(t.indexOf('jpeg')>=0||t.indexOf('jpg')>=0)return 'jpg';if(t.indexOf('png')>=0)return 'png';if(t.indexOf('webm')>=0)return 'webm';if(t.indexOf('mp4')>=0||t.indexOf('m4a')>=0||t.indexOf('aac')>=0)return 'm4a';if(t.indexOf('ogg')>=0)return 'ogg';if(t.indexOf('mpeg')>=0||t.indexOf('mp3')>=0)return 'mp3';if(t.indexOf('wav')>=0)return 'wav';return 'bin'}
 function mediaName(p,m){var idx=(p.media||[]).indexOf(m)+1;return 'media/'+slug(p.title)+'_'+p.id.slice(-5)+'_'+(m.type==='photo'?'foto':'audio')+idx+'.'+ext(m)}
 function exportZip(o){o=o&&o.pts?o:{};
-  toast(o.perc?'Preparo lo ZIP del percorso…':'Preparo il backup completo…',8000);
+  toast(o.perc?'Preparo lo ZIP del percorso…':o.part?'Preparo lo ZIP…':'Preparo il backup completo…',8000);
   var trks=o.trks||TRACKS,enc=new TextEncoder(),files=[],pts=(o.pts||POINTS).slice().sort(function(a,b){return (a.when||'').localeCompare(b.when||'')}),mjobs=[];
   pts.forEach(function(p){(p.media||[]).forEach(function(m){mjobs.push(DB.get('media',m.id).then(function(r){if(r)return r.blob.arrayBuffer().then(function(ab){files.push({name:mediaName(p,m),data:new Uint8Array(ab)})})}))})});
   return Promise.all(mjobs).then(function(){
@@ -124,14 +123,14 @@ function exportZip(o){o=o&&o.pts?o:{};
     if(FON.lib.length)files.push({name:'bibliografia.txt',data:enc.encode(libText())});
     return (pts.length?XLSX.points(pts,trks,o.perc||null).then(function(x){return x.arrayBuffer()}).then(function(ab){files.push({name:'schede.xlsx',data:new Uint8Array(ab)})}).catch(function(){}):Promise.resolve()).then(function(){
     var z=zipBlob(files);
-    if(!o.perc){SET.lastBackup=Date.now();SET.changes=0;saveSet();updBackupDot()}
-    return shareOrDownload(z,o.name||'atlante_di_campo_'+stamp()+'.zip',o.title||'Backup Atlante di campo').then(function(){toast((o.perc?'ZIP del percorso pronto (':'Backup pronto (')+fmtSize(z.size)+')',4000);if(curPage==='alt')renderAlt()})});
+    if(!o.perc&&!o.part){SET.lastBackup=Date.now();SET.changes=0;saveSet();updBackupDot()}
+    return shareOrDownload(z,o.name||'atlante_di_campo_'+stamp()+'.zip',o.title||'Backup Atlante di campo').then(function(){toast((o.perc||o.part?'ZIP pronto (':'Backup pronto (')+fmtSize(z.size)+')',4000);refreshPage()})});
   }).catch(function(e){alert('Errore durante l\'esportazione: '+e.message)});
 }
-function exportText(kind){
-  var pts=POINTS.slice().sort(function(a,b){return (a.when||'').localeCompare(b.when||'')}),s,t,n;
-  if(kind==='gpx'){s=toGPX(pts,TRACKS);t='application/gpx+xml'}else if(kind==='kml'){s=toKML(pts,TRACKS,null);t='application/vnd.google-earth.kml+xml'}else if(kind==='geojson'){s=toGeoJSON(pts,TRACKS,null);t='application/geo+json'}else{s=toCSV(pts);t='text/csv'}
-  n='atlante_'+stamp()+'.'+kind;shareOrDownload(new Blob([s],{type:t}),n);
+function exportText(kind,pts,trks,name){
+  pts=(pts||POINTS).slice().sort(function(a,b){return (a.when||'').localeCompare(b.when||'')});trks=trks||TRACKS;var s,t,n;
+  if(kind==='gpx'){s=toGPX(pts,trks);t='application/gpx+xml'}else if(kind==='kml'){s=toKML(pts,trks,null);t='application/vnd.google-earth.kml+xml'}else if(kind==='geojson'){s=toGeoJSON(pts,trks,null);t='application/geo+json'}else{s=toCSV(pts);t='text/csv'}
+  n=(name||'atlante_'+stamp())+'.'+kind;shareOrDownload(new Blob([s],{type:t}),n);
 }
 /* ---- importazione ---- */
 function importFile(f){
@@ -144,14 +143,22 @@ function importFile(f){
     else if(nm.endsWith('.kml')||txt.indexOf('<kml')>=0){var k=new DOMParser().parseFromString(txt,'application/xml');$$('Placemark',k).forEach(function(pm){var c=$('Point coordinates',pm);if(!c)return;var a=c.textContent.trim().split(',');pts.push({lat:+a[1],lon:+a[0],ele:a[2],name:($('name',pm)||{}).textContent,desc:(($('description',pm)||{}).textContent||'').replace(/<[^>]+>/g,' ')})})}
     else{var g=JSON.parse(txt);(g.features||[]).forEach(function(ft){if(ft.geometry&&ft.geometry.type==='Point'){var pr=ft.properties||{};pts.push({lat:ft.geometry.coordinates[1],lon:ft.geometry.coordinates[0],ele:ft.geometry.coordinates[2],name:pr.titolo||pr.name||pr.nome,desc:pr.note||pr.description||pr.desc})}})}
     if(!pts.length&&!trks.length)throw new Error('nessun punto né traccia trovati nel file');
-    var now=new Date().toISOString();
-    return Promise.all(pts.filter(function(q){return isFinite(q.lat)&&isFinite(q.lon)}).map(function(q){return DB.put('points',{id:uid(),cat:'altro',title:q.name||'Punto importato',sp:null,x:{},s:{},note:q.desc||'',tags:['importato'],when:q.time||now,lat:q.lat,lon:q.lon,acc:null,alt:q.ele!=null&&q.ele!==''?Math.round(+q.ele):null,altSrc:'file importato',gpsN:0,meteo:'',comp:SET.compilatore,media:[],created:now,updated:now})})).then(function(a){return Promise.all(trks.map(function(t){return DB.put('tracks',t)})).then(function(){if(trks.length)loadTracks();return {np:a.length,nm:0,nt:trks.length,sk:0}})});
+    // v4.2: le tracce e i punti importati entrano nel percorso aperto; niente doppioni se reimporti lo stesso file
+    var now=new Date().toISOString(),pc=PC.newId(),head=txt.slice(0,800),bad=/BasicAirData/i.test(head),glg=bad||/GPSLogger/i.test(head),sk=0,tg=glg?['importato','gpslogger']:['importato'];
+    var seen={};POINTS.forEach(function(p){seen[p.lat.toFixed(6)+','+p.lon.toFixed(6)+','+(p.when||'').slice(0,19)]=1});
+    pts=pts.filter(function(q){if(!isFinite(q.lat)||!isFinite(q.lon))return false;var w=q.time?new Date(q.time).toISOString():'';var k=(+q.lat).toFixed(6)+','+(+q.lon).toFixed(6)+','+w.slice(0,19);if(w&&seen[k]){sk++;return false}seen[k]=1;return true});
+    var jobs=[];trks.forEach(function(t){
+      var old=TRACKS.filter(function(o){return o.start===t.start&&Math.abs((o.pts[0]||[])[0]-t.pts[0][0])<1e-6&&Math.abs((o.pts[0]||[])[1]-t.pts[0][1])<1e-6})[0];
+      if(old){if(t.pts.length>old.pts.length){old.pts=t.pts;old.brk=t.brk;old.end=t.end;old.u=now;jobs.push(DB.put('tracks',old))}else sk++;return}
+      t.perc=pc;t.u=now;if(glg)t.src=bad?'basicairdata':'gpslogger';jobs.push(DB.put('tracks',t))});
+    var nt=jobs.length;
+    return Promise.all(pts.map(function(q){return DB.put('points',{id:uid(),cat:'altro',title:q.name||'Punto importato',sp:null,x:{},s:{},note:q.desc||'',tags:tg.slice(),when:q.time?new Date(q.time).toISOString():now,lat:+q.lat,lon:+q.lon,acc:null,alt:q.ele!=null&&q.ele!==''?Math.round(+q.ele):null,altSrc:'file importato',posSrc:glg?'annotazione '+(bad?'GPS Logger (BasicAirData)':'GPSLogger'):'file importato',gpsN:0,meteo:'',comp:SET.compilatore,media:[],perc:pc,created:now,updated:now})})).then(function(a){return Promise.all(jobs).then(function(){if(a.length||nt)markChange();if(nt)loadTracks();return {np:a.length,nm:0,nt:nt,sk:sk}})});
   });
 }
 /* tracce GPX (per esempio registrate in background con la tua app nativa «Traccia GPS offline») */
 function gpxTracks(x,fname){var out=[];
   $$('trk',x).forEach(function(t){var pts=[],brk=[];
-    $$('trkseg',t).forEach(function(sg,si){if(si>0&&pts.length)brk.push(pts.length);$$('trkpt',sg).forEach(function(q){var e=$('ele',q),tm=$('time',q);pts.push([+q.getAttribute('lat'),+q.getAttribute('lon'),e&&e.textContent!==''?Math.round(+e.textContent*10)/10:null,tm?Date.parse(tm.textContent)||null:null,null])})});
+    $$('trkseg',t).forEach(function(sg,si){if(si>0&&pts.length)brk.push(pts.length);$$('trkpt',sg).forEach(function(q){var e=$('ele',q),tm=$('time',q),hd=$('hdop',q),ac=hd&&+hd.textContent>0?Math.min(50,Math.round(+hd.textContent*5)):null;pts.push([+q.getAttribute('lat'),+q.getAttribute('lon'),e&&e.textContent!==''?Math.round(+e.textContent*10)/10:null,tm?Date.parse(tm.textContent)||null:null,ac])})});
     pts=pts.filter(function(p){return isFinite(p[0])&&isFinite(p[1])});if(pts.length<2)return;
     var t0=pts[0][3]||Date.now();pts.forEach(function(p){if(p[3]==null)p[3]=t0});
     var nm=null;for(var c=t.firstChild;c;c=c.nextSibling)if(c.nodeName==='name'){nm=c.textContent;break}

@@ -117,17 +117,14 @@ CAP.download=function(p,log){
   }).then(function(){
     CAP.busy=false;
     if(!ch.ok.length){log('✗ Nessuna fonte raggiungibile: serve la rete.'+(old?' Il capitolo di prima resta com\'è.':''),'ko');return false}
-    return DB.put('kv',{id:key,v:ch}).then(function(){CAP.have[p.id]=1;log('✓ Capitolo «'+p.name+'» salvato nel telefono: ora funziona anche senza rete.','ok');if(curPage==='dos')renderDossier();return true});
+    return DB.put('kv',{id:key,v:ch}).then(function(){CAP.have[p.id]=1;log('✓ Capitolo «'+p.name+'» salvato nel telefono: ora funziona anche senza rete.','ok');if(curPage==='luo'&&LUO.tab==='cap')renderDossier();return true});
   });
 };
-CAP.ask=function(p){p=p||CAP.place();if(!confirm('Scarico il capitolo del Dossier per «'+p.name+'»?\n\nIntroduzione e voci vicine (Wikipedia), carta d\'identità (Wikidata), clima di 10 anni (Open-Meteo), specie osservate (iNaturalist), aree protette, cime, acque e storia (OpenStreetMap), geologia (Macrostrat).\nCirca 0,5–2 MB di rete; poi resta nel telefono.'))return;
+CAP.ask=function(p){p=p||CAP.place();if(!confirm('Scarico il capitolo del luogo «'+p.name+'»?\n\nIntroduzione e voci vicine (Wikipedia), carta d\'identità (Wikidata), clima di 10 anni (Open-Meteo), specie osservate (iNaturalist), aree protette, cime, acque e storia (OpenStreetMap), geologia (Macrostrat).\nCirca 0,5–2 MB di rete; poi resta nel telefono.'))return;
   var b=$('#capLog');if(b)b.innerHTML='';CAP.download(p)};
 
 /* =================== VISUALIZZAZIONE =================== */
-CAP.head=function(){
-  var cur=CAP.sel||PL.cur,all=PL.all();
-  return '<div class="card"><label class="l" style="margin:0 0 4px">📖 Capitolo</label><select id="capSel">'+all.map(function(p){return '<option value="'+esc(p.id)+'"'+(p.id===cur?' selected':'')+'>'+esc(p.name)+(p.id==='lago'?' (scritto a mano)':CAP.have[p.id]?' ✓':' (da scaricare)')+(p.id===PL.cur?' · luogo attivo':'')+'</option>'}).join('')+'</select></div>';
-};
+CAP.head=function(){return ''};   // il luogo si sceglie in alto nella scheda Luogo (v4.0)
 CAP.bindHead=function(){var s=$('#capSel');if(s)s.onchange=function(){CAP.sel=s.value===PL.cur?null:s.value;renderDossier()}};
 CAP.sciSeen=function(sci){var s=seenSci();return s[String(sci).toLowerCase().split(' ').slice(0,2).join(' ')]};
 CAP.body=function(ch,o){
@@ -166,8 +163,9 @@ CAP.bindBody=function(ch){
 CAP.render=function(){
   var p=CAP.place(),box=$('#dosBody');
   box.innerHTML=CAP.head()+'<div id="capMain"><p class="mut">Carico il capitolo…</p></div>';CAP.bindHead();
+  var main=$('#capMain');
   DB.get('kv',CAP.key(p.id)).then(function(r){
-    var ch=r&&r.v,h='';
+    var ch=r&&r.v,h='';if(!main.isConnected||CAP.place().id!==p.id)return;   // ridisegnata o luogo cambiato nel frattempo
     if(!ch){h='<div class="card"><b>'+esc(p.name)+'</b><div class="mut">Il capitolo di questo luogo non è ancora stato scaricato. Lo creo da fonti libere (Wikipedia, Wikidata, Open-Meteo, iNaturalist, OpenStreetMap, Macrostrat) e lo salvo nel telefono: dopo funziona anche senza rete.</div><div class="row" style="margin-top:8px"><button class="btn f" id="capDl">⬇️ Scarica il capitolo</button></div><div class="log" id="capLog"></div></div>';
       $('#capMain').innerHTML=h;$('#capDl').onclick=function(){CAP.ask(p)};return}
     var mine=POINTS.filter(function(q){return dist(q.lat,q.lon,p.lat,p.lon)<(p.r||3)*1000*1.2}).length;
@@ -182,8 +180,9 @@ CAP.render=function(){
 CAP.lakeExtra=function(){return '<div id="capLake"></div>'};
 CAP.fillLake=function(){
   var box=$('#capLake');if(!box)return;var p=PL.lago;
-  DB.get('kv',CAP.key('lago')).then(function(r){var ch=r&&r.v;
-    if(!ch){box.innerHTML='<div class="card"><b>📥 Dati scaricabili del lago</b><div class="mut">Clima degli ultimi 10 anni, specie osservate su iNaturalist, aree protette, acque e storia da OpenStreetMap, voci Wikipedia vicine, geologia: si scaricano una volta e restano nel telefono.</div><div class="row" style="margin-top:8px"><button class="btn s" id="capDl">⬇️ Scarica</button></div><div class="log" id="capLog"></div></div>';$('#capDl').onclick=function(){CAP.ask(p)};return}
+  DB.get('kv',CAP.key('lago')).then(function(r){var ch=r&&r.v;if(!box.isConnected)return;   // la pagina è stata ridisegnata nel frattempo
+   
+    if(!ch){box.innerHTML='<div class="card"><b>📥 Dati scaricabili del lago</b><div class="mut">Clima degli ultimi 10 anni, specie osservate su iNaturalist, aree protette, acque e storia da OpenStreetMap, voci Wikipedia vicine, geologia: si scaricano una volta e restano nel telefono.</div><div class="row" style="margin-top:8px"><button class="btn s" id="capDl">⬇️ Scarica</button></div><div class="log" id="capLog"></div></div>';box.querySelector('#capDl').onclick=function(){CAP.ask(p)};return}
     box.innerHTML='<h3>Dati scaricati del lago</h3><div class="card"><div class="mut">Scaricati il '+fmtDate(ch.when)+'</div><div class="row" style="margin-top:6px"><button class="btn s" id="capUpd">🔄 Aggiorna</button><button class="btn s" id="capPrint">🖨 Stampa</button></div><div class="log" id="capLog"></div></div>'+CAP.body(ch,{noIntro:true});
     CAP.bindBody(ch);
   });
@@ -191,11 +190,11 @@ CAP.fillLake=function(){
 CAP.print=function(ch){
   var css='body{font:13px/1.45 Georgia,serif;color:#111;margin:18px}h1{font-size:22px;margin:0 0 4px}h3{margin:12px 0 4px}table{border-collapse:collapse;margin:6px 0}td{border:1px solid #bbb;padding:3px 6px;vertical-align:top}details{margin:8px 0}summary{font-weight:bold;font-size:16px;border-bottom:2px solid #333;list-style:none}.card{border:1px solid #ddd;padding:6px;margin:4px 0;page-break-inside:avoid}.mut{color:#555}button,input{display:none}a{color:#0b5394}';
   var body=CAP.body(ch).replace(/<details[^>]*>/g,'<details open>');
-  var h='<!doctype html><html lang="it"><head><meta charset="utf-8"><title>'+esc(ch.place.name)+' – capitolo</title><style>'+css+'</style></head><body><h1>'+esc(ch.place.name)+'</h1><p class="mut">Capitolo del Dossier · scaricato il '+fmtDate(ch.when)+' · '+esc(SET.compilatore||'')+' · '+BRAND+'</p>'+body+'</body></html>';
+  var h='<!doctype html><html lang="it"><head><meta charset="utf-8"><title>'+esc(ch.place.name)+' – capitolo</title><style>'+css+'</style></head><body><h1>'+esc(ch.place.name)+'</h1><p class="mut">Capitolo del luogo · scaricato il '+fmtDate(ch.when)+' · '+esc(SET.compilatore||'')+' · '+BRAND+'</p>'+body+'</body></html>';
   var w=window.open('','_blank');if(w){w.document.open();w.document.write(h+'<script>setTimeout(function(){print()},500)<\/script>');w.document.close()}else shareOrDownload(new Blob([h],{type:'text/html'}),'capitolo_'+slug(ch.place.name)+'.html');
 };
 // la pagina Dossier sceglie il capitolo: lago (scritto a mano) o automatico
 function renderDossier(){
-  var p=CAP.place();if($('#dosT'))$('#dosT').textContent='Dossier · '+p.name;if($('#dosS'))$('#dosS').textContent=p.id==='lago'?'Capitolo scritto a mano · ricerca con fonti · checklist':'Capitolo scaricato da fonti libere · funziona anche senza rete';
+  var p=CAP.place();if($('#dosT'))$('#dosT').textContent=p.name;if($('#dosS'))$('#dosS').textContent=p.id==='lago'?'Capitolo scritto a mano · ricerca con fonti · checklist':'Capitolo scaricato da fonti libere · funziona anche senza rete';
   if(p.id==='lago'){renderLakeDossier();CAP.fillLake();}else CAP.render();
 }
