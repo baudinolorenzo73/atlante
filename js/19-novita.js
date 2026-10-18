@@ -5,6 +5,7 @@
    by Lollo ®2026 · i moduli si caricano nell'ordine dei numeri (vedi index.html) */
 'use strict';
 var NOVITA=[
+ ['4.10','<b>Riconosci con Pl@ntNet</b> torna dentro <b>Foto e audio</b>: un tocco e manda in automatico le <b>prime 5 foto</b>, senza chiederti quali. Il nome della pianta è scritto <b>in latino e poi in italiano</b> (es. <i>Alnus glutinosa</i> – ontano nero); toccandolo si compila anche la specie.'],
  ['4.9','<b>Nuovo punto</b>: <b>Foto e audio</b> ora stanno in cima alla scheda, prima della categoria, così scatti subito e scegli il resto dopo.'],
  ['4.8','<b>Mappe offline: copia di sicurezza in un file</b>. In ☰ Livelli → ⬇ Mappe offline, ogni area ha il pulsante <b>Esporta</b>: crea un file ZIP nella cartella Download del telefono (lo vedi nel gestore file e lo copi sul PC). Se Chrome svuota la cache o cambi telefono, <b>Importa area da file…</b> rimette tutto a posto con un tocco; il file viene controllato e quello danneggiato o sospetto viene scartato.'],
  ['4.7','<b>Mappe offline a zoom massimo</b>: inquadra sulla mappa una zona piccola, poi <b>☰ Livelli → ⬇ Mappe offline</b> (o Altro → App). Scegli le mappe (satellite, carte della Regione, OpenTopoMap, OpenStreetMap, anche i livelli sovrapposti) e lo zoom fino al massimo di ciascuna: vedi prima quante tessere e quanti MB, poi confermi. Le aree scaricate restano nel telefono, non spariscono con gli aggiornamenti e nemmeno con «Svuota mappe salvate»; ognuna si può rivedere (Vai) o eliminare. Se un server non permette il download di un livello, l\'app lo salta e te lo dice.'],

@@ -16,11 +16,11 @@ function renderForm(){
   var c=CAT(draft.cat),h='';
   if(draft.qc){var ph=draft.media.filter(function(m){return m.type==='photo'&&m.blob})[0],u='';if(ph){u=URL.createObjectURL(ph.blob);draftURLs.push(u)}
     h+='<div class="card row" style="align-items:center">'+(u?'<img src="'+u+'" alt="" style="width:64px;height:64px;object-fit:cover;border-radius:10px">':'')+'<div style="flex:1"><b>✓ Foto e posizione salvate nella bozza</b><div class="mut">'+(draft.acc?'📍 GPS ±'+draft.acc+' m':'📍 '+esc(draft.posSrc||''))+' · ora scegli la categoria e completa</div></div></div>'}
-  h+='<h3>Foto e audio</h3><div class="row"><button class="btn" id="fCamB">📷 Scatta</button><button class="btn" id="fGalB">🖼️ Galleria</button><button class="btn" id="fRecB">🎙️ Registra</button><button class="btn s" id="fAudB">📁 File audio</button><span id="fRecT" class="mut"></span></div><div class="media" id="fPhotos"></div><div id="fAuds"></div>';
+  h+='<h3>Foto e audio</h3><div class="row"><button class="btn" id="fCamB">📷 Scatta</button><button class="btn" id="fGalB">🖼️ Galleria</button><button class="btn" id="fRecB">🎙️ Registra</button><button class="btn s" id="fAudB">📁 File audio</button><span id="fRecT" class="mut"></span></div><div class="media" id="fPhotos"></div><div id="fAuds"></div><div class="row" style="margin-top:6px"><button class="btn s" id="fPlant">🌿 Riconosci con Pl@ntNet (prime 5 foto)</button></div><div id="fPlantBox"></div>';
   h+='<label class="l">Categoria</label><div class="cats" id="fCats">'+catSel()+'</div>';
-  if(c.sp){h+='<label class="l">Specie (nome italiano o scientifico)</label><input type="text" id="fSp" autocomplete="off" value="'+esc(draft.sp?((draft.sp.com||'')+(draft.sp.sci&&draft.sp.com?' – ':'')+(draft.sp.sci||'')):'')+'" placeholder="es. svasso maggiore, Alnus glutinosa…"><div id="fSpSug"></div>';
+  if(c.sp){h+='<label class="l">Specie (nome italiano o scientifico)</label><input type="text" id="fSp" autocomplete="off" value="'+esc(draft.sp?spLabel(draft.sp):'')+'" placeholder="es. svasso maggiore, Alnus glutinosa…"><div id="fSpSug"></div>';
     h+='<div id="fSpInfo" class="mut">'+(draft.sp&&draft.sp.tratti?esc(draft.sp.tratti):'')+'</div>';
-    if(draft.cat==='flora'||draft.cat==='albero'||draft.cat==='fungo')h+='<div class="row" style="margin-top:6px"><button class="btn s" id="fPlant">🔍 Identifica con Pl@ntNet (fino a 5 foto)</button></div><div id="fPlantBox"></div>';}
+}
   h+='<label class="l">Titolo</label><input type="text" id="fTitle" value="'+esc(draft.title)+'" placeholder="es. Svassi in parata davanti al canneto">';
   h+='<label class="l">Descrizione e note (solo testo tuo)</label><textarea id="fNote" placeholder="Cosa vedi, cosa senti, dettagli, comportamento, ipotesi…">'+esc(draft.note)+'</textarea>';
   var ex=EXTRA[draft.cat]||[];
@@ -54,7 +54,7 @@ function readForm(){
   $$('[data-cap]',$('#mbody')).forEach(function(e){var m=byId(draft.media,e.getAttribute('data-cap'));if(m)m.cap=e.value});
   var sp=$('#fSp');if(sp){var v=sp.value.trim();if(!v)draft.sp=null;else if(!draft.sp||v!==spLabel(draft.sp))draft.sp={com:'',sci:v,src:'inserito a mano'}}
 }
-function spLabel(s){return (s.com||'')+(s.sci&&s.com?' – ':'')+(s.sci||'')}
+function spLabel(s){return (s.sci||'')+(s.sci&&s.com?' – ':'')+(s.com||'')}
 function bindForm(){
   $$('[data-clino]').forEach(function(b){b.onclick=function(){CLINO.open({field:b.getAttribute('data-clino')})}});
   $$('#fCats .cat').forEach(function(e){e.onclick=function(){readForm();draft.cat=e.getAttribute('data-c');var keep={};(EXTRA[draft.cat]||[]).forEach(function(f){if(draft.x[f.k]!=null)keep[f.k]=draft.x[f.k]});draft.x=keep;var y=$('#mbody').scrollTop;renderForm();$('#mbody').scrollTop=y}});
@@ -100,34 +100,40 @@ function spSuggest(q){
     paint((j.results||[]).map(function(t){return {com:t.preferred_common_name||'',sci:t.name,src:'iNaturalist · '+(t.rank||''),key:'inat:'+t.id,img:t.default_photo&&t.default_photo.square_url}}));
   }).catch(function(){});
 }
-/* ---- Pl@ntNet: fino a 5 foto della stessa pianta, ognuna con il suo organo ---- */
+/* ---- Pl@ntNet: manda in automatico le prime 5 foto; nome in latino e poi in italiano ---- */
 var PN_ORG=[['auto','automatico'],['leaf','foglia'],['flower','fiore'],['fruit','frutto'],['bark','corteccia'],['habit','pianta intera']];
 function plantnetId(){
   readForm();
   if(!SET.plantnet){alert('Serve una chiave Pl@ntNet gratuita.\n\n1) Vai su my.plantnet.org e crea un account.\n2) Nella sezione "Your API key" copia la chiave.\n3) In questa app: Altro → Riconoscimento piante (Pl@ntNet) → incolla la chiave e tocca «Verifica chiave».');return}
   var phs=draft.media.filter(function(m){return m.type==='photo'});if(!phs.length)return toast('Aggiungi prima una o più foto della pianta');
-  if(phs.length===1)return plantnetSend([{m:phs[0],o:'auto'}]);
-  var box=$('#fPlantBox');
-  box.innerHTML='<div class="card"><b>Quali foto mando a Pl@ntNet?</b><div class="mut">Massimo 5, della stessa pianta. Più organi diversi (foglia, fiore, frutto, corteccia) = riconoscimento più sicuro.</div><div id="pnL"></div><div class="row" style="margin-top:8px"><button class="btn s f" id="pnGo">🔍 Identifica</button><button class="btn s" id="pnNo">Annulla</button><span class="mut" id="pnN"></span></div></div>';
-  var L2=$('#pnL');
-  phs.forEach(function(m,i){var r=el('<div class="row pnr" style="margin-top:6px"><input type="checkbox" '+(i<5?'checked':'')+' data-pn="'+i+'"><img alt="" style="width:56px;height:56px;object-fit:cover;border-radius:8px;background:#000"><select data-po="'+i+'" style="flex:1;width:auto">'+PN_ORG.map(function(o){return '<option value="'+o[0]+'">'+o[1]+'</option>'}).join('')+'</select></div>');L2.appendChild(r);
-    getBlob(m).then(function(b){if(!b)return;var u=URL.createObjectURL(b);draftURLs.push(u);$('img',r).src=u})});
-  function cnt(){var n=$$('[data-pn]',L2).filter(function(c){return c.checked}).length;$('#pnN').textContent=n+' foto scelte'+(n>5?' (massimo 5!)':'');$('#pnGo').disabled=!n||n>5}
-  $$('[data-pn]',L2).forEach(function(c){c.onchange=cnt});cnt();
-  $('#pnNo').onclick=function(){box.innerHTML=''};
-  $('#pnGo').onclick=function(){var sel=[];$$('[data-pn]',L2).forEach(function(c){if(c.checked){var i=+c.getAttribute('data-pn');sel.push({m:phs[i],o:$('[data-po="'+i+'"]',L2).value})}});box.innerHTML='';plantnetSend(sel)};
+  plantnetSend(phs.slice(0,5).map(function(m){return {m:m,o:'auto'}}));
+}
+/* nome comune italiano: prima iNaturalist (locale it), se manca quello che dà Pl@ntNet */
+function nomeItaliano(sci,fallback){
+  return fetchJSON('https://api.inaturalist.org/v1/taxa/autocomplete?q='+encodeURIComponent(sci)+'&locale=it&per_page=5',null,8000).then(function(j){
+    var t=(j.results||[]).filter(function(x){return (x.name||'').toLowerCase()===sci.toLowerCase()})[0];
+    return (t&&t.preferred_common_name)||fallback||''
+  }).catch(function(){return fallback||''});
 }
 function plantnetSend(sel){
   sel=sel.slice(0,5);toast('Invio '+sel.length+' foto a Pl@ntNet…',8000);
+  var btn=$('#fPlant');if(btn)btn.disabled=true;
+  function fine(){var b=$('#fPlant');if(b)b.disabled=false}
   Promise.all(sel.map(function(s){return getBlob(s.m)})).then(function(bl){
     var fd=new FormData();bl.forEach(function(b,i){if(b){fd.append('images',b,'foto'+(i+1)+'.jpg');fd.append('organs',sel[i].o)}});
     return fetch('https://my-api.plantnet.org/v2/identify/all?include-related-images=false&no-reject=false&lang=it&api-key='+encodeURIComponent(SET.plantnet),{method:'POST',body:fd})
   }).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status+(r.status===401?' (chiave non valida)':r.status===404?' (specie non trovata)':r.status===429?' (troppe richieste oggi)':''));return r.json()}).then(function(j){
-    var res=(j.results||[]).slice(0,6);if(!res.length)return toast('Nessuna specie riconosciuta');
-    var used=sel.map(function(s){return (PN_ORG.filter(function(o){return o[0]===s.o})[0]||[,''])[1]}).join(', ');
-    var box=$('#fSpSug');box.innerHTML='<div class="mut" style="margin:6px 0">Pl@ntNet su '+sel.length+' foto ('+esc(used)+')'+(j.remainingIdentificationRequests!=null?' · richieste rimaste oggi: '+j.remainingIdentificationRequests:'')+'</div><div class="sug">'+res.map(function(r,i){return '<div data-i="'+i+'"><span><b>'+esc((r.species.commonNames||[])[0]||r.species.scientificNameWithoutAuthor)+'</b> <i>'+esc(r.species.scientificNameWithoutAuthor)+'</i><br><small>Pl@ntNet · probabilità '+Math.round(r.score*100)+'%'+(r.species.family&&r.species.family.scientificNameWithoutAuthor?' · '+esc(r.species.family.scientificNameWithoutAuthor):'')+'</small></span></div>'}).join('')+'</div>';
-    $$('.sug div',box).forEach(function(d){d.onclick=function(){var r=res[+d.getAttribute('data-i')];draft.sp={com:(r.species.commonNames||[])[0]||'',sci:r.species.scientificNameWithoutAuthor,src:'Pl@ntNet '+Math.round(r.score*100)+'% su '+sel.length+' foto'};$('#fSp').value=spLabel(draft.sp);box.innerHTML='';if(!$('#fTitle').value)$('#fTitle').value=draft.sp.com||draft.sp.sci}});
-  }).catch(function(e){toast('Pl@ntNet: '+e.message,5000)});
+    var res=(j.results||[]).slice(0,6);if(!res.length){fine();return toast('Nessuna specie riconosciuta')}
+    return Promise.all(res.map(function(r){var sci=r.species.scientificNameWithoutAuthor;return nomeItaliano(sci,(r.species.commonNames||[])[0]).then(function(com){return {sci:sci,com:com,score:r.score,fam:r.species.family&&r.species.family.scientificNameWithoutAuthor||''}})})).then(function(list){
+      fine();var box=$('#fPlantBox');if(!box)return;
+      box.innerHTML='<div class="mut" style="margin:6px 0">Pl@ntNet su '+sel.length+' foto'+(j.remainingIdentificationRequests!=null?' · richieste rimaste oggi: '+j.remainingIdentificationRequests:'')+'. Tocca il nome giusto.</div><div class="sug">'+list.map(function(r,i){return '<div data-i="'+i+'"><span><b><i>'+esc(r.sci)+'</i></b>'+(r.com?' – '+esc(r.com):'')+'<br><small>Pl@ntNet · probabilità '+Math.round(r.score*100)+'%'+(r.fam?' · '+esc(r.fam):'')+'</small></span></div>'}).join('')+'</div>';
+      $$('.sug div',box).forEach(function(d){d.onclick=function(){var r=list[+d.getAttribute('data-i')];readForm();
+        draft.sp={com:r.com,sci:r.sci,src:'Pl@ntNet '+Math.round(r.score*100)+'% su '+sel.length+' foto'};
+        if(['flora','albero','fungo'].indexOf(draft.cat)<0)draft.cat='flora';
+        if(!draft.title)draft.title=spLabel(draft.sp);
+        var y=$('#mbody').scrollTop;renderForm();$('#mbody').scrollTop=y;toast('✓ '+spLabel(draft.sp))}});
+    });
+  }).catch(function(e){fine();toast('Pl@ntNet: '+e.message,5000)});
 }
 function getBlob(m){return m.blob?Promise.resolve(m.blob):DB.get('media',m.id).then(function(r){return r&&r.blob})}
 function renderMediaEdit(){
