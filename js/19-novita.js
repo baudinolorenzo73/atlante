@@ -5,6 +5,7 @@
    by Lollo ®2026 · i moduli si caricano nell'ordine dei numeri (vedi index.html) */
 'use strict';
 var NOVITA=[
+ ['4.11','<b>Cerca informazioni</b>: dopo che Pl@ntNet ha riconosciuto la pianta, l\'app cerca in automatico su <b>Wikipedia</b> (descrizione, habitat, usi…) e scrive tutto in <b>Dalla ricerca</b>, con il link alla voce e un collegamento ad <b>Acta Plantarum</b>. Lo stesso pulsante <b>📖 Cerca informazioni</b> funziona per animali, rocce (con collegamento a Mindat) e luoghi di <b>Storia e arte</b>, usando Specie o Titolo. Testo e link si salvano con il punto.'],
  ['4.10','<b>Riconosci con Pl@ntNet</b> torna dentro <b>Foto e audio</b>: un tocco e manda in automatico le <b>prime 5 foto</b>, senza chiederti quali. Il nome della pianta è scritto <b>in latino e poi in italiano</b> (es. <i>Alnus glutinosa</i> – ontano nero); toccandolo si compila anche la specie.'],
  ['4.9','<b>Nuovo punto</b>: <b>Foto e audio</b> ora stanno in cima alla scheda, prima della categoria, così scatti subito e scegli il resto dopo.'],
  ['4.8','<b>Mappe offline: copia di sicurezza in un file</b>. In ☰ Livelli → ⬇ Mappe offline, ogni area ha il pulsante <b>Esporta</b>: crea un file ZIP nella cartella Download del telefono (lo vedi nel gestore file e lo copi sul PC). Se Chrome svuota la cache o cambi telefono, <b>Importa area da file…</b> rimette tutto a posto con un tocco; il file viene controllato e quello danneggiato o sospetto viene scartato.'],
