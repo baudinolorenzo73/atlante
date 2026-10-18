@@ -16,12 +16,12 @@ function renderForm(){
   var c=CAT(draft.cat),h='';
   if(draft.qc){var ph=draft.media.filter(function(m){return m.type==='photo'&&m.blob})[0],u='';if(ph){u=URL.createObjectURL(ph.blob);draftURLs.push(u)}
     h+='<div class="card row" style="align-items:center">'+(u?'<img src="'+u+'" alt="" style="width:64px;height:64px;object-fit:cover;border-radius:10px">':'')+'<div style="flex:1"><b>✓ Foto e posizione salvate nella bozza</b><div class="mut">'+(draft.acc?'📍 GPS ±'+draft.acc+' m':'📍 '+esc(draft.posSrc||''))+' · ora scegli la categoria e completa</div></div></div>'}
+  h+='<h3>Foto e audio</h3><div class="row"><button class="btn" id="fCamB">📷 Scatta</button><button class="btn" id="fGalB">🖼️ Galleria</button><button class="btn" id="fRecB">🎙️ Registra</button><button class="btn s" id="fAudB">📁 File audio</button><span id="fRecT" class="mut"></span></div><div class="media" id="fPhotos"></div><div id="fAuds"></div>';
   h+='<label class="l">Categoria</label><div class="cats" id="fCats">'+catSel()+'</div>';
   if(c.sp){h+='<label class="l">Specie (nome italiano o scientifico)</label><input type="text" id="fSp" autocomplete="off" value="'+esc(draft.sp?((draft.sp.com||'')+(draft.sp.sci&&draft.sp.com?' – ':'')+(draft.sp.sci||'')):'')+'" placeholder="es. svasso maggiore, Alnus glutinosa…"><div id="fSpSug"></div>';
     h+='<div id="fSpInfo" class="mut">'+(draft.sp&&draft.sp.tratti?esc(draft.sp.tratti):'')+'</div>';
     if(draft.cat==='flora'||draft.cat==='albero'||draft.cat==='fungo')h+='<div class="row" style="margin-top:6px"><button class="btn s" id="fPlant">🔍 Identifica con Pl@ntNet (fino a 5 foto)</button></div><div id="fPlantBox"></div>';}
   h+='<label class="l">Titolo</label><input type="text" id="fTitle" value="'+esc(draft.title)+'" placeholder="es. Svassi in parata davanti al canneto">';
-  h+='<h3>Foto e audio</h3><div class="row"><button class="btn" id="fCamB">📷 Scatta</button><button class="btn" id="fGalB">🖼️ Galleria</button><button class="btn" id="fRecB">🎙️ Registra</button><button class="btn s" id="fAudB">📁 File audio</button><span id="fRecT" class="mut"></span></div><div class="media" id="fPhotos"></div><div id="fAuds"></div>';
   h+='<label class="l">Descrizione e note (solo testo tuo)</label><textarea id="fNote" placeholder="Cosa vedi, cosa senti, dettagli, comportamento, ipotesi…">'+esc(draft.note)+'</textarea>';
   var ex=EXTRA[draft.cat]||[];
   if(ex.length){h+='<details open><summary>Dati di «'+esc(c.n)+'»</summary><div class="dc">';
