@@ -3,6 +3,7 @@
 'use strict';
 /* =================== AGGIORNA E INSTALLA TUTTO =================== */
 var TILE_CACHE='atl-tiles',SHELL_CACHE='atl-shell-'+BUILD;
+function countCache(name){return window.caches?caches.has(name).then(function(h){return h?caches.open(name).then(function(c){return c.keys()}).then(function(k){return k.length}):0}):Promise.resolve(0)}
 function isModular(){return !!document.querySelector('script[src$="version.js"]')}
 var OFFZ0=12,OFFZ=17,LAKE_BB=[45.0457,7.3767,45.0677,7.4077]; // sud, ovest, nord, est
 var deferredInstall=null,inst={busy:false,abort:{v:false}};
@@ -26,8 +27,8 @@ function ilog(t,cls){var l=$('#instLog');if(!l)return;var d=document.createEleme
 function ibar(p){var b=$('#instBar');if(!b)return;b.style.display=p==null?'none':'block';if(p!=null)b.firstChild.style.width=Math.round(Math.min(1,p)*100)+'%'}
 function renderAppSt(){
   var e=$('#appSt');if(!e)return;
-  Promise.all([(navigator.serviceWorker&&isWeb())?navigator.serviceWorker.getRegistration():null,window.caches?caches.open(TILE_CACHE).then(function(c){return c.keys()}).then(function(k){return k.length}):0]).then(function(r){
-    e.innerHTML='Versione <b>'+VERSION+'</b> · build '+BUILD+'<br>'+(isStandalone()?'✓ aperta come app installata':'aperta nel browser')+'<br>'+(r[0]?'✓ uso senza rete attivo':'uso senza rete non attivo')+' · '+r[1]+' tessere di mappa salvate'
+  Promise.all([(navigator.serviceWorker&&isWeb())?navigator.serviceWorker.getRegistration():null,countCache(TILE_CACHE),countCache(AREE_CACHE)]).then(function(r){
+    e.innerHTML='Versione <b>'+VERSION+'</b> · build '+BUILD+'<br>'+(isStandalone()?'✓ aperta come app installata':'aperta nel browser')+'<br>'+(r[0]?'✓ uso senza rete attivo':'uso senza rete non attivo')+' · '+r[1]+' tessere di mappa salvate'+(r[2]?' · '+r[2]+' tessere delle aree offline (Livelli → Mappe offline)':'')
   }).catch(function(){e.textContent='Versione '+VERSION+' · build '+BUILD});
 }
 /* tessere da scaricare: si usano gli stessi indirizzi che userebbe Leaflet, così la cache le ritrova */
@@ -107,6 +108,6 @@ function doUpdate(){
 }
 function clearTiles(){
   if(!window.caches)return;
-  if(!confirm('Cancellare le mappe salvate per l\'uso senza rete? I tuoi punti non vengono toccati.'))return;
+  if(!confirm('Cancellare le mappe salvate per l\'uso senza rete? I tuoi punti non vengono toccati e le aree scaricate con «Mappe offline» restano (si eliminano una per una da lì).'))return;
   caches.delete(TILE_CACHE).then(function(){toast('Mappe salvate cancellate');renderAppSt()});
 }

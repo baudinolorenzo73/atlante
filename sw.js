@@ -1,11 +1,12 @@
 /* Atlante di campo - service worker (uso senza rete). by Lollo ®2026
    - file dell'app: prima la rete (gli aggiornamenti arrivano subito); se la rete manca o è lenta (oltre 3,5 s) usa la copia salvata
-   - tessere delle mappe: prima la copia salvata, poi la rete (e le tessere viste restano salvate)
+   - tessere delle mappe: prima le aree scaricate di proposito («atl-aree», v4.7: mai cancellate né svuotate da sole),
+     poi la copia salvata, poi la rete (e le tessere viste restano salvate, fino a 6000)
    L'elenco dei file e il numero di versione arrivano da js/version.js (lo rigenera tools/build.py). */
 try{importScripts('js/version.js')}catch(e){}
 var B=(typeof BUILD!=='undefined')?BUILD:'single';
 var LIST=(typeof ASSETS!=='undefined')?ASSETS:['./'];
-var SHELL='atl-shell-'+B,TILES='atl-tiles',MAXT=6000,SLOW=3500;
+var SHELL='atl-shell-'+B,TILES='atl-tiles',AREE='atl-aree',MAXT=6000,SLOW=3500;
 
 self.addEventListener('install',function(e){
   e.waitUntil(caches.open(SHELL).then(function(c){return c.addAll(LIST)}).catch(function(){}).then(function(){return self.skipWaiting()}));
@@ -47,13 +48,17 @@ self.addEventListener('fetch',function(e){
   var u=new URL(r.url);
   if(u.origin===self.location.origin){e.respondWith(netFirst(r));return}
   if(r.destination==='image'){
-    e.respondWith(caches.open(TILES).then(function(ca){
-      return ca.match(r.url,{ignoreVary:true}).then(function(m){
-        if(m)return m;
-        return fetch(r.url,{mode:'cors',credentials:'omit'}).then(function(res){
-          if(res.ok){ca.put(r.url,res.clone()).then(function(){if(Math.random()<0.02)trim(ca)})}
-          return res;
-        }).catch(function(){return fetch(r)});
+    // 1) aree scaricate di proposito (cache che esiste solo se ne hai scaricata una; qui non si scrive e non si pota mai)
+    e.respondWith(caches.match(r.url,{cacheName:AREE,ignoreVary:true}).then(function(hit){
+      if(hit)return hit;
+      return caches.open(TILES).then(function(ca){
+        return ca.match(r.url,{ignoreVary:true}).then(function(m){
+          if(m)return m;
+          return fetch(r.url,{mode:'cors',credentials:'omit'}).then(function(res){
+            if(res.ok){ca.put(r.url,res.clone()).then(function(){if(Math.random()<0.02)trim(ca)})}
+            return res;
+          }).catch(function(){return fetch(r)});
+        });
       });
     }));
   }
