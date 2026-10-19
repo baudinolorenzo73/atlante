@@ -62,6 +62,7 @@ function renderAlt(){
     +'<label class="l">Chiave Pl@ntNet</label><input type="'+(SET.plantnet?'text':'password')+'" id="sPn" value="'+esc(pnStars())+'" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="incolla qui la chiave">'
     +'<div class="mut" id="pnSt" style="margin-top:6px">'+(SET.plantnet?'Chiave salvata. Per cambiarla, tocca il campo e incolla la nuova.':'Nessuna chiave salvata.')+'</div>'
     +'<div class="row" style="margin-top:8px"><button class="btn f" id="bPnV">🔎 Verifica chiave</button><button class="btn" id="bPnS">Salva chiave</button></div></div>');
+  h+=altSec('ai','✨ Assistente AI (Gemini e altri)',AI.altBody());
   h+=altSec('app','📲 App: aggiornamento e installazione','<div class="card"><div id="appSt" class="mut">…</div><div class="row" style="margin-top:10px"><button class="btn f" id="bUpd">🔄 Aggiorna</button><button class="btn" id="bInst">⬇️ Installa tutto</button></div><div class="bar" id="instBar" style="display:none"><i></i></div><div class="log" id="instLog"></div><div class="mut" style="margin-top:8px"><b>Aggiorna</b>: cerca online una versione più recente e la carica. Punti, foto e audio restano dove sono.<br><b>Installa tutto</b>: aggiunge l\'icona alla schermata Home, salva l\'app nel telefono e scarica le mappe dell\'area del luogo per vederle anche senza rete.</div><div class="row" style="margin-top:8px"><button class="btn s r" id="bClrT">Svuota mappe salvate</button></div></div>');
   h+=altSec('mem','💾 Memoria','<div class="card" id="memBox"><span class="mut">calcolo…</span></div>');
   h+='<p class="mut">Atlante di campo v'+VERSION+' · '+BRAND+' · <a href="#" id="novAll">🆕 Novità</a></p>';
@@ -74,6 +75,7 @@ function renderAlt(){
   if($('#sTheme'))$('#sTheme').onchange=function(){SET.theme=this.value;applyTheme();saveSet()};
   $('#sPn').onfocus=function(){if(/^\*+$/.test(this.value))this.select()};
   $('#sPn').oninput=function(){this.type=(!this.value||/^\*+$/.test(this.value))?'text':'password'};
+  AI.bindAlt();
   $('#bPnV').onclick=pnVerify;
   $('#bPnS').onclick=function(){var k=pnVal();SET.plantnet=k;saveSet().then(function(){$('#sPn').type=k?'text':'password';$('#sPn').value=pnStars();$('#pnSt').textContent=k?'Chiave salvata (non ancora verificata: tocca «Verifica chiave»).':'Chiave rimossa.'})};
   $('#bSet').onclick=function(){SET.compilatore=$('#sComp').value.trim();SET.gpsAvg=+$('#sGps').value;SET.photoMax=+$('#sPh').value;SET.wikiLang=$('#sWl').value;if($('#sTheme')){SET.theme=$('#sTheme').value;applyTheme()}saveSet().then(function(){toast('Impostazioni salvate')})};

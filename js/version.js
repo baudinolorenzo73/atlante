@@ -1,6 +1,6 @@
 /* Generato da tools/build.py: non modificare a mano (tranne VERSION, se vuoi). */
-var VERSION='4.6';
-var BUILD='8ddf2649';
+var VERSION='5.0';
+var BUILD='4d9a54c7';
 var ASSETS=[
   './',
   'index.html',
@@ -38,6 +38,9 @@ var ASSETS=[
   'js/22-astro.js',
   'js/23-campo.js',
   'js/24-soste.js',
+  'js/25-ai.js',
+  'js/26-supericerca.js',
+  'js/27-crescita.js',
   'lib/leaflet/leaflet-rotate.js',
   'lib/leaflet/leaflet.css',
   'lib/leaflet/leaflet.js',

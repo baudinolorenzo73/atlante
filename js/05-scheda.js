@@ -19,6 +19,7 @@ function renderForm(){
   h+='<label class="l">Categoria</label><div class="cats" id="fCats">'+catSel()+'</div>';
   if(c.sp){h+='<label class="l">Specie (nome italiano o scientifico)</label><input type="text" id="fSp" autocomplete="off" value="'+esc(draft.sp?((draft.sp.com||'')+(draft.sp.sci&&draft.sp.com?' – ':'')+(draft.sp.sci||'')):'')+'" placeholder="es. svasso maggiore, Alnus glutinosa…"><div id="fSpSug"></div>';
     h+='<div id="fSpInfo" class="mut">'+(draft.sp&&draft.sp.tratti?esc(draft.sp.tratti):'')+'</div>';
+    h+='<div class="row" style="margin-top:6px"><button class="btn s" id="fAi">✨ Compila dai dati (Wikipedia + AI)</button><button class="btn s" id="fAiC">💬 Chiedi all\'AI</button></div><div id="fAiBox"></div><div id="fChat"></div>'+SUP.panel()+((draft.cat==='flora'||draft.cat==='albero')?CRES.panel():'');
     if(draft.cat==='flora'||draft.cat==='albero'||draft.cat==='fungo')h+='<div class="row" style="margin-top:6px"><button class="btn s" id="fPlant">🔍 Identifica con Pl@ntNet (fino a 5 foto)</button></div><div id="fPlantBox"></div>';}
   h+='<label class="l">Titolo</label><input type="text" id="fTitle" value="'+esc(draft.title)+'" placeholder="es. Svassi in parata davanti al canneto">';
   h+='<h3>Foto e audio</h3><div class="row"><button class="btn" id="fCamB">📷 Scatta</button><button class="btn" id="fGalB">🖼️ Galleria</button><button class="btn" id="fRecB">🎙️ Registra</button><button class="btn s" id="fAudB">📁 File audio</button><span id="fRecT" class="mut"></span></div><div class="media" id="fPhotos"></div><div id="fAuds"></div>';
@@ -69,6 +70,8 @@ function bindForm(){
   if(draft._exif)$('#fExifB').style.display='';
   var sp=$('#fSp');if(sp){sp.oninput=debounce(function(){spSuggest(sp.value)},350);sp.onfocus=function(){if(sp.value.length>=2)spSuggest(sp.value)}}
   var pl=$('#fPlant');if(pl)pl.onclick=plantnetId;
+  var ai=$('#fAi');if(ai){ai.onclick=AI.fill;$('#fAiC').onclick=AI.chat;$('#fSup').onclick=SUP.start}
+  var cr=$('#fCr');if(cr)cr.onclick=CRES.open;
 }
 function debounce(f,ms){var t;return function(){var a=arguments,s=this;clearTimeout(t);t=setTimeout(function(){f.apply(s,a)},ms)}}
 function renderPos(){var e=$('#fPos');if(!e)return;
