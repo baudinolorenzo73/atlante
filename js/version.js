@@ -1,6 +1,6 @@
 /* Generato da tools/build.py: non modificare a mano (tranne VERSION, se vuoi). */
-var VERSION='5.0';
-var BUILD='4d9a54c7';
+var VERSION='5.1';
+var BUILD='f78f9832';
 var ASSETS=[
   './',
   'index.html',

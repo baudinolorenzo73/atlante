@@ -30,14 +30,20 @@ function pnVerify(){
   if(navigator.onLine===false){st.innerHTML='<span style="color:var(--warn)">Serve la rete per verificare la chiave.</span>';return}
   st.textContent='Verifico la chiave…';btn.disabled=true;
   var done=function(html){st.innerHTML=html;btn.disabled=false};
-  fetchJSON('https://my-api.plantnet.org/v2/quota/daily?api-key='+encodeURIComponent(k),null,15000).then(function(r){
+  var K=encodeURIComponent(k);
+  fetchJSON('https://my-api.plantnet.org/v2/quota/daily?api-key='+K,null,15000).catch(function(e){
+    /* l'indirizzo della quota può rifiutare anche chiavi buone: riprovo con l'elenco dei progetti, che usa la stessa chiave */
+    var c=((String(e&&e.message||e)).match(/HTTP (\d+)/)||[])[1];
+    if(c==='401'||c==='403'||c==='404')return fetchJSON('https://my-api.plantnet.org/v2/projects?lang=it&api-key='+K,null,15000).then(function(){return null});
+    throw e;
+  }).then(function(r){
     var left=null;try{var q=r&&(r.identify||r.identification||r);if(q&&q.remaining!=null)left=q.remaining;else if(q&&q.count!=null&&q.limit!=null)left=q.limit-q.count}catch(e){}
     var changed=k!==SET.plantnet;if(changed){SET.plantnet=k;saveSet()}
     $('#sPn').type='text';$('#sPn').value=pnStars();
     done('<span style="color:var(--ok)">✓ Chiave valida'+(changed?' e salvata':'')+'.</span>'+(left!=null?' Identificazioni rimaste oggi: <b>'+left+'</b>.':''));
   }).catch(function(e){
     var m=String(e&&e.message||e),c=(m.match(/HTTP (\d+)/)||[])[1];
-    if(c==='401'||c==='403'||c==='404')done('<span style="color:var(--bad)">✗ Chiave non valida o non attiva ('+c+'). Controlla di averla copiata tutta, senza spazi.</span>');
+    if(c==='401'||c==='403'||c==='404')done('<span style="color:var(--bad)">✗ Pl@ntNet rifiuta la chiave ('+c+'). Controlla di averla copiata tutta, senza spazi, dalla pagina «Your API key» su my.plantnet.org; se l\'hai appena creata, può servire qualche minuto per attivarsi.</span>');
     else if(c==='429')done('<span style="color:var(--warn)">La chiave è valida ma le richieste di oggi sono esaurite (429).</span>');
     else if(c)done('<span style="color:var(--warn)">Pl@ntNet ha risposto con un errore ('+c+'): non riesco a dire se la chiave è valida. Riprova più tardi.</span>');
     else done('<span style="color:var(--warn)">Non riesco a raggiungere Pl@ntNet ('+esc(m)+'). Controlla la rete e riprova.</span>');

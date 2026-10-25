@@ -73,7 +73,7 @@ function registerSW(){
 function cacheShell(){
   if(!window.caches)return Promise.resolve();
   var list=(typeof ASSETS!=='undefined'&&isModular())?ASSETS.map(function(a){return new URL(a,location.href).href}):[pageUrl()];
-  return caches.open(SHELL_CACHE).then(function(c){return Promise.all(list.map(function(u){return fetch(u,{cache:'reload'}).then(function(r){if(!r.ok)throw new Error(u.split('/').pop()+': HTTP '+r.status);return c.put(u,r)})}))}).then(function(){ilog('✓ App salvata nel telefono ('+list.length+' file)','ok')}).catch(function(e){ilog('✗ App non salvata del tutto: '+e.message,'ko')});
+  return caches.open(SHELL_CACHE).then(function(c){return Promise.all(list.map(function(u){return fetch(u,{cache:'reload'}).then(function(r){return(!r.ok&&/\/$/.test(u))?fetch(pageUrl(),{cache:'reload'}):r}).then(function(r){if(!r.ok)throw new Error((u.split('/').pop()||'pagina')+': HTTP '+r.status);return c.put(u,r)})}))}).then(function(){ilog('✓ App salvata nel telefono ('+list.length+' file)','ok')}).catch(function(e){ilog('✗ App non salvata del tutto: '+e.message,'ko')});
 }
 function installAll(){
   if(inst.busy){inst.abort.v=true;ilog('… annullo');return}
