@@ -5,6 +5,7 @@
    by Lollo ®2026 · i moduli si caricano nell'ordine dei numeri (vedi index.html) */
 'use strict';
 var NOVITA=[
+ ['5.4','<b>🔐 Configurazione cifrata</b>: in Altro → Esporta e importa puoi salvare e ripristinare preferenze, ID client Google, chiave Pl@ntNet e chiavi/modelli AI in un unico file <code>.atlcfg</code> protetto da password. Il token temporaneo Google e i dati del catalogo restano esclusi.'],
  ['5.3.1','<b>Corretto l’avvio dall’icona</b>: l’app installata apre direttamente <code>index.html</code>. Le vecchie installazioni che tentano di aprire la cartella vengono recuperate dal servizio offline quando è già attivo.'],
  ['5.3','<b>Verifica e ripara mappe offline</b>: controlla la memoria senza rete e mostra le tessere presenti e mancanti per luogo, carta e zoom. Ripara scarica solo quelle mancanti o non valide, poi ricontrolla la copertura. Le selezioni restano quando cambi scheda nella stessa sessione; download interrompibile e risultati parziali espliciti.'],
  ['5.2','<b>Altro riordinato</b>: app e mappe, dati e backup, preferenze e servizi. Installazione sulla Home, preparazione offline e download delle carte sono separati. Scelta dei livelli e del dettaglio, errori dei file indicati singolarmente, conteggi corretti e interruzione dei download. La verifica Pl@ntNet legge la quota corretta e distingue accesso negato da chiave certamente errata.'],

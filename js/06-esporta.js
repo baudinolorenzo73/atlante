@@ -7,6 +7,57 @@ function shareOrDownload(blob,name,title){
   try{var f=new File([blob],name,{type:blob.type||'application/octet-stream'});if(navigator.canShare&&navigator.canShare({files:[f]}))return navigator.share({files:[f],title:title||name}).catch(function(e){if(e.name!=='AbortError')download(blob,name)})}catch(e){}
   download(blob,name);return Promise.resolve();
 }
+
+/* =================== CONFIGURAZIONE CIFRATA ===================
+   File .atlcfg: JSON esterno con KDF e cifratura, contenuto AES-GCM.
+   La password non viene memorizzata. Il token OAuth temporaneo di Google
+   resta escluso: dopo un ripristino è corretto effettuare di nuovo l'accesso. */
+var CFGCRYPT={magic:'atlante-config-encrypted',plain:'atlante-config',v:1,iter:250000};
+function cfgB64(u){var s='',step=0x8000;for(var i=0;i<u.length;i+=step)s+=String.fromCharCode.apply(null,u.subarray(i,i+step));return btoa(s)}
+function cfgU8(s){var b=atob(String(s||'')),u=new Uint8Array(b.length);for(var i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u}
+function cfgCrypto(){if(!window.crypto||!crypto.subtle)throw new Error('La cifratura non è disponibile. Apri l’app dall’indirizzo HTTPS di GitHub Pages.');return crypto.subtle}
+function cfgKey(password,salt,usage,iterations){
+  var sub=cfgCrypto(),enc=new TextEncoder();
+  return sub.importKey('raw',enc.encode(password),'PBKDF2',false,['deriveKey']).then(function(base){
+    return sub.deriveKey({name:'PBKDF2',salt:salt,iterations:iterations||CFGCRYPT.iter,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,[usage]);
+  });
+}
+function cfgSettings(){
+  var s=JSON.parse(JSON.stringify(SET||{}));
+  ['gOk','gLast','gH','lastBackup','changes','seenVer','glgLast'].forEach(function(k){delete s[k]});
+  return s;
+}
+function exportConfig(){
+  var p=prompt('Scegli una password per proteggere ID client, chiavi API e preferenze.\n\nUsa almeno 8 caratteri e conservala: non può essere recuperata.');
+  if(p===null)return Promise.resolve();if(p.length<8){alert('La password deve avere almeno 8 caratteri.');return Promise.resolve()}
+  var p2=prompt('Ripeti la password:');if(p2===null)return Promise.resolve();if(p!==p2){alert('Le due password non coincidono.');return Promise.resolve()}
+  try{cfgCrypto()}catch(e){alert(e.message);return Promise.resolve()}
+  var salt=crypto.getRandomValues(new Uint8Array(16)),iv=crypto.getRandomValues(new Uint8Array(12));
+  var plain={app:CFGCRYPT.plain,format:CFGCRYPT.v,appVersion:VERSION,exported:new Date().toISOString(),settings:cfgSettings()};
+  return cfgKey(p,salt,'encrypt').then(function(key){return crypto.subtle.encrypt({name:'AES-GCM',iv:iv},key,new TextEncoder().encode(JSON.stringify(plain)))}).then(function(ab){
+    var box={app:CFGCRYPT.magic,format:CFGCRYPT.v,created:plain.exported,kdf:{name:'PBKDF2',hash:'SHA-256',iterations:CFGCRYPT.iter,salt:cfgB64(salt)},cipher:{name:'AES-GCM',iv:cfgB64(iv)},data:cfgB64(new Uint8Array(ab))};
+    var blob=new Blob([JSON.stringify(box,null,1)],{type:'application/octet-stream'}),name='configurazione_atlante_'+stamp()+'.atlcfg';
+    return shareOrDownload(blob,name,'Configurazione cifrata Atlante').then(function(){toast('🔐 Configurazione cifrata esportata',3500)});
+  }).catch(function(e){alert('Esportazione configurazione non riuscita: '+e.message)});
+}
+function importConfigFile(file){
+  if(!file)return Promise.resolve();
+  return file.text().then(function(txt){
+    var box;try{box=JSON.parse(txt)}catch(e){throw new Error('file non valido')}
+    if(!box||box.app!==CFGCRYPT.magic||box.format!==CFGCRYPT.v||!box.kdf||!box.cipher||!box.data)throw new Error('file di configurazione non riconosciuto');
+    if(box.kdf.name!=='PBKDF2'||box.kdf.hash!=='SHA-256'||box.cipher.name!=='AES-GCM')throw new Error('metodo di cifratura non supportato');
+    var it=+box.kdf.iterations;if(!isFinite(it)||it<100000||it>2000000)throw new Error('parametri di sicurezza non validi');
+    var p=prompt('Inserisci la password del file di configurazione:');if(p===null)throw {cancel:true};
+    return cfgKey(p,cfgU8(box.kdf.salt),'decrypt',it).then(function(key){return crypto.subtle.decrypt({name:'AES-GCM',iv:cfgU8(box.cipher.iv)},key,cfgU8(box.data))}).then(function(ab){
+      var data=JSON.parse(new TextDecoder().decode(ab));
+      if(!data||data.app!==CFGCRYPT.plain||data.format!==CFGCRYPT.v||!data.settings||typeof data.settings!=='object')throw new Error('contenuto non riconosciuto');
+      if(!confirm('Importare questa configurazione?\n\nSaranno sostituite preferenze, ID client e chiavi API. Punti, foto, audio e tracce non verranno modificati. Dopo dovrai accedere nuovamente a Google Drive.'))return false;
+      SET=Object.assign({},SET,data.settings);SET.gOk=0;delete SET.gLast;delete SET.gH;
+      if(typeof GD!=='undefined'){GD.tok=null;GD.exp=0}try{localStorage.removeItem('atl_gtok')}catch(e){}
+      return saveSet().then(function(){alert('Configurazione importata correttamente. L’app verrà ricaricata.');location.reload();return true});
+    }).catch(function(e){if(e&&e.cancel)throw e;throw new Error('password errata oppure file danneggiato')});
+  }).catch(function(e){if(!e||!e.cancel)alert('Importazione configurazione non riuscita: '+(e&&e.message||e))});
+}
 function shareOne(p){var t=(p.title||'')+'\n'+CAT(p.cat).n+(p.sp&&p.sp.sci?' – '+p.sp.sci:'')+'\n'+(p.note||'')+'\nhttps://www.google.com/maps/search/?api=1&query='+p.lat+','+p.lon;
   var ph=firstPhoto(p);
   (ph?DB.get('media',ph.id):Promise.resolve(null)).then(function(r){var files=[];if(r){files.push(new File([r.blob],slug(p.title)+'.jpg',{type:'image/jpeg'}))}

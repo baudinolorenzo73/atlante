@@ -54,7 +54,8 @@ function renderAlt(){
   h+=altSec('exp','📦 Esporta e importa'+(late?' <b style="color:var(--warn);font-weight:600">· '+SET.changes+' da salvare</b>':''),
     '<div class="card"><div class="mut">Ultimo backup: '+(SET.lastBackup?fmtDate(new Date(SET.lastBackup).toISOString()):'mai')+'</div>'
     +'<div class="row" style="margin-top:8px"><button class="btn f" id="bZip">📦 Backup completo</button><button class="btn" id="bExp">📤 Esporta…</button><button class="btn" id="bImp">📥 Importa</button></div>'
-    +'<div class="mut" style="margin-top:6px"><b>Backup completo</b>: un file ZIP con tutto (dati, foto, audio, schede, GPX, KML, CSV, Excel), da conservare o da passare a un altro telefono o al PC. <b>Esporta</b>: scegli che cosa (tutto, il percorso, i filtrati, un punto) e il formato (PDF, Excel con foto, GPX, KML, GeoJSON, CSV). <b>Importa</b>: backup ZIP di questa app (anche di un compagno: i punti si uniscono senza doppioni) o punti da GPX, KML, GeoJSON.</div></div>');
+    +'<div class="row" style="margin-top:8px"><button class="btn s" id="bCfgExp">🔐 Esporta configurazione</button><button class="btn s" id="bCfgImp">🔓 Importa configurazione</button><input type="file" id="fCfgImp" accept=".atlcfg,application/octet-stream" hidden></div>'
+    +'<div class="mut" style="margin-top:6px"><b>Backup completo</b>: un file ZIP con tutto (dati, foto, audio, schede, GPX, KML, CSV, Excel), da conservare o da passare a un altro telefono o al PC. <b>Esporta</b>: scegli che cosa (tutto, il percorso, i filtrati, un punto) e il formato (PDF, Excel con foto, GPX, KML, GeoJSON, CSV). <b>Importa</b>: backup ZIP di questa app (anche di un compagno: i punti si uniscono senza doppioni) o punti da GPX, KML, GeoJSON.<br><b>Configurazione cifrata</b>: salva preferenze, ID client Google, chiave Pl@ntNet e chiavi/modelli AI in un file protetto da password. Non contiene il token temporaneo Google, punti, foto o tracce.</div></div>');
   h+=altSec('drv','☁️ Google Drive',GD.altCard().replace('<h3>Google Drive</h3>',''));
   h+='<h3>Preferenze e servizi</h3>';
   h+=altSec('set','⚙️ Preferenze generali',
@@ -78,6 +79,9 @@ function renderAlt(){
   $('#novAll').onclick=function(e){e.preventDefault();NOV.show(true)};
   $('#bZip').onclick=function(){exportZip()};$('#bExp').onclick=function(){openExport('all')};
   $('#bImp').onclick=function(){$('#fImp').value='';$('#fImp').click()};
+  $('#bCfgExp').onclick=exportConfig;
+  $('#bCfgImp').onclick=function(){$('#fCfgImp').value='';$('#fCfgImp').click()};
+  $('#fCfgImp').onchange=function(){importConfigFile(this.files&&this.files[0])};
   $$('[data-alt-jump]').forEach(function(b){b.onclick=function(){var d=$('[data-sec="'+b.getAttribute('data-alt-jump')+'"]');d.open=true;d.scrollIntoView({block:'start',behavior:'smooth'})}});
   $('#bMaps').onclick=function(){return runInstallTask('maps',downloadMaps)};$('#bHomeIcon').onclick=function(){installIcon().catch(function(){toast('Installazione non disponibile: usa il menu del browser')})};$('#bCancelInst').onclick=cancelInstall;
   bindOfflineControls();

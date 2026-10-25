@@ -88,7 +88,7 @@ L'app è divisa in moduli: ogni parte sta in un file separato, così una modific
 
 1. Prima di sostituire la versione precedente, crea un **Backup completo** in Altro → Esporta e importa.
 2. Estrai tutti i file di questo ZIP nella stessa cartella della versione precedente, oppure pubblicali nello stesso sito. Mantieni indirizzo, porta e browser: i dati del browser dipendono dall’origine. Non disinstallare la vecchia app e non cancellare i dati del sito.
-3. Apri esplicitamente `index.html` tramite HTTPS oppure localhost (anche 127.0.0.1). Ricarica la pagina e verifica **Versione 5.3.1** in Altro → Installazione e aggiornamenti. Non installare partendo dal solo indirizzo della cartella.
+3. Apri esplicitamente `index.html` tramite HTTPS oppure localhost (anche 127.0.0.1). Ricarica la pagina e verifica **Versione 5.4** in Altro → Installazione e aggiornamenti. Non installare partendo dal solo indirizzo della cartella.
 4. **Installa sulla Home** chiede al browser di aggiungere l’icona. Se non compare la richiesta: menu di Chrome → Installa app / Aggiungi a schermata Home; su Safari iPhone: Condividi → Aggiungi a Home.
 5. **Prepara app offline** salva i file dell’app e attiva il servizio offline. In caso di errore viene indicato il singolo file: niente messaggio di completamento se ne manca uno.
 6. **Mappe senza rete**: seleziona le carte e lo zoom desiderati, poi Scarica mappe selezionate. Il conteggio generale include tessere di tutti i luoghi; non certifica la copertura completa. Le mappe di altri luoghi già salvate rimangono disponibili.
@@ -100,9 +100,11 @@ Se l’icona mostra `FORBIDDEN: No directory listing`, la vecchia installazione 
 
 Pl@ntNet: la chiave viene verificata tramite `/v2/quota/daily` e la disponibilità si legge da `quota.identify.remaining`. Un 403 significa accesso negato: controlla chiave, stato dell’account e restrizioni sui domini/IP. Un errore di rete non dimostra che la chiave sia sbagliata. La chiave personale non è inclusa nello ZIP.
 
+Configurazione: in Altro → Esporta e importa, **Esporta configurazione** crea un file `.atlcfg` cifrato con la password scelta. Comprende preferenze, ID client Google, chiave Pl@ntNet e chiavi/modelli AI; non comprende il token temporaneo di accesso a Google. **Importa configurazione** ripristina il file e richiede poi un nuovo accesso a Google. La password non viene salvata e non può essere recuperata.
+
 Fonti tecniche: [quota Pl@ntNet](https://my.plantnet.org/doc/api/quota), [account e restrizioni](https://my.plantnet.org/doc/api/contract), [policy tessere OpenStreetMap](https://operations.osmfoundation.org/policies/tiles/). Il server pubblico OSM non viene usato per il download anticipato; resta disponibile per consultare la mappa.
 
-Verifica di questa versione: sintassi dei 33 file JavaScript; avvio e rendering DOM dell’app con IndexedDB simulato; salvataggio file, 403 parziale, quota API e conteggi mappe con risposte simulate; log mantenuto navigando tra schede. Service worker verificato in simulazione: navigazione offline con query, richieste di aggiornamento dirette alla rete e conservazione della cache precedente quando un file manca. Il test su browser reale Android e con chiavi personali rimane da fare: il browser di test non è disponibile in questo ambiente.
+Verifica di questa versione: sintassi dei file JavaScript; cifratura AES-GCM, decifratura, importazione e rifiuto della password errata controllati con Web Crypto; avvio e rendering DOM dell’app con IndexedDB simulato; salvataggio file, 403 parziale, quota API e conteggi mappe con risposte simulate; log mantenuto navigando tra schede. Service worker verificato in simulazione: navigazione offline con query, richieste di aggiornamento dirette alla rete e conservazione della cache precedente quando un file manca. Il test su browser reale Android e con chiavi personali rimane da fare: il browser di test non è disponibile in questo ambiente.
 
 ### Verifica e riparazione delle mappe (v5.3)
 
