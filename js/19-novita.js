@@ -5,6 +5,9 @@
    by Lollo ®2026 · i moduli si caricano nell'ordine dei numeri (vedi index.html) */
 'use strict';
 var NOVITA=[
+ ['5.3.1','<b>Corretto l’avvio dall’icona</b>: l’app installata apre direttamente <code>index.html</code>. Le vecchie installazioni che tentano di aprire la cartella vengono recuperate dal servizio offline quando è già attivo.'],
+ ['5.3','<b>Verifica e ripara mappe offline</b>: controlla la memoria senza rete e mostra le tessere presenti e mancanti per luogo, carta e zoom. Ripara scarica solo quelle mancanti o non valide, poi ricontrolla la copertura. Le selezioni restano quando cambi scheda nella stessa sessione; download interrompibile e risultati parziali espliciti.'],
+ ['5.2','<b>Altro riordinato</b>: app e mappe, dati e backup, preferenze e servizi. Installazione sulla Home, preparazione offline e download delle carte sono separati. Scelta dei livelli e del dettaglio, errori dei file indicati singolarmente, conteggi corretti e interruzione dei download. La verifica Pl@ntNet legge la quota corretta e distingue accesso negato da chiave certamente errata.'],
  ['5.1','<b>🔧 Correzioni</b>: «Verifica chiave» di Pl@ntNet ora prova anche un secondo indirizzo prima di dire che la chiave non va (e spiega meglio l\'errore); «Installa tutto» non fallisce più con «HTTP 403» quando l\'app è aperta da un server locale del telefono.'],
  ['5.0','<b>🌱 Tipo di crescita (estensione)</b> per piante e alberi, dalla guida «tipologie di crescita»: 1 una sola estensione, 2 estensione continua, 3 crescita mista. Nella scheda: nuovi campi <b>Tipo di crescita</b>, <b>Perché</b> e <b>Diario del germoglio</b>, e il pulsante <b>🌱 Riconosci l\'estensione</b>: dice se la specie è tra gli esempi della guida, guida l\'osservazione del germoglio (apice attivo? rami corti o fiori?), ricava il tipo dal diario dei rilievi e, se vuoi, chiede un\'ipotesi all\'AI. Ogni risultato spiega il perché e lo applichi tu; se guida e osservazione non coincidono lo segnala. Una foto sola non basta: segui il germoglio per qualche settimana.'],
  ['4.9','<b>🔎 Super ricerca</b> nella scheda (fauna, flora, alberi, funghi): interroga insieme il nome digitato (anche con refusi o nome comune), Pl@ntNet con le foto, ogni AI con chiave (con le prime 3 foto) e controlla ogni nome su GBIF. Per ogni proposta vedi chi la propone e con che percentuale (mai mediate), quante AI concordano, quante osservazioni GBIF entro 10 km, la voce di Wikipedia e se è nella checklist del lago. Nulla cambia finché non tocchi «Usa questa specie». Le foto vanno alle AI solo se lasci la spunta; mai le coordinate.'],
@@ -41,10 +44,8 @@ NOV.show=function(force){
 NOV.reload=function(){
   if(REC.on){toast('Prima ferma la registrazione della traccia, poi aggiorna',4000);return}
   if($('#modal').classList.contains('on')){toast('Chiudi la scheda aperta (salva o annulla), poi aggiorna',4000);return}
-  var bar=$('#novBar');if(bar)bar.innerHTML='Aggiorno…';
-  (window.caches?caches.keys().then(function(ks){return Promise.all(ks.filter(function(k){return k.indexOf('atl-shell')===0}).map(function(k){return caches.delete(k)}))}):Promise.resolve())
-    .then(function(){return navigator.serviceWorker?navigator.serviceWorker.getRegistration():null}).then(function(r){return r&&r.update()}).catch(function(){})
-    .then(function(){location.reload()});
+  var bar=$('#novBar');if(bar)bar.remove();
+  ALT_OPEN.app=true;go('alt');return doUpdate();
 };
 NOV.bar=function(v){
   if($('#novBar'))return;var d=document.createElement('div');d.id='novBar';

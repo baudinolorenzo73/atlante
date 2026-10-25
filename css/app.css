@@ -267,3 +267,24 @@ details.sec[open]>summary{border-bottom:1px solid var(--line2);margin-bottom:8px
 .secb{padding:0 0 12px}
 .secb>.card{background:none;border:0;padding:0;margin:0}
 .secb>h3:first-child{margin-top:0}
+
+/* v5.2: pannelli compatti e navigazione delle preferenze */
+.pb{min-height:0;overscroll-behavior:contain}
+#altBody{padding-bottom:48px}
+.alt-shortcuts{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.offline-choice{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line2)}
+.offline-choice input{flex:none;width:20px;height:20px}
+#instLog{max-height:240px;overflow:auto;overflow-wrap:anywhere}
+#appSt,#pnSt{overflow-wrap:anywhere}
+#operationBox:has(#instLog:empty):has(#bCancelInst[hidden]){display:none}
+button[hidden]{display:none!important}
+#altBody h3{margin:20px 0 8px;font-size:14px;color:var(--mut)}
+#altBody>details.sec{margin:7px 0}
+
+.coverage-layer{padding:10px 0;border-top:1px solid var(--line)}
+.coverage-layer summary{cursor:pointer;font-weight:600;font-size:14px}
+.coverage-table{overflow-x:auto;margin-top:8px}
+.coverage-table table{width:100%;border-collapse:collapse;font-size:13px}
+.coverage-table th,.coverage-table td{padding:7px;text-align:right;border-bottom:1px solid var(--line)}
+.coverage-table th:first-child,.coverage-table td:first-child{text-align:left}
+.coverage-table caption{text-align:left;color:var(--mut);padding:4px 0}

@@ -3,7 +3,7 @@
  "short_name": "Atlante",
  "description": "Atlante di campo: catalogo di punti con foto, audio e GPS, percorsi, mappe e capitoli dei luoghi (a partire dal Lago Piccolo di Avigliana). by Lollo ®2026",
  "id": "./",
- "start_url": "./",
+ "start_url": "./index.html",
  "scope": "./",
  "display": "standalone",
  "orientation": "any",

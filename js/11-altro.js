@@ -24,39 +24,40 @@ function altSec(id,title,body){return '<details class="sec" data-sec="'+id+'"'+(
 /* chiave Pl@ntNet: se c'è già si vedono solo gli asterischi; se non si tocca resta quella salvata */
 function pnStars(){return SET.plantnet?'*'.repeat(Math.min(SET.plantnet.length,12)):''}
 function pnVal(){var v=($('#sPn').value||'').trim();return /^\*+$/.test(v)?(SET.plantnet||''):v}
-function pnVerify(){
+function pnQuota(r){var q=r&&r.quota&&r.quota.identify;return q&&Number.isFinite(q.remaining)?q.remaining:null}
+function pnError(e){var c=(String(e&&e.message||e).match(/HTTP (\d+)/)||[])[1];
+  if(c==='401')return 'Chiave non accettata (401). Controlla la chiave nel tuo account Pl@ntNet.';
+  if(c==='403')return 'Accesso negato (403): può dipendere dalla chiave, dallo stato dell’account o dalle restrizioni di accesso. Controlla il tuo account Pl@ntNet e gli eventuali domini/IP autorizzati. Pagina attuale: '+location.origin+'. Non è possibile stabilire la causa dal solo codice 403.';
+  if(c==='404')return 'Servizio non trovato (404): non dimostra che la chiave sia errata.';
+  if(c==='429')return 'Limite di richieste raggiunto (429). Riprova dopo il ripristino della quota; chiave non verificata.';
+  if(c)return 'Servizio Pl@ntNet non disponibile (HTTP '+c+'). Riprova più tardi.';
+  return 'Verifica non riuscita: rete assente, timeout oppure richiesta bloccata dal browser. La chiave resta salvata; riprova da HTTPS. Non è possibile distinguere la causa da questo errore.';
+}
+async function pnVerify(){
   var k=pnVal(),st=$('#pnSt'),btn=$('#bPnV');
-  if(!k){st.innerHTML='<span style="color:var(--warn)">Incolla prima la chiave.</span>';return}
-  if(navigator.onLine===false){st.innerHTML='<span style="color:var(--warn)">Serve la rete per verificare la chiave.</span>';return}
-  st.textContent='Verifico la chiave…';btn.disabled=true;
-  var done=function(html){st.innerHTML=html;btn.disabled=false};
-  var K=encodeURIComponent(k);
-  fetchJSON('https://my-api.plantnet.org/v2/quota/daily?api-key='+K,null,15000).catch(function(e){
-    /* l'indirizzo della quota può rifiutare anche chiavi buone: riprovo con l'elenco dei progetti, che usa la stessa chiave */
-    var c=((String(e&&e.message||e)).match(/HTTP (\d+)/)||[])[1];
-    if(c==='401'||c==='403'||c==='404')return fetchJSON('https://my-api.plantnet.org/v2/projects?lang=it&api-key='+K,null,15000).then(function(){return null});
-    throw e;
-  }).then(function(r){
-    var left=null;try{var q=r&&(r.identify||r.identification||r);if(q&&q.remaining!=null)left=q.remaining;else if(q&&q.count!=null&&q.limit!=null)left=q.limit-q.count}catch(e){}
-    var changed=k!==SET.plantnet;if(changed){SET.plantnet=k;saveSet()}
-    $('#sPn').type='text';$('#sPn').value=pnStars();
-    done('<span style="color:var(--ok)">✓ Chiave valida'+(changed?' e salvata':'')+'.</span>'+(left!=null?' Identificazioni rimaste oggi: <b>'+left+'</b>.':''));
-  }).catch(function(e){
-    var m=String(e&&e.message||e),c=(m.match(/HTTP (\d+)/)||[])[1];
-    if(c==='401'||c==='403'||c==='404')done('<span style="color:var(--bad)">✗ Pl@ntNet rifiuta la chiave ('+c+'). Controlla di averla copiata tutta, senza spazi, dalla pagina «Your API key» su my.plantnet.org; se l\'hai appena creata, può servire qualche minuto per attivarsi.</span>');
-    else if(c==='429')done('<span style="color:var(--warn)">La chiave è valida ma le richieste di oggi sono esaurite (429).</span>');
-    else if(c)done('<span style="color:var(--warn)">Pl@ntNet ha risposto con un errore ('+c+'): non riesco a dire se la chiave è valida. Riprova più tardi.</span>');
-    else done('<span style="color:var(--warn)">Non riesco a raggiungere Pl@ntNet ('+esc(m)+'). Controlla la rete e riprova.</span>');
-  });
+  if(!k){st.textContent='Incolla prima la chiave.';return}
+  if(/\s/.test(k)){st.textContent='La chiave contiene spazi o ritorni a capo: ricopiala interamente.';return}
+  if(navigator.onLine===false){st.textContent='Serve la rete per verificare la chiave.';return}
+  st.textContent='Verifico chiave e quota…';btn.disabled=true;
+  try{var r=await fetchJSON('https://my-api.plantnet.org/v2/quota/daily?api-key='+encodeURIComponent(k),null,15000);
+    if(!r||!r.quota||!r.quota.identify)throw new Error('Risposta non riconosciuta');
+    SET.plantnet=k;await saveSet();
+    var input=$('#sPn');if(input&&pnVal()===k){input.type='text';input.value=pnStars()}
+    var left=pnQuota(r);st.textContent='✓ Chiave verificata e salvata.'+(left!==null?' Identificazioni rimaste oggi: '+left+'.':'')+' Il riconoscimento da foto richiede la rete.';
+  }catch(e){st.textContent=pnError(e)}finally{btn.disabled=false}
 }
 function renderAlt(){
-  var late=SET.changes>0,h='';
+  var late=SET.changes>0,h='<div class="alt-shortcuts" aria-label="Sezioni">'+[['app','App'],['maps','Mappe offline'],['exp','Backup'],['set','Preferenze'],['pn','Pl@ntNet'],['ai','AI'],['drv','Drive']].map(function(x){return '<button class="btn s" data-alt-jump="'+x[0]+'">'+x[1]+'</button>'}).join('')+'</div><h3>App e mappe</h3>';
+  h+=altSec('app','📲 Installazione e aggiornamenti','<div class="card"><div id="appSt" class="mut">Verifica stato…</div><div class="row" style="margin-top:10px"><button class="btn f" id="bUpd">🔄 Controlla aggiornamenti</button><button class="btn" id="bHomeIcon">📲 Installa sulla Home</button><button class="btn" id="bInst">💾 Prepara app offline</button></div><p class="mut">Installa sulla Home: chiede al browser di aggiungere l’icona. Prepara app offline: salva i file dell’app. Le mappe si scaricano separatamente qui sotto. Da localhost gli aggiornamenti arrivano sostituendo i file nella cartella servita.</p></div>');
+  h+=altSec('maps','🗺 Mappe senza rete','<p class="mut">Area di «'+esc(PL.name())+'». Scegli solo le carte che ti servono. Il totale in memoria comprende anche gli altri luoghi e non garantisce la copertura completa.</p>'+BASES.concat(OVERS.filter(function(o){return !o.custom})).map(function(o){return '<label class="offline-choice"><input type="checkbox" data-offline="'+o.id+'" '+(o.id==='osm'?'disabled':(o.id===baseId||overOn[o.id]?'checked':''))+'><span>'+esc(o.n)+(o.id==='osm'?' · solo consultazione online':'')+'</span></label>'}).join('')+'<label class="l" for="offZoom">Dettaglio massimo</label><select id="offZoom"><option value="15">Zoom 15 · leggero</option><option value="16" selected>Zoom 16 · consigliato</option><option value="17">Zoom 17 · più spazio</option></select><div class="row" style="margin-top:10px"><button class="btn f" id="bMaps">⬇ Scarica mappe selezionate</button><button class="btn" id="bCheckMaps">🔎 Verifica copertura</button><button class="btn" id="bRepairMaps" disabled>🔧 Ripara mancanti</button><button class="btn s r" id="bClrT">Svuota mappe salvate</button></div><p class="mut">Alcuni servizi possono impedire il download o non avere dati per l’area. OpenStreetMap non consente il download anticipato dal suo server pubblico.</p><div id="offCoverage" aria-live="polite"></div>');
+  h+='<div class="card" id="operationBox"><b>Esito operazioni</b><button class="btn s" id="bCancelInst" hidden>⏹ Interrompi</button><div class="bar" id="instBar" style="display:none"><i></i></div><div class="log" id="instLog" role="status" aria-live="polite"></div></div><h3>Dati e backup</h3>';
   h+=altSec('exp','📦 Esporta e importa'+(late?' <b style="color:var(--warn);font-weight:600">· '+SET.changes+' da salvare</b>':''),
     '<div class="card"><div class="mut">Ultimo backup: '+(SET.lastBackup?fmtDate(new Date(SET.lastBackup).toISOString()):'mai')+'</div>'
     +'<div class="row" style="margin-top:8px"><button class="btn f" id="bZip">📦 Backup completo</button><button class="btn" id="bExp">📤 Esporta…</button><button class="btn" id="bImp">📥 Importa</button></div>'
     +'<div class="mut" style="margin-top:6px"><b>Backup completo</b>: un file ZIP con tutto (dati, foto, audio, schede, GPX, KML, CSV, Excel), da conservare o da passare a un altro telefono o al PC. <b>Esporta</b>: scegli che cosa (tutto, il percorso, i filtrati, un punto) e il formato (PDF, Excel con foto, GPX, KML, GeoJSON, CSV). <b>Importa</b>: backup ZIP di questa app (anche di un compagno: i punti si uniscono senza doppioni) o punti da GPX, KML, GeoJSON.</div></div>');
   h+=altSec('drv','☁️ Google Drive',GD.altCard().replace('<h3>Google Drive</h3>',''));
-  h+=altSec('set','⚙️ Impostazioni',
+  h+='<h3>Preferenze e servizi</h3>';
+  h+=altSec('set','⚙️ Preferenze generali',
     '<div class="card"><label class="l">Aspetto</label><select id="sTheme"><option value="auto"'+((SET.theme||'auto')==='auto'?' selected':'')+'>automatico (come il telefono)</option><option value="light"'+(SET.theme==='light'?' selected':'')+'>chiaro (per il sole)</option><option value="dark"'+(SET.theme==='dark'?' selected':'')+'>scuro (per la sera)</option></select>'
     +'<label class="l">Compilatore (nome sulle schede)</label><input type="text" id="sComp" value="'+esc(SET.compilatore)+'">'
     +'<label class="l">Secondi di lettura GPS per ogni punto (più lungo = più preciso)</label><select id="sGps">'+[3,5,10,20,30].map(function(n){return '<option'+(n===SET.gpsAvg?' selected':'')+'>'+n+'</option>'}).join('')+'</select>'
@@ -69,7 +70,7 @@ function renderAlt(){
     +'<div class="mut" id="pnSt" style="margin-top:6px">'+(SET.plantnet?'Chiave salvata. Per cambiarla, tocca il campo e incolla la nuova.':'Nessuna chiave salvata.')+'</div>'
     +'<div class="row" style="margin-top:8px"><button class="btn f" id="bPnV">🔎 Verifica chiave</button><button class="btn" id="bPnS">Salva chiave</button></div></div>');
   h+=altSec('ai','✨ Assistente AI (Gemini e altri)',AI.altBody());
-  h+=altSec('app','📲 App: aggiornamento e installazione','<div class="card"><div id="appSt" class="mut">…</div><div class="row" style="margin-top:10px"><button class="btn f" id="bUpd">🔄 Aggiorna</button><button class="btn" id="bInst">⬇️ Installa tutto</button></div><div class="bar" id="instBar" style="display:none"><i></i></div><div class="log" id="instLog"></div><div class="mut" style="margin-top:8px"><b>Aggiorna</b>: cerca online una versione più recente e la carica. Punti, foto e audio restano dove sono.<br><b>Installa tutto</b>: aggiunge l\'icona alla schermata Home, salva l\'app nel telefono e scarica le mappe dell\'area del luogo per vederle anche senza rete.</div><div class="row" style="margin-top:8px"><button class="btn s r" id="bClrT">Svuota mappe salvate</button></div></div>');
+  h+='<h3>Spazio e informazioni</h3>';
   h+=altSec('mem','💾 Memoria','<div class="card" id="memBox"><span class="mut">calcolo…</span></div>');
   h+='<p class="mut">Atlante di campo v'+VERSION+' · '+BRAND+' · <a href="#" id="novAll">🆕 Novità</a></p>';
   $('#altBody').innerHTML=h;GD.bindAlt();
@@ -77,7 +78,10 @@ function renderAlt(){
   $('#novAll').onclick=function(e){e.preventDefault();NOV.show(true)};
   $('#bZip').onclick=function(){exportZip()};$('#bExp').onclick=function(){openExport('all')};
   $('#bImp').onclick=function(){$('#fImp').value='';$('#fImp').click()};
-  $('#bNearSet').onclick=openNear;$('#bUpd').onclick=doUpdate;$('#bInst').onclick=installAll;$('#bClrT').onclick=clearTiles;if(inst.busy)$('#bInst').textContent='⏹ Annulla';renderAppSt();
+  $$('[data-alt-jump]').forEach(function(b){b.onclick=function(){var d=$('[data-sec="'+b.getAttribute('data-alt-jump')+'"]');d.open=true;d.scrollIntoView({block:'start',behavior:'smooth'})}});
+  $('#bMaps').onclick=function(){return runInstallTask('maps',downloadMaps)};$('#bHomeIcon').onclick=function(){installIcon().catch(function(){toast('Installazione non disponibile: usa il menu del browser')})};$('#bCancelInst').onclick=cancelInstall;
+  bindOfflineControls();
+  $('#bNearSet').onclick=openNear;$('#bUpd').onclick=doUpdate;$('#bInst').onclick=installAll;$('#bClrT').onclick=clearTiles;syncInstallUI();renderAppSt();
   if($('#sTheme'))$('#sTheme').onchange=function(){SET.theme=this.value;applyTheme();saveSet()};
   $('#sPn').onfocus=function(){if(/^\*+$/.test(this.value))this.select()};
   $('#sPn').oninput=function(){this.type=(!this.value||/^\*+$/.test(this.value))?'text':'password'};
@@ -86,7 +90,7 @@ function renderAlt(){
   $('#bPnS').onclick=function(){var k=pnVal();SET.plantnet=k;saveSet().then(function(){$('#sPn').type=k?'text':'password';$('#sPn').value=pnStars();$('#pnSt').textContent=k?'Chiave salvata (non ancora verificata: tocca «Verifica chiave»).':'Chiave rimossa.'})};
   $('#bSet').onclick=function(){SET.compilatore=$('#sComp').value.trim();SET.gpsAvg=+$('#sGps').value;SET.photoMax=+$('#sPh').value;SET.wikiLang=$('#sWl').value;if($('#sTheme')){SET.theme=$('#sTheme').value;applyTheme()}saveSet().then(function(){toast('Impostazioni salvate')})};
   var mb=$('#memBox');var txt=DB.ok?'':'<b style="color:var(--bad)">Attenzione: il browser non permette di salvare dati da questa pagina.</b> Succede se apri il file da un\'app di gestione file. Pubblica la pagina (per esempio su GitHub Pages con la tua «Pubblica») e aprila dall\'indirizzo web. Fino ad allora i dati restano solo finché la pagina è aperta: esporta il backup prima di chiudere.<br>';
-  if(navigator.storage&&navigator.storage.estimate){navigator.storage.estimate().then(function(e){navigator.storage.persisted?navigator.storage.persisted().then(function(p){mb.innerHTML=txt+'Spazio usato: <b>'+fmtSize(e.usage||0)+'</b> su circa '+fmtSize(e.quota||0)+' disponibili.<br>'+(p?'<span class="ok">Archivio protetto: il browser non lo cancellerà da solo.</span>':'<span class="mut">Archivio non ancora protetto: il browser potrebbe cancellarlo se manca spazio. Fai backup regolari.</span>')}):mb.innerHTML=txt+'Spazio usato: '+fmtSize(e.usage||0)})}else mb.innerHTML=txt||'<span class="mut">Informazioni sulla memoria non disponibili.</span>';
+  if(navigator.storage&&navigator.storage.estimate){navigator.storage.estimate().then(function(e){navigator.storage.persisted?navigator.storage.persisted().then(function(p){mb.innerHTML=txt+'Spazio usato: <b>'+fmtSize(e.usage||0)+'</b> su circa '+fmtSize(e.quota||0)+' disponibili.<br>'+(p?'<span class="ok">Memoria persistente concessa. Conserva comunque un backup.</span>':'<span class="mut">Archivio non ancora protetto: il browser potrebbe cancellarlo se manca spazio. Fai backup regolari.</span>')}):mb.innerHTML=txt+'Spazio usato: '+fmtSize(e.usage||0)}).catch(function(){mb.textContent='Informazioni sulla memoria non disponibili. Conserva backup regolari.'})}else mb.innerHTML=txt||'<span class="mut">Informazioni sulla memoria non disponibili.</span>';
 }
 /* tema chiaro / scuro: «auto» segue il telefono */
 function applyTheme(){var t=SET.theme||'auto';if(t==='auto')document.documentElement.removeAttribute('data-theme');else document.documentElement.setAttribute('data-theme',t);

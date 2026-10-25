@@ -24,7 +24,7 @@ L'app è divisa in moduli: ogni parte sta in un file separato, così una modific
 | `js/07-esplora.js` | Scheda Esplora (meteo, iNaturalist, GBIF, Wikipedia, Wikidata, OpenStreetMap) | |
 | `js/08-dossier.js` | **Testi del Dossier**, fonti, checklist delle specie, calendario | aggiornare la ricerca |
 | `js/09-vicino.js` | Avvisi «Vicino a te» e archivio della zona | cambiare la zona o le regole degli avvisi |
-| `js/10-pwa.js` | Pulsanti Aggiorna e Installa tutto, mappe senza rete | |
+| `js/10-pwa.js` | Aggiornamenti, installazione, preparazione offline e mappe | |
 | `js/11-altro.js` | Scheda Altro e menu dei livelli | |
 | `js/12-bussola.js` | Bussola (nord e mappa orientata secondo la direzione) e freccia rossa verso la specie più vicina | |
 | `js/14-fonti.js` | **Ricerca e fonti**: studi (OpenAlex), foto storiche (Wikimedia Commons, Panoramax), canti (Xeno-canto), diario delle stagioni, biblioteca delle fonti, macchina del tempo (Esri Wayback), livelli WMS/XYZ tuoi, confronto con Natura 2000 | aggiungere una fonte o una scheda di ricerca |
@@ -86,15 +86,37 @@ L'app è divisa in moduli: ogni parte sta in un file separato, così una modific
 
 ## 3. Installare sul telefono
 
-1. Apri l'indirizzo con **Chrome**.
-2. Vai su **Altro → App: aggiornamento e installazione → ⬇️ Installa tutto**. Questo pulsante:
-   - aggiunge l'icona alla schermata Home;
-   - salva l'app nel telefono;
-   - scarica le mappe dell'area del lago, se confermi (conviene il Wi-Fi).
-3. Se il browser non mostra la richiesta di installazione, usa il menu **⋮** di Chrome e scegli **Installa app**.
-4. Dal pulsante 🔔 sulla mappa scarica una volta l'**archivio della zona** per gli avvisi «Vicino a te».
+1. Prima di sostituire la versione precedente, crea un **Backup completo** in Altro → Esporta e importa.
+2. Estrai tutti i file di questo ZIP nella stessa cartella della versione precedente, oppure pubblicali nello stesso sito. Mantieni indirizzo, porta e browser: i dati del browser dipendono dall’origine. Non disinstallare la vecchia app e non cancellare i dati del sito.
+3. Apri esplicitamente `index.html` tramite HTTPS oppure localhost (anche 127.0.0.1). Ricarica la pagina e verifica **Versione 5.3.1** in Altro → Installazione e aggiornamenti. Non installare partendo dal solo indirizzo della cartella.
+4. **Installa sulla Home** chiede al browser di aggiungere l’icona. Se non compare la richiesta: menu di Chrome → Installa app / Aggiungi a schermata Home; su Safari iPhone: Condividi → Aggiungi a Home.
+5. **Prepara app offline** salva i file dell’app e attiva il servizio offline. In caso di errore viene indicato il singolo file: niente messaggio di completamento se ne manca uno.
+6. **Mappe senza rete**: seleziona le carte e lo zoom desiderati, poi Scarica mappe selezionate. Il conteggio generale include tessere di tutti i luoghi; non certifica la copertura completa. Le mappe di altri luoghi già salvate rimangono disponibili.
+7. Prima dell’uscita, chiudi e riapri la pagina in modalità aereo e controlla le carte nell’area e agli zoom desiderati. Le funzioni di ricerca, AI e Pl@ntNet richiedono la rete.
 
-Da quel momento l'app si apre anche senza rete.
+Il pulsante Aggiorna verifica solo i file all’indirizzo corrente. Se usi un server locale sul telefono, prima sostituisci i file nella cartella servita con quelli dello ZIP nuovo. Non scarica autonomamente gli allegati della chat.
+
+Se l’icona mostra `FORBIDDEN: No directory listing`, la vecchia installazione sta aprendo la cartella anziché `index.html`. Apri da Chrome l’indirizzo completo che termina con `/index.html`, prepara l’app offline, elimina la vecchia icona/app installata e installala nuovamente da quella pagina. La v5.3.1 imposta `index.html` come pagina di avvio.
+
+Pl@ntNet: la chiave viene verificata tramite `/v2/quota/daily` e la disponibilità si legge da `quota.identify.remaining`. Un 403 significa accesso negato: controlla chiave, stato dell’account e restrizioni sui domini/IP. Un errore di rete non dimostra che la chiave sia sbagliata. La chiave personale non è inclusa nello ZIP.
+
+Fonti tecniche: [quota Pl@ntNet](https://my.plantnet.org/doc/api/quota), [account e restrizioni](https://my.plantnet.org/doc/api/contract), [policy tessere OpenStreetMap](https://operations.osmfoundation.org/policies/tiles/). Il server pubblico OSM non viene usato per il download anticipato; resta disponibile per consultare la mappa.
+
+Verifica di questa versione: sintassi dei 33 file JavaScript; avvio e rendering DOM dell’app con IndexedDB simulato; salvataggio file, 403 parziale, quota API e conteggi mappe con risposte simulate; log mantenuto navigando tra schede. Service worker verificato in simulazione: navigazione offline con query, richieste di aggiornamento dirette alla rete e conservazione della cache precedente quando un file manca. Il test su browser reale Android e con chiavi personali rimane da fare: il browser di test non è disponibile in questo ambiente.
+
+### Verifica e riparazione delle mappe (v5.3)
+
+Controlli v5.3 con servizi e memoria simulati: verifica senza chiamate di rete; distinzione per area e zoom; riconoscimento di risposte XML salvate come tessere; riparazione delle sole lacune; conservazione dei file validi; seconda riparazione senza richieste aggiuntive; gestione del 403 e verifica interrotta.
+
+In **Altro → Mappe senza rete** seleziona le carte e lo zoom massimo, quindi:
+
+- **Verifica copertura**: controlla solo i file locali, anche senza rete. Mostra il luogo, l’area e le tessere presenti/attese. Apri ogni carta per vedere i risultati per zoom. Una risposta salvata che non sia un’immagine valida secondo lo stato HTTP e il tipo di contenuto viene considerata da riparare; la verifica non decodifica né certifica il contenuto cartografico dell’immagine.
+- **Ripara mancanti**: richiede una verifica della selezione corrente; ricontrolla la memoria e scarica solo le tessere mancanti o non valide, conservando le altre. Se un servizio rifiuta la prima richiesta, passa alla carta successiva. Alla fine verifica nuovamente i file e segnala eventuali lacune.
+- **Interrompi**: ferma le richieste in corso; le tessere già salvate rimangono. Ripeti la verifica per conoscere la copertura dopo un’interruzione.
+
+La selezione e i rapporti rimangono nella sessione, distinti per luogo, area, livelli e zoom. Una modifica della selezione richiede una nuova verifica, salvo esista già un rapporto per la stessa selezione. I rapporti hanno data e ora: altre schede del browser o la cancellazione della memoria possono renderli superati. La riparazione ricontrolla sempre la memoria prima di procedere.
+
+Il controllo riguarda l’area offline del luogo già definita dall’app, non tutto il territorio visibile sulla mappa. OpenStreetMap dal server pubblico resta escluso dal download anticipato. Per avere la mappa all’avvio senza rete serve anche **Prepara app offline**. Verifica le carte in modalità aereo prima dell’uscita.
 
 ## 4. Modificare e aggiornare
 

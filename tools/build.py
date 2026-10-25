@@ -28,8 +28,9 @@ if args: ver=args[0]
 lst=files()
 h=hashlib.sha1(ver.encode())
 for f in lst: h.update(f.encode()); h.update(open(os.path.join(ROOT,f),'rb').read())
+h.update(open(os.path.join(ROOT,'sw.js'),'rb').read())
 build=h.hexdigest()[:8]
-assets=['./']+lst+['js/version.js']
+assets=lst+['js/version.js']
 js=("/* Generato da tools/build.py: non modificare a mano (tranne VERSION, se vuoi). */\n"
     "var VERSION='%s';\nvar BUILD='%s';\nvar ASSETS=[\n%s\n];\n")%(ver,build,',\n'.join("  '%s'"%a for a in assets))
 open(vf,'w',encoding='utf-8',newline='\n').write(js)

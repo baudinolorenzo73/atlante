@@ -1,8 +1,7 @@
 /* Generato da tools/build.py: non modificare a mano (tranne VERSION, se vuoi). */
-var VERSION='5.1';
-var BUILD='f78f9832';
+var VERSION='5.3.1';
+var BUILD='4deca7c5';
 var ASSETS=[
-  './',
   'index.html',
   'manifest.webmanifest',
   'css/app.css',

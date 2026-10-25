@@ -101,7 +101,7 @@ function openNear(){
   h+='<label class="l">Come avvisarmi</label><div class="row">'+[['vib','vibrazione'],['snd','suono'],['voice','voce che legge il nome'],['notif','notifica di sistema']].map(function(g){return '<label><input type="checkbox" data-nf="'+g[0]+'" '+(n[g[0]]?'checked':'')+'> '+g[1]+'</label>'}).join('')+'</div>';
   h+='<label class="l">Quando</label><div class="row">'+[['zone','solo nella zona dei Laghi di Avigliana'],['awake','tieni lo schermo acceso']].map(function(g){return '<label><input type="checkbox" data-nf="'+g[0]+'" '+(n[g[0]]?'checked':'')+'> '+g[1]+'</label>'}).join('')+'</div>';
   h+='<div class="row" style="margin-top:8px"><button class="btn s" id="nTest">Prova l\'avviso</button></div>';
-  h+='<p class="mut">Ogni cosa viene segnalata una volta; si riattiva quando te ne allontani oltre il doppio del raggio. Il browser legge il GPS solo con l\'app aperta: per questo conviene «tieni lo schermo acceso». La notifica di sistema serve se passi un attimo a un\'altra app e richiede «Installa tutto» (file sw.js).</p></div>';
+  h+='<p class="mut">Ogni cosa viene segnalata una volta; si riattiva quando te ne allontani oltre il doppio del raggio. Il browser legge il GPS solo con l\'app aperta: per questo conviene «tieni lo schermo acceso». La notifica di sistema serve se passi un attimo a un\'altra app e richiede «Prepara app offline» (file sw.js).</p></div>';
   openModal('Vicino a te',h,[]);
   $('#nOn').onclick=function(){nearSet(!n.on);openNear()};
   $('#nPack').onclick=downloadPack;
